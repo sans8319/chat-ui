@@ -1,12 +1,16 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+// Paths ko update karo:
+import { SidebarComponent } from './components/sidebar/sidebar';
+import { ChatWindowComponent } from './components/chat-window/chat-window';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  standalone: true,
+  imports: [RouterOutlet, SidebarComponent, ChatWindowComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
 export class App {
-  protected readonly title = signal('chat-ui');
+  title = 'chat-ui';
 }

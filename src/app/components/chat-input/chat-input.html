@@ -1,0 +1,13 @@
+<div class="input-container">
+  <div class="input-wrapper">
+    <input 
+      type="text" 
+      [(ngModel)]="messageText" 
+      (keyup.enter)="sendMessage()"
+      placeholder="Type a premium message..." />
+    
+    <button class="send-btn" (click)="sendMessage()">
+      Send
+    </button>
+  </div>
+</div>

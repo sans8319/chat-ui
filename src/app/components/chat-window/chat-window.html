@@ -1,0 +1,25 @@
+<div class="chat-viewport">
+  <header class="chat-header">
+    <div class="user-info">
+      <div class="avatar-sm">S</div>
+      <div class="details">
+        <h3>Sanskriti</h3>
+        <span class="status-indicator">
+          <span class="dot"></span> Online
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <div class="messages-container">
+    <div *ngFor="let msg of messages" 
+     [ngClass]="msg?.sender?.username === currentUser ? 'message-wrapper sent' : 'message-wrapper received'">
+  <div class="bubble">
+    {{ msg.content }}
+  </div>
+  <span class="timestamp">12:45 PM</span>
+</div>
+  </div>
+
+  <app-chat-input></app-chat-input>
+</div>

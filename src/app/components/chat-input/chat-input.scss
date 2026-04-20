@@ -1,0 +1,36 @@
+.input-container {
+  padding: 20px 24px;
+  background: white;
+  border-top: 1px solid #e2e8f0;
+
+  .input-wrapper {
+    display: flex;
+    align-items: center;
+    background: #f1f5f9;
+    border-radius: 12px;
+    padding: 8px 16px;
+    gap: 12px;
+
+    input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 14px;
+      color: #1e293b;
+    }
+
+    .send-btn {
+      background: #6366f1;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: 0.2s;
+      &:hover { background: #4f46e5; }
+    }
+  }
+}
