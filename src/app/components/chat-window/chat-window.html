@@ -1,32 +1,47 @@
-<div class="chat-viewport">
-  <header class="chat-header">
-    <div class="user-info">
-      <div class="avatar-sm">S</div>
-      <div class="details">
-        <h3>Sanskriti</h3>
-        <span class="status-indicator">
-          <span class="dot"></span> Online
-        </span>
-      </div>
-    </div>
-  </header>
+<div class="main-layout">
+  <app-sidebar></app-sidebar>
 
-  <div class="messages-container" (scroll)="onScroll($event)">
-    <div *ngFor="let msg of messages" 
-         [ngClass]="msg?.sender?.username === currentUser ? 'message-wrapper sent' : 'message-wrapper received'">
-      <div class="bubble">
-        {{ msg.content }}
+  <div class="chat-viewport">
+    
+    <ng-container *ngIf="selectedUser">
+      <header class="chat-header">
+        <div class="user-info">
+          <div class="avatar-sm">{{ selectedUser.username.charAt(0).toUpperCase() }}</div>
+          <div class="details">
+            <h3>{{ selectedUser.username }}</h3>
+            <span class="status-indicator">
+              <span class="dot" [style.background]="selectedUser.online ? '#22c55e' : '#94a3b8'"></span> 
+              {{ selectedUser.online ? 'Online' : 'Offline' }}
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <div class="messages-container" (scroll)="onScroll($event)">
+        <div *ngFor="let msg of messages" 
+             [ngClass]="msg?.sender?.username === currentUser ? 'message-wrapper sent' : 'message-wrapper received'">
+          <div class="bubble">
+            {{ msg.content }}
+          </div>
+          <span class="timestamp">12:45 PM</span>
+        </div>
       </div>
-      <span class="timestamp">12:45 PM</span>
+
+      <button class="scroll-down-btn" *ngIf="!isUserAtBottom" (click)="scrollToBottom()">
+        <span class="badge" *ngIf="newMessagesCount > 0">{{ newMessagesCount }}</span>
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <path fill="currentColor" d="M12 16L6 10H18L12 16Z"/>
+        </svg>
+      </button>
+
+      <app-chat-input></app-chat-input>
+    </ng-container>
+
+    <div class="no-chat-selected" *ngIf="!selectedUser" 
+         style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; background: #f8fafc;">
+      <div style="font-size: 50px; margin-bottom: 10px;">💬</div>
+      <p style="font-weight: 500;">Select a user from sidebar to start chatting 🚀</p>
     </div>
+
   </div>
-
-  <button class="scroll-down-btn" *ngIf="!isUserAtBottom" (click)="scrollToBottom()">
-    <span class="badge" *ngIf="newMessagesCount > 0">{{ newMessagesCount }}</span>
-    <svg viewBox="0 0 24 24" width="24" height="24">
-      <path fill="currentColor" d="M12 16L6 10H18L12 16Z"/>
-    </svg>
-  </button>
-
-  <app-chat-input></app-chat-input>
 </div>

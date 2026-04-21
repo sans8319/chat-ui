@@ -1,9 +1,30 @@
+// NAYA: Wrapper for side-by-side layout
+.main-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+// NAYA: Sidebar ko left mein fix width dena
+app-sidebar {
+  width: 350px;
+  min-width: 350px;
+  height: 100%;
+  border-right: 1px solid #e2e8f0;
+  background: white;
+  z-index: 20;
+}
+
+// UPDATED: Chat Viewport bachi hui jagah (flex: 1) lega
 .chat-viewport {
+  flex: 1; // Take remaining space right of sidebar
   height: 100%;
   display: flex;
   flex-direction: column;
   background: #f8fafc; 
-  position: relative; // Naya: Taaki Floating Button iske andar fix rahe
+  position: relative; 
 
   .chat-header {
     padding: 16px 24px;
@@ -69,15 +90,15 @@
     &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
   }
 
-// UPDATED: Center Floating Button with Black Theme
+  // Center Floating Button with Black Theme
   .scroll-down-btn {
     position: absolute;
     bottom: 90px;
-    left: 50%; // Center alignment logic
-    transform: translateX(-50%); // Perfect centering
+    left: 50%;
+    transform: translateX(-50%); 
     padding: 8px 16px;
     border-radius: 20px;
-    background: #f4f5f8; // Sleek Black/Dark Slate
+    background: #f4f5f8; 
     border: none;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     cursor: pointer;
@@ -93,7 +114,6 @@
       transform: translateX(-50%) translateY(-2px); 
     }
 
-    // Down Arrow
     svg {
       width: 18px;
       height: 18px;

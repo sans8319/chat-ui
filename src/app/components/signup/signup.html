@@ -1,0 +1,41 @@
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="brand">
+      <div class="logo">S</div>
+      <h1>ChatService</h1>
+    </div>
+    
+    <div class="header-text">
+      <h2>Create Account</h2>
+      <p>Join our community and start chatting</p>
+    </div>
+
+    <form (submit)="onSignup()" class="auth-form">
+      <div class="input-group">
+        <label>Username</label>
+        <input type="text" [(ngModel)]="signupData.username" name="username" placeholder="Choose a username" required>
+      </div>
+
+      <div class="input-group">
+        <label>Email Address</label>
+        <input type="email" [(ngModel)]="signupData.email" name="email" placeholder="name@company.com" required>
+      </div>
+
+      <div class="input-group">
+        <label>Password</label>
+        <input type="password" [(ngModel)]="signupData.password" name="password" placeholder="Min. 8 characters" required>
+      </div>
+
+      <div *ngIf="successMessage" class="success-msg">{{ successMessage }}</div>
+
+      <button type="submit" [disabled]="isLoading" class="primary-btn">
+        <span *ngIf="!isLoading">Create Account</span>
+        <div *ngIf="isLoading" class="loader"></div>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+  <p>Already have an account? <a routerLink="/login">Sign In</a></p>
+</div>
+  </div>
+</div>

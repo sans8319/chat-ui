@@ -1,14 +1,17 @@
-import { ApplicationConfig } from '@angular/core';
-import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http'; // Backend API calls ke liye zaroori hai
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
-
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
 import { routes } from './app.routes';
+import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import { provideHttpClient, withFetch } from '@angular/common/http';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes),
-    provideHttpClient(), // Isse HttpClient activate ho jayega
+    // Change detection ko optimize kiya gaya hai
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    // ViewTransitions se page switch hote waqt white flash nahi aayega
+    provideRouter(routes, withComponentInputBinding(), withViewTransitions()),
+    // withFetch() modern browser support aur speed ke liye hai
+    provideHttpClient(withFetch()), 
     provideClientHydration(withEventReplay())
   ]
 };

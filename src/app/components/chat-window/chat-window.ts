@@ -1,18 +1,20 @@
 import { Component, OnInit, Inject, PLATFORM_ID, NgZone, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common'; 
 import { ChatInputComponent } from '../chat-input/chat-input';
+import { SidebarComponent } from '../sidebar/sidebar';
 import { ChatService } from '../../services/chat';
 
 @Component({
   selector: 'app-chat-window',
   standalone: true,
-  imports: [CommonModule, ChatInputComponent],
+  imports: [CommonModule, ChatInputComponent, SidebarComponent],
   templateUrl: './chat-window.html',
   styleUrl: './chat-window.scss'
 })
 export class ChatWindowComponent implements OnInit {
   messages: any[] = [];
   currentUser = 'sanskriti';
+  selectedUser: any = null;
   isUserAtBottom = true; // Track user position
   newMessagesCount = 0;   // Badge counter
 
@@ -24,6 +26,17 @@ export class ChatWindowComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.currentUser = localStorage.getItem('username') || 'sanskriti';
+    }
+
+    // Selected user ka data listen karo
+    this.chatService.selectedUser$.subscribe(user => {
+      this.selectedUser = user;
+      if (user) {
+        this.messages = []; // Optional: Naye user par chat clear karne ke liye
+      }
+    });
     this.chatService.getMessages().subscribe(msg => {
       if (msg) {
         this.ngZone.run(() => {

@@ -1,15 +1,12 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-// Paths ko update karo:
-import { SidebarComponent } from './components/sidebar/sidebar';
-import { ChatWindowComponent } from './components/chat-window/chat-window';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, SidebarComponent, ChatWindowComponent],
-  templateUrl: './app.html',
-  styleUrl: './app.scss'
+  imports: [RouterOutlet], // <-- Ye add karna hai
+  templateUrl: './app.html', // Aapke file ka naam app.html hai
+  styleUrl: './app.scss'     // Aapke file ka naam app.scss hai
 })
 export class App {
   title = 'chat-ui';

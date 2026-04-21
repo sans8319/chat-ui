@@ -9,7 +9,12 @@ import { BehaviorSubject, Observable } from 'rxjs';
 export class ChatService {
   private stompClient: Client | null = null;
   private messageSubject = new BehaviorSubject<any>(null);
+  private selectedUserSource = new BehaviorSubject<any>(null); // Naya Subject
+  selectedUser$ = this.selectedUserSource.asObservable();     // Naya Observable
 
+  selectUser(user: any) {
+    this.selectedUserSource.next(user);
+  }
   constructor() {
     this.initConnection();
   }
