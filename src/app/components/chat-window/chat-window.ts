@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID, NgZone, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common'; 
 import { ChatInputComponent } from '../chat-input/chat-input';
 import { ChatService } from '../../services/chat';
@@ -12,32 +12,56 @@ import { ChatService } from '../../services/chat';
 })
 export class ChatWindowComponent implements OnInit {
   messages: any[] = [];
-  currentUser = 'sanskriti'; 
+  currentUser = 'sanskriti';
+  isUserAtBottom = true; // Track user position
+  newMessagesCount = 0;   // Badge counter
 
   constructor(
     private chatService: ChatService,
-    @Inject(PLATFORM_ID) private platformId: Object // SSR crash se bachne ke liye
+    private ngZone: NgZone,
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit() {
     this.chatService.getMessages().subscribe(msg => {
       if (msg) {
-        // Spread operator use karna best practice hai UI refresh ke liye
-        this.messages = [...this.messages, msg];
-        this.scrollToBottom();
+        this.ngZone.run(() => {
+          this.messages = [...this.messages, msg];
+          
+          if (this.isUserAtBottom) {
+            // Agar user niche hai, toh automatic scroll karo
+            setTimeout(() => this.scrollToBottom(), 100);
+          } else {
+            // Agar user upar hai, toh counter badhao
+            this.newMessagesCount++;
+          }
+          this.cdr.detectChanges();
+        });
       }
     });
   }
 
-  private scrollToBottom() {
-    // Ye check karega ki code browser mein chal raha hai ya server pe
+  // Scroll event listener jo HTML se call hoga
+  onScroll(event: any) {
+    const element = event.target;
+    const threshold = 100; // kitna gap allowed hai bottom se
+    // Check if user is near bottom
+    this.isUserAtBottom = element.scrollHeight - element.scrollTop - element.clientHeight < threshold;
+    
+    if (this.isUserAtBottom) {
+      this.newMessagesCount = 0; // Agar user niche aa gaya, badge reset kar do
+    }
+  }
+
+  scrollToBottom() {
     if (isPlatformBrowser(this.platformId)) {
-      setTimeout(() => {
-        const container = document.querySelector('.messages-container');
-        if (container) {
-          container.scrollTop = container.scrollHeight;
-        }
-      }, 100);
+      const container = document.querySelector('.messages-container');
+      if (container) {
+        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+        this.newMessagesCount = 0;
+        this.isUserAtBottom = true;
+      }
     }
   }
 }

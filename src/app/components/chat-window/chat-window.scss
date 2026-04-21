@@ -2,7 +2,8 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #f8fafc; // Premium light background
+  background: #f8fafc; 
+  position: relative; // Naya: Taaki Floating Button iske andar fix rahe
 
   .chat-header {
     padding: 16px 24px;
@@ -60,14 +61,54 @@
     flex-direction: column;
     gap: 16px;
     scroll-behavior: smooth;
-    // Premium Dot Pattern Background
     background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
     background-size: 20px 20px;
 
-    // Custom Scrollbar
     &::-webkit-scrollbar { width: 6px; }
     &::-webkit-scrollbar-track { background: transparent; }
     &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+  }
+
+// UPDATED: Center Floating Button with Black Theme
+  .scroll-down-btn {
+    position: absolute;
+    bottom: 90px;
+    left: 50%; // Center alignment logic
+    transform: translateX(-50%); // Perfect centering
+    padding: 8px 16px;
+    border-radius: 20px;
+    background: #f4f5f8; // Sleek Black/Dark Slate
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgb(18, 17, 17);
+    z-index: 50;
+    transition: all 0.3s ease;
+
+    &:hover { 
+      background: #f4f5f8;
+      transform: translateX(-50%) translateY(-2px); 
+    }
+
+    // Down Arrow
+    svg {
+      width: 18px;
+      height: 18px;
+      fill: white;
+    }
+
+    .badge {
+      background: #ef4444;
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-left: 4px;
+    }
   }
 }
 
@@ -80,7 +121,7 @@
   &.sent {
     align-self: flex-end;
     .bubble {
-      background: #6366f1; // Indigo Theme
+      background: #6366f1;
       color: white;
       border-radius: 18px 18px 4px 18px;
       box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);

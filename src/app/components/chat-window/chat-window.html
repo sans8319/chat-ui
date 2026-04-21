@@ -11,15 +11,22 @@
     </div>
   </header>
 
-  <div class="messages-container">
+  <div class="messages-container" (scroll)="onScroll($event)">
     <div *ngFor="let msg of messages" 
-     [ngClass]="msg?.sender?.username === currentUser ? 'message-wrapper sent' : 'message-wrapper received'">
-  <div class="bubble">
-    {{ msg.content }}
+         [ngClass]="msg?.sender?.username === currentUser ? 'message-wrapper sent' : 'message-wrapper received'">
+      <div class="bubble">
+        {{ msg.content }}
+      </div>
+      <span class="timestamp">12:45 PM</span>
+    </div>
   </div>
-  <span class="timestamp">12:45 PM</span>
-</div>
-  </div>
+
+  <button class="scroll-down-btn" *ngIf="!isUserAtBottom" (click)="scrollToBottom()">
+    <span class="badge" *ngIf="newMessagesCount > 0">{{ newMessagesCount }}</span>
+    <svg viewBox="0 0 24 24" width="24" height="24">
+      <path fill="currentColor" d="M12 16L6 10H18L12 16Z"/>
+    </svg>
+  </button>
 
   <app-chat-input></app-chat-input>
 </div>

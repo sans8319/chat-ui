@@ -9,18 +9,27 @@
   </div>
 
   <div class="chat-list">
-    <div class="chat-item active">
+    <div class="chat-item" 
+         *ngFor="let user of users" 
+         [class.active]="user.id === activeUserId"
+         (click)="selectUser(user)">
+      
       <div class="avatar-wrapper">
-        <div class="avatar">S</div>
+        <div class="avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
         <div class="online-status"></div>
       </div>
+
       <div class="chat-info">
         <div class="name-row">
-          <span class="chat-name">Sanskriti</span>
+          <span class="chat-name">{{ user.username }}</span>
           <span class="time">12:45 PM</span>
         </div>
-        <p class="last-message">Project is looking great! 🚀</p>
+        <p class="last-message">Click to start chatting... 🚀</p>
       </div>
+    </div>
+
+    <div *ngIf="users.length === 0" class="no-users-msg" style="padding: 20px; text-align: center; color: #94a3b8;">
+      No users online.
     </div>
   </div>
 </div>
