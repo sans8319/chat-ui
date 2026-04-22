@@ -1,9 +1,9 @@
-import { Component, OnInit, Inject, PLATFORM_ID, NgZone, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, NgZone, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common'; 
 import { ChatInputComponent } from '../chat-input/chat-input';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { ChatService } from '../../services/chat';
-import { Subscription } from 'rxjs'; // NAYA IMPORT
+import { Subscription } from 'rxjs'; 
 
 @Component({
   selector: 'app-chat-window',
@@ -12,15 +12,15 @@ import { Subscription } from 'rxjs'; // NAYA IMPORT
   templateUrl: './chat-window.html',
   styleUrl: './chat-window.scss'
 })
-export class ChatWindowComponent implements OnInit {
+export class ChatWindowComponent implements OnInit, OnDestroy {
   messages: any[] = [];
   currentUser = 'sanskriti';
   currentUserId: number | null = null;
   selectedUser: any = null;
-  currentRoomId: string | null = null; // NAYA: Room tracking
+  currentRoomId: string | null = null; 
   isUserAtBottom = true; 
   newMessagesCount = 0;   
-  private roomSubscription: Subscription | null = null; // Subscription track karne ke liye
+  private roomSubscription: Subscription | null = null; 
 
   constructor(
     private chatService: ChatService,
@@ -36,12 +36,12 @@ export class ChatWindowComponent implements OnInit {
     }
 
     // Sidebar se user select hone par dynamic room dhoondo
-   this.chatService.selectedUser$.subscribe(user => {
+    this.chatService.selectedUser$.subscribe(user => {
       if (user && this.currentUserId) {
         this.selectedUser = user;
-        this.messages = [];
+        this.messages = []; // Pehle screen clean karo
         
-        // NAYA: Purane room se pehle disconnect karein
+        // Purane room se pehle disconnect karein
         if (this.currentRoomId) {
           console.log('Cleaning up room:', this.currentRoomId);
         }
@@ -49,9 +49,19 @@ export class ChatWindowComponent implements OnInit {
         this.chatService.getOrCreateRoom(this.currentUserId, user.id).subscribe(room => {
           if (room && room.id) {
             this.currentRoomId = room.id.toString();
-            // NAYA: Fresh subscription
+            
+            // 1. Fresh WebSocket subscription
             this.chatService.subscribeToRoom(this.currentRoomId!);
-            this.cdr.detectChanges();
+            
+            // 2. NAYA LOGIC: Chat History Load Karo
+            this.chatService.getChatHistory(this.currentRoomId!).subscribe(history => {
+              this.messages = history; // DB se aayi history set karo
+              
+              // Load hote hi scroll niche le jao taaki latest message dikhe
+              setTimeout(() => this.scrollToBottom(), 100);
+              this.cdr.detectChanges();
+            });
+            
           }
         });
       } else {
@@ -60,6 +70,7 @@ export class ChatWindowComponent implements OnInit {
       }
     });
 
+    // Naye messages aane par handle karo
     this.chatService.getMessages().subscribe(msg => {
       if (msg) {
         this.ngZone.run(() => {
@@ -85,6 +96,7 @@ export class ChatWindowComponent implements OnInit {
       }
     });
 
+    // Ticks (Receipts) update karo
     this.chatService.getReceipts().subscribe(receipt => {
       if (receipt) {
         this.ngZone.run(() => {
@@ -107,6 +119,7 @@ export class ChatWindowComponent implements OnInit {
     // Component band hote hi sab clean up karein
     if (this.roomSubscription) this.roomSubscription.unsubscribe();
   }
+
   onScroll(event: any) {
     const element = event.target;
     this.isUserAtBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 100;

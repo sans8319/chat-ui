@@ -101,4 +101,14 @@ export class ChatService {
     return this.http.get(`http://localhost:8080/api/rooms/dm?user1=${user1Id}&user2=${user2Id}`, { headers });
   }
 
+  // --- NAYA LOGIC: Chat History Load Karne Ke Liye ---
+  getChatHistory(roomId: string): Observable<any[]> {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<any[]>(`http://localhost:8080/api/messages/${roomId}`, { headers });
+  }
+
 }
