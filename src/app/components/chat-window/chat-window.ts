@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, NgZone, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, NgZone, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common'; 
 import { ChatInputComponent } from '../chat-input/chat-input';
 import { SidebarComponent } from '../sidebar/sidebar';
@@ -29,66 +29,84 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
+  // Jab user wapas tab par aaye, toh unread messages check karo
+  @HostListener('window:focus')
+  onWindowFocus() {
+    if (isPlatformBrowser(this.platformId) && this.selectedUser) {
+      this.markMessagesAsSeen();
+    }
+  }
+
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.currentUser = localStorage.getItem('username') || 'sanskriti';
       this.currentUserId = Number(localStorage.getItem('userId'));
     }
 
-    // Sidebar se user select hone par dynamic room dhoondo
     this.chatService.selectedUser$.subscribe(user => {
       if (user && this.currentUserId) {
         this.selectedUser = user;
-        this.messages = []; // Pehle screen clean karo
+        this.messages = []; 
         
-        // Purane room se pehle disconnect karein
-        if (this.currentRoomId) {
-          console.log('Cleaning up room:', this.currentRoomId);
-        }
-
         this.chatService.getOrCreateRoom(this.currentUserId, user.id).subscribe(room => {
           if (room && room.id) {
             this.currentRoomId = room.id.toString();
-            
-            // 1. Fresh WebSocket subscription
             this.chatService.subscribeToRoom(this.currentRoomId!);
             
-            // 2. NAYA LOGIC: Chat History Load Karo
             this.chatService.getChatHistory(this.currentRoomId!).subscribe(history => {
-              this.messages = history; // DB se aayi history set karo
+              this.messages = history; 
               
-              // Load hote hi scroll niche le jao taaki latest message dikhe
-              setTimeout(() => this.scrollToBottom(), 100);
+              setTimeout(() => {
+                this.scrollToBottom();
+                // Chat khulte hi sab 'SEEN' mark karo
+                this.markMessagesAsSeen();
+              }, 100);
               this.cdr.detectChanges();
             });
-            
           }
         });
       } else {
         this.selectedUser = null;
         this.currentRoomId = null;
+        this.messages = [];
       }
     });
 
-    // Naye messages aane par handle karo
     this.chatService.getMessages().subscribe(msg => {
       if (msg) {
         this.ngZone.run(() => {
-          const index = this.messages.findIndex(m => m.id === msg.id);
-          if (index !== -1) {
-              this.messages[index] = msg;
-          } else {
-              this.messages = [...this.messages, msg];
-          }
+          const incomingRoomId = msg.roomId?.toString() || msg.chatRoom?.id?.toString();
           
-          // Receipt sirf tab bhejo jab hum us room mein hain
-          if (msg.senderId !== this.currentUserId && msg.id && this.currentRoomId) {
-              this.chatService.sendReceipt(this.currentRoomId, msg.id, 'DELIVERED');
+          if (incomingRoomId === this.currentRoomId) {
+            const index = this.messages.findIndex(m => m.id === msg.id);
+            if (index !== -1) {
+                this.messages[index] = msg;
+            } else {
+                this.messages = [...this.messages, msg];
+            }
+
+            // --- WHATSAPP MASTER LOGIC ---
+            // Agar message doosre ne bheja hai AUR ye chat window abhi open hai
+            if (msg.senderId !== this.currentUserId && msg.id) {
+                console.log("Real-time SEEN triggered for room:", incomingRoomId);
+                
+                // Bina mouse/keyboard ka wait kiye SEEN bhejo kyunki window OPEN hai
+                this.chatService.sendReceipt(incomingRoomId, msg.id, 'SEEN');
+                
+                // Local UI update
+                msg.seen = true;
+                msg.delivered = true;
+            }
+          } else {
+             // Agar chat open NAHI hai, toh sirf DELIVERED (Grey Ticks) bhejo
+             if (msg.senderId !== this.currentUserId && msg.id && incomingRoomId) {
+               this.chatService.sendReceipt(incomingRoomId, msg.id, 'DELIVERED');
+             }
           }
 
-          if (this.isUserAtBottom) {
+          if (this.isUserAtBottom && incomingRoomId === this.currentRoomId) {
             setTimeout(() => this.scrollToBottom(), 100);
-          } else {
+          } else if (incomingRoomId === this.currentRoomId) {
             this.newMessagesCount++;
           }
           this.cdr.detectChanges();
@@ -96,7 +114,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Ticks (Receipts) update karo
     this.chatService.getReceipts().subscribe(receipt => {
       if (receipt) {
         this.ngZone.run(() => {
@@ -114,9 +131,26 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
       }
     });
   }
- 
+
+  markMessagesAsSeen() {
+    if (!this.currentRoomId || !this.currentUserId) return;
+    
+    let needsUpdate = false;
+    this.messages.forEach(msg => {
+      if (msg.senderId !== this.currentUserId && !msg.seen) {
+        this.chatService.sendReceipt(this.currentRoomId!, msg.id, 'SEEN');
+        msg.seen = true;
+        msg.delivered = true;
+        needsUpdate = true;
+      }
+    });
+    
+    if (needsUpdate) {
+      this.cdr.detectChanges();
+    }
+  }
+
   ngOnDestroy() {
-    // Component band hote hi sab clean up karein
     if (this.roomSubscription) this.roomSubscription.unsubscribe();
   }
 
