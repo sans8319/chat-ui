@@ -9,12 +9,15 @@ import { BehaviorSubject, Observable } from 'rxjs';
 export class ChatService {
   private stompClient: Client | null = null;
   private messageSubject = new BehaviorSubject<any>(null);
-  private selectedUserSource = new BehaviorSubject<any>(null); // Naya Subject
-  selectedUser$ = this.selectedUserSource.asObservable();     // Naya Observable
+  private receiptSubject = new BehaviorSubject<any>(null); // Receipts ke liye
+  
+  private selectedUserSource = new BehaviorSubject<any>(null); 
+  selectedUser$ = this.selectedUserSource.asObservable();     
 
   selectUser(user: any) {
     this.selectedUserSource.next(user);
   }
+
   constructor() {
     this.initConnection();
   }
@@ -39,24 +42,47 @@ export class ChatService {
   }
 
   subscribeToRoom(roomId: string) {
+    // 1. Regular messages sunne ke liye
     this.stompClient?.subscribe(`/topic/room/${roomId}`, (message: Message) => {
       if (message.body) {
         this.messageSubject.next(JSON.parse(message.body));
       }
     });
+
+    // 2. NAYA LOGIC: Ticks (Receipts) sunne ke liye
+    this.stompClient?.subscribe(`/topic/room/${roomId}/receipts`, (message: Message) => {
+      if (message.body) {
+        this.receiptSubject.next(JSON.parse(message.body));
+      }
+    });
   }
 
   sendMessage(roomId: string, messageContent: any) {
-  console.log('Sending message...', this.stompClient?.connected); // Ye check karega
-  if (this.stompClient && this.stompClient.connected) {
-    this.stompClient.publish({
-      destination: '/app/chat.sendMessage',
-      body: JSON.stringify(messageContent)
-    });
-  } else {
-    console.error('STOMP client not connected!');
+    console.log('Sending message...', this.stompClient?.connected); 
+    if (this.stompClient && this.stompClient.connected) {
+      this.stompClient.publish({
+        destination: '/app/chat.sendMessage',
+        body: JSON.stringify(messageContent)
+      });
+    } else {
+      console.error('STOMP client not connected!');
+    }
   }
-}
+
+  // --- NAYA LOGIC: Ticks ka data UI ko dene ke liye ---
+  getReceipts(): Observable<any> {
+    return this.receiptSubject.asObservable();
+  }
+
+  // --- NAYA LOGIC: Backend ko batane ke liye ki message pahunch gaya ---
+  sendReceipt(roomId: string, messageId: number, status: string) {
+    if (this.stompClient && this.stompClient.connected) {
+      this.stompClient.publish({
+        destination: '/app/chat.receipt',
+        body: JSON.stringify({ messageId, status, roomId })
+      });
+    }
+  }
 
   getMessages(): Observable<any> {
     return this.messageSubject.asObservable();

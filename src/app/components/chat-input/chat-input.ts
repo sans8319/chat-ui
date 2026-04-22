@@ -16,10 +16,11 @@ export class ChatInputComponent {
 
   sendMessage() {
     if (this.messageText.trim()) {
+      const currentUserId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
       const messagePayload = {
         content: this.messageText,
-        sender: { username: 'sanskriti' }, // Hardcoded for now
-        chatRoom: { id: "1" } // Static testing room
+        sender: { id: Number(currentUserId) },// Hardcoded for now
+        chatRoom: { id: 1 }
       };
 
       this.chatService.sendMessage('1', messagePayload);

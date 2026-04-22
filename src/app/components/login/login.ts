@@ -25,6 +25,7 @@ export class LoginComponent {
         // Token aur User info save karna
         localStorage.setItem('token', res.token);
         localStorage.setItem('username', this.loginData.username);
+        localStorage.setItem('userId', res.id);
         this.router.navigate(['/chat']);
       },
       error: (err) => {
