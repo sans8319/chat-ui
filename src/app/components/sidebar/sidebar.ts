@@ -29,7 +29,7 @@ export class SidebarComponent implements OnInit {
 
     this.loadUsers();
 
-    // Live update listener
+    // Live update listener - Yeh sirf tab kaam karega jab WebSocket active ho
     this.chatService.sidebarUpdate$.subscribe(msg => {
       if (msg) {
         this.updateSidebarUI(msg);
@@ -46,7 +46,7 @@ export class SidebarComponent implements OnInit {
     const userIndex = this.users.findIndex(u => Number(u.id) === partnerId);
 
     if (userIndex !== -1) {
-      // Live Unread Count
+      // Counter: Agar chat open nahi hai, toh badhao
       if (msgSenderId !== currentId && partnerId !== activePartnerId) {
         this.users[userIndex].unreadCount = (this.users[userIndex].unreadCount || 0) + 1;
       }
@@ -59,6 +59,7 @@ export class SidebarComponent implements OnInit {
       }
       this.users[userIndex].lastMessageTime = validTime || new Date().toISOString();
 
+      // User ko top par lao
       const updatedUser = { ...this.users[userIndex] };
       const remainingUsers = this.users.filter(u => Number(u.id) !== partnerId);
       this.users = [updatedUser, ...remainingUsers];
@@ -80,15 +81,14 @@ export class SidebarComponent implements OnInit {
       'Authorization': `Bearer ${token}`
     });
 
-    // 1. Pehle users mangwao
     this.http.get<any[]>('http://localhost:8080/api/users', { headers }).subscribe({
       next: (data) => {
         this.users = data.filter(user => user.username !== loggedInUser);
         
-        // // --- NAYA LOGIC: App open hote hi purani history se Data Hydrate karo ---
-        // this.users.forEach(user => {
-        //   this.hydrateOfflineData(user);
-        // });
+        // --- SAFE SYNC: Sirf data load karo, subscription chhedne ki zaroorat nahi ---
+        this.users.forEach(user => {
+          this.syncUserStatus(user);
+        });
 
         this.cdr.detectChanges();
       },
@@ -96,54 +96,44 @@ export class SidebarComponent implements OnInit {
     });
   }
 
-  // NAYA FUNCTION: Backend history check karke offline count nikalna
-  // hydrateOfflineData(user: any) {
-  //   if (!this.currentUserId) return;
+  syncUserStatus(user: any) {
+    if (!this.currentUserId) return;
 
-  //   // Room dhoondo
-  //   this.chatService.getOrCreateRoom(this.currentUserId, user.id).subscribe(room => {
-  //     if (room && room.id) {
-  //       // Us room ki history mangwao
-  //       this.chatService.getChatHistory(room.id.toString()).subscribe(history => {
-  //         if (history && history.length > 0) {
-            
-  //           // 1. Last Message aur Time set karo
-  //           const lastMsg = history[history.length - 1];
-  //           user.lastMessage = lastMsg.content;
+    this.chatService.getOrCreateRoom(this.currentUserId, user.id).subscribe(room => {
+      if (room && room.id) {
+        this.chatService.getChatHistory(room.id.toString()).subscribe(history => {
+          if (history && history.length > 0) {
+            const lastMsg = history[history.length - 1];
+            user.lastMessage = lastMsg.content;
 
-  //           let validTime = lastMsg.timestamp;
-  //           if (Array.isArray(lastMsg.timestamp)) {
-  //             validTime = new Date(lastMsg.timestamp[0], lastMsg.timestamp[1] - 1, lastMsg.timestamp[2], lastMsg.timestamp[3], lastMsg.timestamp[4]).toISOString();
-  //           }
-  //           user.lastMessageTime = validTime;
+            let validTime = lastMsg.timestamp;
+            if (Array.isArray(lastMsg.timestamp)) {
+              validTime = new Date(lastMsg.timestamp[0], lastMsg.timestamp[1] - 1, lastMsg.timestamp[2], lastMsg.timestamp[3], lastMsg.timestamp[4]).toISOString();
+            }
+            user.lastMessageTime = validTime;
 
-  //           // 2. Unread Count nikalo (Jo messages saamne wale ne bheje hain aur 'seen' = false hai)
-  //           const unreadCount = history.filter((m: any) => m.senderId !== this.currentUserId && !m.seen).length;
-  //           user.unreadCount = unreadCount;
-  //         } else {
-  //           user.unreadCount = 0;
-  //         }
+            // Database se unread count fetch karo
+            const unread = history.filter((m: any) => Number(m.senderId) !== Number(this.currentUserId) && !m.seen).length;
+            user.unreadCount = unread;
+          }
+          this.sortUsersByTime();
+          this.cdr.detectChanges();
+        });
+      }
+    });
+  }
 
-  //         // 3. User ko time ke hisaab se sort karo taaki naye messages upar aayen
-  //         this.sortUsersByTime();
-  //         this.cdr.detectChanges();
-  //       });
-  //     }
-  //   });
-  // }
-
-  // NAYA FUNCTION: Sidebar ko sort karne ke liye
-  // sortUsersByTime() {
-  //   this.users.sort((a, b) => {
-  //     const timeA = a.lastMessageTime ? new Date(a.lastMessageTime).getTime() : 0;
-  //     const timeB = b.lastMessageTime ? new Date(b.lastMessageTime).getTime() : 0;
-  //     return timeB - timeA; // Jo sabse naya hai wo Top par aayega
-  //   });
-  // }
+  sortUsersByTime() {
+    this.users.sort((a, b) => {
+      const timeA = a.lastMessageTime ? new Date(a.lastMessageTime).getTime() : 0;
+      const timeB = b.lastMessageTime ? new Date(b.lastMessageTime).getTime() : 0;
+      return timeB - timeA; 
+    });
+  }
 
   selectUser(user: any) {
     this.activeUserId = user.id;
-    user.unreadCount = 0; // Chat open karte hi count zero
+    user.unreadCount = 0; 
     this.chatService.selectUser(user);
     this.cdr.detectChanges();
   }

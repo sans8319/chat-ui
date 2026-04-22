@@ -124,4 +124,9 @@ export class ChatService {
 
     return this.http.get<any[]>(`http://localhost:8080/api/messages/${roomId}`, { headers });
   }
+
+  // chat.ts mein ye method add kijiye
+isSubscribed(roomId: string): boolean {
+  return this.activeRooms.has(roomId);
+}
 }
