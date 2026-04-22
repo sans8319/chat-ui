@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Client, Message } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -18,9 +19,9 @@ export class ChatService {
     this.selectedUserSource.next(user);
   }
 
-  constructor() {
-    this.initConnection();
-  }
+ constructor(private http: HttpClient) { // HttpClient inject karein
+  this.initConnection();
+}
 
   private initConnection() {
     const socket = new SockJS('http://localhost:8080/ws-chat');
@@ -87,4 +88,17 @@ export class ChatService {
   getMessages(): Observable<any> {
     return this.messageSubject.asObservable();
   }
+  getOrCreateRoom(user1Id: number, user2Id: number): Observable<any> {
+    // 1. LocalStorage se token nikalein
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+    
+    // 2. Token ko Authorization header mein daalein
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    // 3. Request ke saath headers bhi bhejein
+    return this.http.get(`http://localhost:8080/api/rooms/dm?user1=${user1Id}&user2=${user2Id}`, { headers });
+  }
+
 }

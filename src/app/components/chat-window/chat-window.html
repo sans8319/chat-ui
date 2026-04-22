@@ -47,7 +47,7 @@
         </svg>
       </button>
 
-      <app-chat-input></app-chat-input>
+      <app-chat-input [roomId]="currentRoomId"></app-chat-input>
     </ng-container>
 
     <div class="no-chat-selected" *ngIf="!selectedUser" 
