@@ -15,11 +15,18 @@ export class ChatService {
   private selectedUserSource = new BehaviorSubject<any>(null); 
   selectedUser$ = this.selectedUserSource.asObservable();     
 
+  // --- NAYA LOGIC: Sidebar Update Trigger ---
+  private sidebarUpdateSource = new BehaviorSubject<any>(null);
+  sidebarUpdate$ = this.sidebarUpdateSource.asObservable();
+
+  // NAYA: Duplicate subscriptions rokne ke liye ek Tracker (Set)
+  private activeRooms = new Set<string>();
+
   selectUser(user: any) {
     this.selectedUserSource.next(user);
   }
 
- constructor(private http: HttpClient) { // HttpClient inject karein
+ constructor(private http: HttpClient) { 
   this.initConnection();
 }
 
@@ -35,22 +42,35 @@ export class ChatService {
 
     this.stompClient.onConnect = (frame) => {
       console.log('Connected to WebSocket');
-      // Room ID abhi static rakhte hain testing ke liye
-      this.subscribeToRoom('1');
+      // Note: Room subscription ab dynamic handle hota hai chat-window se
     };
 
     this.stompClient.activate();
   }
 
   subscribeToRoom(roomId: string) {
+    // --- MASTER FIX FOR MULTIPLE COUNTS (1 -> 2 -> 4 BUG) ---
+    // Agar is room ka subscription pehle se active hai, toh wapas subscribe mat karo!
+    if (this.activeRooms.has(roomId)) {
+      return; 
+    }
+    
+    // Room ko 'Set' mein daal do taaki system ko yaad rahe
+    this.activeRooms.add(roomId);
+
     // 1. Regular messages sunne ke liye
     this.stompClient?.subscribe(`/topic/room/${roomId}`, (message: Message) => {
       if (message.body) {
-        this.messageSubject.next(JSON.parse(message.body));
+        const parsedMsg = JSON.parse(message.body);
+        
+        // --- NAYA LOGIC: Sidebar ko batayein ki naya message aaya hai ---
+        this.sidebarUpdateSource.next(parsedMsg);
+        
+        this.messageSubject.next(parsedMsg);
       }
     });
 
-    // 2. NAYA LOGIC: Ticks (Receipts) sunne ke liye
+    // 2. Ticks (Receipts) sunne ke liye
     this.stompClient?.subscribe(`/topic/room/${roomId}/receipts`, (message: Message) => {
       if (message.body) {
         this.receiptSubject.next(JSON.parse(message.body));
@@ -70,12 +90,10 @@ export class ChatService {
     }
   }
 
-  // --- NAYA LOGIC: Ticks ka data UI ko dene ke liye ---
   getReceipts(): Observable<any> {
     return this.receiptSubject.asObservable();
   }
 
-  // --- NAYA LOGIC: Backend ko batane ke liye ki message pahunch gaya ---
   sendReceipt(roomId: string, messageId: number, status: string) {
     if (this.stompClient && this.stompClient.connected) {
       this.stompClient.publish({
@@ -88,20 +106,16 @@ export class ChatService {
   getMessages(): Observable<any> {
     return this.messageSubject.asObservable();
   }
+
   getOrCreateRoom(user1Id: number, user2Id: number): Observable<any> {
-    // 1. LocalStorage se token nikalein
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
-    
-    // 2. Token ko Authorization header mein daalein
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`
     });
 
-    // 3. Request ke saath headers bhi bhejein
     return this.http.get(`http://localhost:8080/api/rooms/dm?user1=${user1Id}&user2=${user2Id}`, { headers });
   }
 
-  // --- NAYA LOGIC: Chat History Load Karne Ke Liye ---
   getChatHistory(roomId: string): Observable<any[]> {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
     const headers = new HttpHeaders({
@@ -110,5 +124,4 @@ export class ChatService {
 
     return this.http.get<any[]>(`http://localhost:8080/api/messages/${roomId}`, { headers });
   }
-
 }

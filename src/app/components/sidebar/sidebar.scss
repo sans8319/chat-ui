@@ -54,3 +54,33 @@
     .last-message { font-size: 13px; color: #64748b; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   }
 }
+
+.message-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.unread-badge {
+  background-color: #22c55e; // WhatsApp Green
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  margin-left: 8px;
+}
+
+.unread-text {
+  color: #0b0b0b !important; // Dark mode mein highlight text
+  font-weight: 500;
+}
+
+.time.highlight {
+  color: #22c55e !important;
+}

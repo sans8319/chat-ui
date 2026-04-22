@@ -16,15 +16,26 @@
       
       <div class="avatar-wrapper">
         <div class="avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
-        <div class="online-status"></div>
+        <div class="online-status" [style.background]="user.online ? '#22c55e' : '#94a3b8'"></div>
       </div>
 
       <div class="chat-info">
         <div class="name-row">
           <span class="chat-name">{{ user.username }}</span>
-          <span class="time">12:45 PM</span>
+          <span class="time" [class.highlight]="user.unreadCount > 0">
+            {{ user.lastMessageTime | date:'shortTime' }}
+          </span>
         </div>
-        <p class="last-message">Click to start chatting... 🚀</p>
+
+        <div class="message-row">
+          <p class="last-message" [class.unread-text]="user.unreadCount > 0">
+            {{ user.lastMessage || 'Click to start chatting... 🚀' }}
+          </p>
+          
+          <div class="unread-badge" *ngIf="user.unreadCount > 0">
+            {{ user.unreadCount }}
+          </div>
+        </div>
       </div>
     </div>
 

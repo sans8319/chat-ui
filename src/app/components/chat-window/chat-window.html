@@ -24,7 +24,7 @@
           <div class="message-content">{{ msg.content }}</div>
           
           <div class="message-meta">
-            <span class="timestamp">12:45 PM</span>
+            <span class="timestamp">{{ msg.timestamp | date:'shortTime' }}</span>
             
             <div class="status-ticks" *ngIf="msg.senderId === currentUserId">
               <svg *ngIf="msg.delivered" [class.seen]="msg.seen" class="tick-icon" viewBox="0 0 24 24">
