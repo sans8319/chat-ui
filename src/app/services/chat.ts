@@ -39,20 +39,19 @@ export class ChatService {
     this.initConnection();
   }
 
-  // ... (Baaki saara initConnection, subscribeToRoom, sendMessage logic same rahega) ...
-  // logic ko disturb nahi kiya gaya hai.
-
+  // --- PRODUCTION GRADE CONNECTION LOGIC ---
   private initConnection() {
     const socket = new SockJS('http://localhost:8080/ws-chat');
     this.stompClient = new Client({
       webSocketFactory: () => socket,
       debug: (str) => console.log(str),
       reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
+      heartbeatIncoming: 10000, // Optimized for production (prevents false disconnects)
+      heartbeatOutgoing: 10000,
     });
 
     this.stompClient.onConnect = (frame) => {
+      console.log('✅ Connected to WebSocket');
       this.pendingRooms.forEach(roomId => {
         if (!this.activeRooms.has(roomId)) {
           this.activeRooms.add(roomId);
@@ -61,11 +60,20 @@ export class ChatService {
       });
       this.pendingRooms.clear();
     };
+
+    this.stompClient.onStompError = (frame) => {
+      console.error('❌ Broker reported error: ' + frame.headers['message']);
+      console.error('❌ Additional details: ' + frame.body);
+    };
+
     this.stompClient.activate();
   }
 
+  // --- SAFE SUBSCRIPTION LOGIC ---
   subscribeToRoom(roomId: string) {
+    // Agar pehle se subscribed hai, toh wapas subscribe mat karo (Prevents double messages)
     if (this.activeRooms.has(roomId)) return;
+    
     if (this.stompClient && this.stompClient.connected) {
       this.activeRooms.add(roomId);
       this.performStompSubscription(roomId);
@@ -75,15 +83,22 @@ export class ChatService {
   }
 
   private performStompSubscription(roomId: string) {
+    // Main Messages Channel
     this.stompClient?.subscribe(`/topic/room/${roomId}`, (message: Message) => {
       if (message.body) {
         const parsedMsg = JSON.parse(message.body);
+        
+        // Dono streams ko update karna zaroori hai (Sidebar ke liye aur Chat window ke liye)
         this.sidebarUpdateSource.next(parsedMsg);
         this.messageSubject.next(parsedMsg);
       }
     });
+
+    // Receipts Channel (1-on-1 functionality intact)
     this.stompClient?.subscribe(`/topic/room/${roomId}/receipts`, (message: Message) => {
-      if (message.body) this.receiptSubject.next(JSON.parse(message.body));
+      if (message.body) {
+        this.receiptSubject.next(JSON.parse(message.body));
+      }
     });
   }
 
@@ -93,10 +108,15 @@ export class ChatService {
         destination: '/app/chat.sendMessage',
         body: JSON.stringify(messageContent)
       });
+    } else {
+      console.warn("⚠️ WebSocket is disconnected. Message not sent.");
     }
   }
 
-  getReceipts(): Observable<any> { return this.receiptSubject.asObservable(); }
+  getReceipts(): Observable<any> { 
+    return this.receiptSubject.asObservable(); 
+  }
+
   sendReceipt(roomId: string, messageId: number, status: string) {
     if (this.stompClient && this.stompClient.connected) {
       this.stompClient.publish({
@@ -105,15 +125,30 @@ export class ChatService {
       });
     }
   }
-  getMessages(): Observable<any> { return this.messageSubject.asObservable(); }
+
+  getMessages(): Observable<any> { 
+    return this.messageSubject.asObservable(); 
+  }
+
   getOrCreateRoom(user1Id: number, user2Id: number): Observable<any> {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
     return this.http.get(`http://localhost:8080/api/rooms/dm?user1=${user1Id}&user2=${user2Id}`, { headers });
   }
+
   getChatHistory(roomId: string): Observable<any[]> {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
     return this.http.get<any[]>(`http://localhost:8080/api/messages/${roomId}`, { headers });
+  }
+
+  // --- NAYA: Logout safety method (Future use ke liye) ---
+  disconnect() {
+    if (this.stompClient && this.stompClient.connected) {
+      this.stompClient.deactivate();
+      this.activeRooms.clear();
+      this.pendingRooms.clear();
+      console.log('🛑 Disconnected from WebSocket');
+    }
   }
 }

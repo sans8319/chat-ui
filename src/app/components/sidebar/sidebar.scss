@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   background: #ffffff;
-  position: relative; // NAYA: Modal placing ke liye zaroori
+  position: relative; 
 
   .sidebar-header {
     padding: 16px 20px 10px;
@@ -124,7 +124,7 @@
         flex-shrink: 0;
 
         &.group-avatar {
-          background: #6366f1; // Blue theme for groups
+          background: #6366f1; 
           color: white;
           i {
             font-size: 22px;
@@ -198,7 +198,6 @@
     }
   }
 
-  // --- NAYA: Modal Styling ---
   .modal-overlay {
     position: fixed;
     top: 0;
@@ -225,7 +224,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: #6366f1; // Blue Theme
+        background: #6366f1; 
         color: white;
 
         h3 { margin: 0; font-size: 18px; font-weight: 500; }

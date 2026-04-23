@@ -52,7 +52,7 @@
         <div class="user-details">
           <div class="name-row">
             <span class="username">{{ group.username }}</span>
-            <span class="time"></span>
+            <span class="time" *ngIf="group.lastMessageTime">{{ group.lastMessageTime | date:'shortTime' }}</span>
           </div>
           <div class="msg-row">
             <span class="last-msg text-truncate">{{ group.lastMessage }}</span>
