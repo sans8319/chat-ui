@@ -1,46 +1,67 @@
 <div class="sidebar-container">
+  
   <div class="sidebar-header">
-    <h2>Messages</h2>
-    <button class="new-chat-btn">+</button>
-  </div>
-
-  <div class="search-box">
-    <input type="text" placeholder="Search conversations..." />
-  </div>
-
-  <div class="chat-list">
-    <div class="chat-item" 
-         *ngFor="let user of users" 
-         [class.active]="user.id === activeUserId"
-         (click)="selectUser(user)">
-      
-      <div class="avatar-wrapper">
-        <div class="avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
-        <div class="online-status" [style.background]="user.online ? '#22c55e' : '#94a3b8'"></div>
+    <div class="header-top">
+      <h2>{{ activeTab === 'chats' ? 'Chats' : 'Groups' }}</h2>
+      <div class="header-actions">
+        <i class="bi bi-plus-lg action-icon" *ngIf="activeTab === 'groups'" title="Create Group"></i>
+        <i class="bi bi-three-dots-vertical action-icon"></i>
       </div>
+    </div>
 
-      <div class="chat-info">
-        <div class="name-row">
-          <span class="chat-name">{{ user.username }}</span>
-          <span class="time" [class.highlight]="user.unreadCount > 0">
-            {{ user.lastMessageTime | date:'shortTime' }}
-          </span>
-        </div>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <i class="bi bi-search"></i>
+        <input type="text" [placeholder]="activeTab === 'chats' ? 'Search chats...' : 'Search groups...'">
+      </div>
+    </div>
+  </div>
 
-        <div class="message-row">
-          <p class="last-message" [class.unread-text]="user.unreadCount > 0">
-            {{ user.lastMessage || 'Click to start chatting... 🚀' }}
-          </p>
-          
-          <div class="unread-badge" *ngIf="user.unreadCount > 0">
-            {{ user.unreadCount }}
+  <div class="user-list">
+    
+    <ng-container *ngIf="activeTab === 'chats'">
+      <div *ngFor="let user of users" 
+           class="user-item" 
+           [class.active]="activeUserId === user.id"
+           (click)="selectUser(user)">
+        <div class="avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
+        <div class="user-details">
+          <div class="name-row">
+            <span class="username">{{ user.username }}</span>
+            <span class="time" *ngIf="user.lastMessageTime">{{ user.lastMessageTime | date:'shortTime' }}</span>
+          </div>
+          <div class="msg-row">
+            <span class="last-msg text-truncate">{{ user.lastMessage || 'Click to start chatting... 🚀' }}</span>
+            <span class="badge" *ngIf="user.unreadCount > 0">{{ user.unreadCount }}</span>
           </div>
         </div>
       </div>
-    </div>
+    </ng-container>
 
-    <div *ngIf="users.length === 0" class="no-users-msg" style="padding: 20px; text-align: center; color: #94a3b8;">
-      No users online.
-    </div>
+    <ng-container *ngIf="activeTab === 'groups'">
+      <div *ngFor="let group of groups" 
+           class="user-item" 
+           [class.active]="activeUserId === group.id"
+           (click)="selectUser(group)">
+        <div class="avatar group-avatar">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <div class="user-details">
+          <div class="name-row">
+            <span class="username">{{ group.username }}</span>
+            <span class="time">Just now</span>
+          </div>
+          <div class="msg-row">
+            <span class="last-msg text-truncate">{{ group.lastMessage }}</span>
+            <span class="badge" *ngIf="group.unreadCount > 0">{{ group.unreadCount }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="no-groups-state" *ngIf="groups.length === 0">
+        <p>You are not in any groups yet.</p>
+      </div>
+    </ng-container>
+
   </div>
 </div>

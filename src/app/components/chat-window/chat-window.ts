@@ -4,19 +4,19 @@ import { ChatInputComponent } from '../chat-input/chat-input';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { ChatService } from '../../services/chat';
 import { Subscription } from 'rxjs'; 
+import { NavRailComponent } from '../nav-rail/nav-rail';
 
 @Component({
   selector: 'app-chat-window',
   standalone: true,
-  imports: [CommonModule, ChatInputComponent, SidebarComponent],
+  imports: [CommonModule, ChatInputComponent, SidebarComponent, NavRailComponent],
   templateUrl: './chat-window.html',
   styleUrl: './chat-window.scss'
 })
 export class ChatWindowComponent implements OnInit, OnDestroy {
   messages: any[] = [];
-  currentUser = 'sanskriti';
   currentUserId: number | null = null;
-  selectedUser: any = null;
+  selectedUser: any = null; // Yeh ab User ya Group dono ho sakta hai
   currentRoomId: string | null = null; 
   isUserAtBottom = true; 
   newMessagesCount = 0;   
@@ -29,103 +29,117 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
-  // Jab user wapas tab par aaye, toh unread messages check karo
   @HostListener('window:focus')
   onWindowFocus() {
-    if (isPlatformBrowser(this.platformId) && this.selectedUser) {
+    if (this.selectedUser) {
       this.markMessagesAsSeen();
     }
   }
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
-      this.currentUser = localStorage.getItem('username') || 'sanskriti';
       this.currentUserId = Number(localStorage.getItem('userId'));
     }
 
-    this.chatService.selectedUser$.subscribe(user => {
-      if (user && this.currentUserId) {
-        this.selectedUser = user;
-        this.messages = []; 
+    // Sidebar se jo bhi click hoga (User ya Group), yahan aayega
+    this.chatService.selectedUser$.subscribe(selection => {
+      if (selection) {
+        this.selectedUser = selection;
+        this.messages = []; // Naya chat khulne par purane messages clear karo
         
-        this.chatService.getOrCreateRoom(this.currentUserId, user.id).subscribe(room => {
-          if (room && room.id) {
-            this.currentRoomId = room.id.toString();
-            this.chatService.subscribeToRoom(this.currentRoomId!);
+        // Agar normal user hai (isGroup nahi hai), toh history load karo
+        if (this.currentUserId && !selection.isGroup) {
+          this.loadRoomAndHistory(this.currentUserId, selection.id);
+        } else if (selection.isGroup) {
+          // Group logic aayega (Abhi ke liye dummy array set kar dete hain)
+          this.currentRoomId = `group_${selection.id}`;
+          this.loadDummyGroupHistory();
+        }
+      } else {
+        this.selectedUser = null;
+      }
+      this.cdr.detectChanges();
+    });
+  }
+
+  // --- NAYA LOGIC: Dummy Group History (Jab tak backend ready na ho) ---
+  loadDummyGroupHistory() {
+    this.messages = [
+      { id: 1, senderId: 999, content: 'Welcome to the group!', timestamp: new Date().toISOString(), seen: true, senderName: 'System' },
+      { id: 2, senderId: this.currentUserId, content: 'Hey everyone!', timestamp: new Date().toISOString(), seen: true }
+    ];
+    setTimeout(() => this.scrollToBottom(), 100);
+  }
+
+  // --- AAPKA PURANA SAFE LOGIC (As it is) ---
+  loadRoomAndHistory(user1Id: number, user2Id: number) {
+    this.chatService.getOrCreateRoom(user1Id, user2Id).subscribe(room => {
+      if (room && room.id) {
+        this.currentRoomId = room.id.toString();
+        
+        if (this.roomSubscription) {
+          this.roomSubscription.unsubscribe();
+        }
+
+        this.chatService.getChatHistory(this.currentRoomId!).subscribe(history => {
+          this.messages = history.map(msg => {
+            if (Array.isArray(msg.timestamp)) {
+               msg.timestamp = new Date(msg.timestamp[0], msg.timestamp[1] - 1, msg.timestamp[2], msg.timestamp[3], msg.timestamp[4]).toISOString();
+            }
+            return msg;
+          });
+          
+          this.markMessagesAsSeen();
+          setTimeout(() => this.scrollToBottom(), 100);
+          this.cdr.detectChanges();
+        });
+
+        this.chatService.subscribeToRoom(this.currentRoomId!);
+
+        this.roomSubscription = this.chatService.getMessages().subscribe(msg => {
+          if (msg && msg.roomId === Number(this.currentRoomId)) {
             
-            this.chatService.getChatHistory(this.currentRoomId!).subscribe(history => {
-              this.messages = history; 
-              
-              setTimeout(() => {
-                this.scrollToBottom();
-                // Chat khulte hi sab 'SEEN' mark karo
-                this.markMessagesAsSeen();
-              }, 100);
-              this.cdr.detectChanges();
+            if (Array.isArray(msg.timestamp)) {
+               msg.timestamp = new Date(msg.timestamp[0], msg.timestamp[1] - 1, msg.timestamp[2], msg.timestamp[3], msg.timestamp[4]).toISOString();
+            }
+
+            this.ngZone.run(() => {
+              const exists = this.messages.some(m => m.id === msg.id);
+              if (!exists) {
+                this.messages.push(msg);
+
+                if (msg.senderId !== this.currentUserId) {
+                  if (document.hasFocus()) {
+                    this.chatService.sendReceipt(this.currentRoomId!, msg.id, 'SEEN');
+                    msg.seen = true;
+                  } else {
+                    this.chatService.sendReceipt(this.currentRoomId!, msg.id, 'DELIVERED');
+                  }
+                }
+
+                if (this.isUserAtBottom || msg.senderId === this.currentUserId) {
+                  setTimeout(() => this.scrollToBottom(), 50);
+                } else {
+                  this.newMessagesCount++;
+                }
+                this.cdr.detectChanges();
+              }
             });
           }
         });
-      } else {
-        this.selectedUser = null;
-        this.currentRoomId = null;
-        this.messages = [];
-      }
-    });
 
-    this.chatService.getMessages().subscribe(msg => {
-      if (msg) {
-        this.ngZone.run(() => {
-          const incomingRoomId = msg.roomId?.toString() || msg.chatRoom?.id?.toString();
-          
-          if (incomingRoomId === this.currentRoomId) {
-            const index = this.messages.findIndex(m => m.id === msg.id);
-            if (index !== -1) {
-                this.messages[index] = msg;
-            } else {
-                this.messages = [...this.messages, msg];
+        this.chatService.getReceipts().subscribe(receipt => {
+          if (receipt && receipt.roomId === Number(this.currentRoomId)) {
+            const msgIndex = this.messages.findIndex(m => m.id === receipt.messageId);
+            if (msgIndex !== -1) {
+              if (receipt.status === 'DELIVERED') {
+                this.messages[msgIndex].delivered = true;
+              } else if (receipt.status === 'SEEN') {
+                this.messages[msgIndex].delivered = true;
+                this.messages[msgIndex].seen = true;
+              }
+              this.cdr.detectChanges();
             }
-
-            // --- WHATSAPP MASTER LOGIC ---
-            // Agar message doosre ne bheja hai AUR ye chat window abhi open hai
-            if (msg.senderId !== this.currentUserId && msg.id) {
-                console.log("Real-time SEEN triggered for room:", incomingRoomId);
-                
-                // Bina mouse/keyboard ka wait kiye SEEN bhejo kyunki window OPEN hai
-                this.chatService.sendReceipt(incomingRoomId, msg.id, 'SEEN');
-                
-                // Local UI update
-                msg.seen = true;
-                msg.delivered = true;
-            }
-          } else {
-             // Agar chat open NAHI hai, toh sirf DELIVERED (Grey Ticks) bhejo
-             if (msg.senderId !== this.currentUserId && msg.id && incomingRoomId) {
-               this.chatService.sendReceipt(incomingRoomId, msg.id, 'DELIVERED');
-             }
-          }
-
-          if (this.isUserAtBottom && incomingRoomId === this.currentRoomId) {
-            setTimeout(() => this.scrollToBottom(), 100);
-          } else if (incomingRoomId === this.currentRoomId) {
-            this.newMessagesCount++;
-          }
-          this.cdr.detectChanges();
-        });
-      }
-    });
-
-    this.chatService.getReceipts().subscribe(receipt => {
-      if (receipt) {
-        this.ngZone.run(() => {
-          const msgIndex = this.messages.findIndex(m => m.id === receipt.messageId);
-          if (msgIndex !== -1) {
-            if (receipt.status === 'DELIVERED') {
-              this.messages[msgIndex].delivered = true;
-            } else if (receipt.status === 'SEEN') {
-              this.messages[msgIndex].delivered = true;
-              this.messages[msgIndex].seen = true;
-            }
-            this.cdr.detectChanges();
           }
         });
       }
@@ -133,7 +147,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   }
 
   markMessagesAsSeen() {
-    if (!this.currentRoomId || !this.currentUserId) return;
+    if (!this.currentRoomId || !this.currentUserId || this.selectedUser?.isGroup) return; // NAYA: Groups mein seen receipt mat bhejo
     
     let needsUpdate = false;
     this.messages.forEach(msg => {
@@ -161,13 +175,13 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   }
 
   scrollToBottom() {
-    if (isPlatformBrowser(this.platformId)) {
+    try {
       const container = document.querySelector('.messages-container');
       if (container) {
-        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
-        this.newMessagesCount = 0;
+        container.scrollTop = container.scrollHeight;
         this.isUserAtBottom = true;
+        this.newMessagesCount = 0;
       }
-    }
+    } catch(err) {}
   }
 }

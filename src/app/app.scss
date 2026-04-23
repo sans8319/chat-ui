@@ -1,3 +1,10 @@
 .chat-container { display: flex; height: 100vh; width: 100vw; }
-.sidebar-wrapper { width: 360px; height: 100%; }
+/* app.scss mein sidebar-wrapper section */
+.sidebar-wrapper {
+  width: 450px;       // Width yahan bhi 450px rakhein
+  height: 100%;
+  background: white;
+  border-right: 1px solid #d1d7db;
+  flex-shrink: 0;     // Ye ensure karega ki sidebar chhota na ho
+}
 .chat-wrapper { flex: 1; height: 100%; }

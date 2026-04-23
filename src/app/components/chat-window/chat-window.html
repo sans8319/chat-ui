@@ -1,19 +1,44 @@
-<div class="main-layout">
-  <app-sidebar></app-sidebar>
+<div class="triple-column-container">
+  
+  <div class="nav-rail-column">
+    <app-nav-rail></app-nav-rail>
+  </div>
 
-  <div class="chat-viewport">
+  <div class="sidebar-column">
+    <app-sidebar></app-sidebar>
+  </div>
+
+  <div class="chat-viewport-column">
     
     <ng-container *ngIf="selectedUser">
       <header class="chat-header">
         <div class="user-info">
-          <div class="avatar-sm">{{ selectedUser.username.charAt(0).toUpperCase() }}</div>
+          
+          <div class="avatar-sm" *ngIf="selectedUser.isGroup">
+            <i class="bi bi-people-fill"></i>
+          </div>
+          <div class="avatar-sm" *ngIf="!selectedUser.isGroup">
+            {{ selectedUser.username.charAt(0).toUpperCase() }}
+          </div>
+          
           <div class="details">
             <h3>{{ selectedUser.username }}</h3>
-            <span class="status-indicator">
+            
+            <span class="status-indicator" *ngIf="!selectedUser.isGroup">
               <span class="dot" [style.background]="selectedUser.online ? '#22c55e' : '#94a3b8'"></span> 
               {{ selectedUser.online ? 'Online' : 'Offline' }}
             </span>
+            
+            <span class="status-indicator group-members" *ngIf="selectedUser.isGroup">
+              Tap here for group info
+            </span>
           </div>
+
+        </div>
+        
+        <div class="header-actions">
+          <i class="bi bi-search"></i>
+          <i class="bi bi-three-dots-vertical"></i>
         </div>
       </header>
 
@@ -21,39 +46,50 @@
         <div *ngFor="let msg of messages" 
              [ngClass]="msg.senderId === currentUserId ? 'message-wrapper sent' : 'message-wrapper received'">
           <div class="bubble">
-          <div class="message-content">{{ msg.content }}</div>
-          
-          <div class="message-meta">
-            <span class="timestamp">{{ msg.timestamp | date:'shortTime' }}</span>
             
-            <div class="status-ticks" *ngIf="msg.senderId === currentUserId">
-              <svg *ngIf="msg.delivered" [class.seen]="msg.seen" class="tick-icon" viewBox="0 0 24 24">
-                <path d="M18 7l-1.41-1.41-6.59 6.59 1.41 1.41L18 7zm4.24-4.24l-1.41-1.41L10 12.17 5.17 7.34 3.76 8.76 10 15l12.24-12.24z"/>
-              </svg>
+            <div class="sender-name" *ngIf="selectedUser.isGroup && msg.senderId !== currentUserId">
+              {{ msg.senderName || 'Member' }}
+            </div>
+
+            <div class="message-content">{{ msg.content }}</div>
+            
+            <div class="message-meta">
+              <span class="timestamp">{{ msg.timestamp | date:'shortTime' }}</span>
               
-              <svg *ngIf="!msg.delivered" class="tick-icon" viewBox="0 0 24 24">
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-              </svg>
+              <div class="status-ticks" *ngIf="msg.senderId === currentUserId && !selectedUser.isGroup">
+                <svg *ngIf="msg.delivered" [class.seen]="msg.seen" class="tick-icon" viewBox="0 0 24 24">
+                  <path d="M18 7l-1.41-1.41-6.59 6.59 1.41 1.41L18 7zm4.24-4.24l-1.41-1.41L10 12.17 5.17 7.34 3.76 8.76 10 15l12.24-12.24z"/>
+                </svg>
+                <svg *ngIf="!msg.delivered" class="tick-icon" viewBox="0 0 24 24">
+                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                </svg>
+              </div>
             </div>
           </div>
-        </div>
         </div>
       </div>
 
       <button class="scroll-down-btn" *ngIf="!isUserAtBottom" (click)="scrollToBottom()">
         <span class="badge" *ngIf="newMessagesCount > 0">{{ newMessagesCount }}</span>
-        <svg viewBox="0 0 24 24" width="24" height="24">
-          <path fill="currentColor" d="M12 16L6 10H18L12 16Z"/>
-        </svg>
+        ↓
       </button>
 
-      <app-chat-input [roomId]="currentRoomId"></app-chat-input>
+      <div class="input-area">
+        <app-chat-input [roomId]="currentRoomId"></app-chat-input>
+      </div>
     </ng-container>
 
-    <div class="no-chat-selected" *ngIf="!selectedUser" 
-         style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; background: #f8fafc;">
-      <div style="font-size: 50px; margin-bottom: 10px;">💬</div>
-      <p style="font-weight: 500;">Select a user from sidebar to start chatting 🚀</p>
+    <div class="empty-chat-state" *ngIf="!selectedUser">
+      <div class="empty-content">
+        <div class="illustration-placeholder">
+          <i class="bi bi-laptop"></i>
+        </div>
+        <h3>ChatApp Web</h3>
+        <p>Send and receive messages seamlessly.<br>Use the sidebar to start a personal chat or open a group.</p>
+        <div class="encryption-notice">
+          <i class="bi bi-lock-fill"></i> End-to-end encrypted
+        </div>
+      </div>
     </div>
 
   </div>

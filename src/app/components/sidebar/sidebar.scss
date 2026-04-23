@@ -5,82 +5,198 @@
   background: #ffffff;
 
   .sidebar-header {
-    padding: 24px 20px;
+    padding: 16px 20px 10px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    h2 { font-size: 22px; font-weight: 700; margin: 0; color: #0f172a; }
-    .new-chat-btn {
-      width: 36px; height: 36px; border-radius: 10px; border: none;
-      background: #f1f5f9; color: #6366f1; font-weight: bold; cursor: pointer;
-      &:hover { background: #6366f1; color: white; }
+    flex-direction: column;
+    gap: 16px;
+    background: #ffffff;
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      h2 {
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0;
+        color: #111b21;
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 18px;
+        
+        .action-icon {
+          font-size: 20px;
+          color: #54656f;
+          cursor: pointer;
+          transition: color 0.2s ease;
+
+          &:hover {
+            color: #111b21; // Darker on hover
+          }
+        }
+      }
+    }
+
+    .search-box {
+      .search-input-wrapper {
+        display: flex;
+        align-items: center;
+        background: #f0f2f5;
+        border-radius: 8px;
+        padding: 0 14px;
+        height: 36px;
+        border-bottom: 2px solid transparent;
+        transition: 0.2s;
+
+        &:focus-within {
+          background: #ffffff;
+          border-bottom: 2px solid #9442e0; // WhatsApp green indicator
+          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        i {
+          color: #54656f;
+          font-size: 14px;
+          margin-right: 14px;
+        }
+
+        input {
+          border: none;
+          background: transparent;
+          width: 100%;
+          height: 100%;
+          outline: none;
+          font-size: 14px;
+          color: #111b21;
+
+          &::placeholder {
+            color: #667781;
+          }
+        }
+      }
     }
   }
 
-  .search-box {
-    padding: 0 20px 20px;
-    input {
-      width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid transparent;
-      background: #f8fafc; outline: none; font-size: 14px;
-      &:focus { border-color: #6366f1; background: white; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
-    }
-  }
-}
-
-.chat-item {
-  display: flex; padding: 14px 20px; gap: 12px; cursor: pointer; transition: 0.2s;
-  &.active { background: #eff6ff; border-right: 3px solid #6366f1; }
-  &:hover:not(.active) { background: #f8fafc; }
-
-  .avatar-wrapper {
-    position: relative;
-    .avatar {
-      width: 48px; height: 48px; border-radius: 14px; background: #6366f1;
-      color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;
-    }
-    .online-status {
-      position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px;
-      background: #22c55e; border: 2px solid white; border-radius: 50%;
-    }
-  }
-
-  .chat-info {
+  .user-list {
     flex: 1;
-    .name-row {
-      display: flex; justify-content: space-between; margin-bottom: 4px;
-      .chat-name { font-weight: 600; font-size: 15px; color: #1e293b; }
-      .time { font-size: 11px; color: #94a3b8; }
+    overflow-y: auto;
+    background: #ffffff;
+    
+    // Custom scrollbar
+    &::-webkit-scrollbar {
+      width: 6px;
     }
-    .last-message { font-size: 13px; color: #64748b; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(11, 20, 26, 0.2);
+      border-radius: 3px;
+    }
+
+    .user-item {
+      display: flex;
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: background 0.2s;
+      border-bottom: 1px solid #f2f2f2; // Subtle separator
+
+      &:hover {
+        background: #f5f6f6;
+      }
+
+      &.active {
+        background: #f0f2f5;
+      }
+
+      .avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #dfe5e7;
+        color: #54656f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 18px;
+        margin-right: 15px;
+        flex-shrink: 0;
+
+        // --- NAYA: Groups ke avatar ka styling ---
+        &.group-avatar {
+          background: #00a884; // Green background for groups
+          color: white;
+          i {
+            font-size: 22px;
+          }
+        }
+      }
+
+      .user-details {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        overflow: hidden;
+
+        .name-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 4px;
+
+          .username {
+            font-size: 16px;
+            color: #111b21;
+            font-weight: 400;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .time {
+            font-size: 12px;
+            color: #667781;
+          }
+        }
+
+        .msg-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          .last-msg {
+            font-size: 14px;
+            color: #667781;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+            margin-right: 10px;
+          }
+
+          .badge {
+            background: #25d366;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 12px;
+            min-width: 22px;
+            text-align: center;
+          }
+        }
+      }
+    }
+
+    // --- NAYA: Jab koi group na ho ---
+    .no-groups-state {
+      padding: 40px 20px;
+      text-align: center;
+      color: #667781;
+      font-size: 14px;
+      font-weight: 500;
+    }
   }
-}
-
-.message-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.unread-badge {
-  background-color: #22c55e; // WhatsApp Green
-  color: white;
-  font-size: 11px;
-  font-weight: bold;
-  min-width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2px;
-  margin-left: 8px;
-}
-
-.unread-text {
-  color: #0b0b0b !important; // Dark mode mein highlight text
-  font-weight: 500;
-}
-
-.time.highlight {
-  color: #22c55e !important;
 }

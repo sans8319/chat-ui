@@ -1,5 +1,5 @@
-// NAYA: Wrapper for side-by-side layout
-.main-layout {
+// TRIPLE COLUMN LAYOUT WRAPPERS
+.triple-column-container {
   display: flex;
   height: 100vh;
   width: 100vw;
@@ -7,19 +7,24 @@
   background: #f8fafc;
 }
 
-// NAYA: Sidebar ko left mein fix width dena
-app-sidebar {
+.nav-rail-column {
+  width: 64px;
+  flex-shrink: 0;
+  border-right: 1px solid #e2e8f0;
+  z-index: 20;
+}
+
+.sidebar-column {
   width: 350px;
   min-width: 350px;
-  height: 100%;
+  flex-shrink: 0;
   border-right: 1px solid #e2e8f0;
   background: white;
   z-index: 20;
 }
 
-// UPDATED: Chat Viewport bachi hui jagah (flex: 1) lega
-.chat-viewport {
-  flex: 1; // Take remaining space right of sidebar
+.chat-viewport-column {
+  flex: 1; 
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -27,193 +32,262 @@ app-sidebar {
   position: relative; 
 
   .chat-header {
-    padding: 16px 24px;
+    padding: 12px 24px;
     border-bottom: 1px solid #e2e8f0;
-    background: white;
+    background: white; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
     z-index: 10;
 
     .user-info {
       display: flex;
       align-items: center;
-      gap: 12px;
-
+      gap: 15px;
+      
       .avatar-sm {
         width: 40px;
         height: 40px;
-        border-radius: 10px;
-        background: #6366f1;
+        border-radius: 50%;
+        background: #6366f1; 
         color: white;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 600;
-        box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2);
+        font-size: 18px;
+        overflow: hidden;
       }
-
+      
       .details {
-        h3 { font-size: 16px; margin: 0; font-weight: 600; color: #0f172a; }
-        
+        h3 { margin: 0; font-size: 16px; font-weight: 600; color: #1e293b; }
         .status-indicator {
+          font-size: 13px;
+          color: #64748b;
           display: flex;
           align-items: center;
           gap: 6px;
-          font-size: 12px;
-          color: #64748b;
-          margin-top: 2px;
+          
+          &.group-members {
+            font-size: 12px;
+          }
           
           .dot {
             width: 8px;
             height: 8px;
-            background: #22c55e;
             border-radius: 50%;
-            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.1);
           }
         }
       }
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 20px;
+      color: #64748b;
+      font-size: 20px;
+      cursor: pointer;
     }
   }
 
   .messages-container {
     flex: 1;
-    padding: 24px;
+    padding: 30px 40px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
     scroll-behavior: smooth;
-    background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+    
+    // --- DOT PATTERN BACKGROUND ---
+    background-color: #f8fafc;
+    background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
     background-size: 20px 20px;
-
-    &::-webkit-scrollbar { width: 6px; }
-    &::-webkit-scrollbar-track { background: transparent; }
-    &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
   }
 
-  // Center Floating Button with Black Theme
-  .scroll-down-btn {
-    position: absolute;
-    bottom: 90px;
-    left: 50%;
-    transform: translateX(-50%); 
-    padding: 8px 16px;
-    border-radius: 20px;
-    background: #f4f5f8; 
-    border: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
+  // --- PERFECT BUBBLE STYLES (Colors + 50% Wrap Fix) ---
+  .message-wrapper {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    color: rgb(18, 17, 17);
-    z-index: 50;
-    transition: all 0.3s ease;
-
-    &:hover { 
-      background: #f4f5f8;
-      transform: translateX(-50%) translateY(-2px); 
+    flex-direction: column;
+    margin-bottom: 6px;
+    width: 100%; // Keeps row structure perfect
+    
+    &.sent {
+      align-items: flex-end; // Bubble ko right bhejo
+      .bubble {
+        background: white; // Sent -> White
+        color: #1e293b;
+        border-radius: 12px 12px 4px 12px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        padding: 8px 12px 22px 12px; // Niche space for time
+      }
+      .timestamp { 
+        color: #94a3b8; 
+      }
     }
 
-    svg {
-      width: 18px;
-      height: 18px;
-      fill: white;
-    }
-
-    .badge {
-      background: #ef4444;
-      color: white;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 12px;
-      margin-left: 4px;
-    }
-  }
-}
-
-// --- YAHAN SE NAYA PREMIUM MESSAGE BUBBLE CODE SHURU HOTA HAI ---
-.message-wrapper {
-  max-width: 75%;
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 8px;
-  animation: slideIn 0.3s ease-out;
-
-  &.sent {
-    align-self: flex-end;
-    .bubble {
-      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-      color: white;
-      border-radius: 18px 18px 4px 18px;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
-      padding: 10px 14px 6px 16px;
-    }
-    .timestamp { 
-      color: rgba(255, 255, 255, 0.8); 
-    }
-  }
-
-  &.received {
-    align-self: flex-start;
-    .bubble {
-      background: white;
-      color: #1e293b;
-      border-radius: 18px 18px 18px 4px;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-      padding: 10px 14px 8px 16px;
-    }
-    .timestamp {
-      color: #94a3b8;
-    }
-  }
-
-  .bubble {
-    position: relative;
-    font-family: 'Inter', sans-serif;
-
-    .message-content {
-      font-size: 14.5px;
-      line-height: 1.5;
-      letter-spacing: -0.01em;
-      word-wrap: break-word;
-    }
-
-    .message-meta {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 4px;
-      margin-top: 4px;
-      height: 14px; 
-
+    &.received {
+      align-items: flex-start; // Bubble ko left rakho
+      .bubble {
+        background: #6366f1; // Received -> Blue
+        color: white;
+        border-radius: 12px 12px 12px 4px;
+        box-shadow: 0 2px 4px rgba(99, 102, 241, 0.15);
+        border: none;
+        padding: 8px 12px 22px 12px; // Niche space for time
+      }
       .timestamp {
-        font-size: 10px;
-        font-weight: 500;
-        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.8); 
+      }
+    }
+
+    .bubble {
+      position: relative;
+      font-family: 'Inter', sans-serif;
+      max-width: 50%; // Exactly half screen
+      min-width: 100px;
+      width: fit-content; // Tightly wraps small texts
+      
+      .sender-name {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #e0e7ff; 
+        margin-bottom: 4px;
       }
 
-      .status-ticks {
+      .message-content {
+        font-size: 14.5px;
+        line-height: 1.5;
+        letter-spacing: -0.01em;
+        
+        // --- PERFECT WRAP FIX ---
+        word-wrap: break-word;
+        overflow-wrap: break-word; 
+        word-break: break-word; // 50% border hit karne par todega
+        white-space: pre-wrap;  // Tumhare Enter/Spaces safe rakhega
+        margin: 0;
+      }
+
+      .message-meta {
+        position: absolute;
+        bottom: 4px;
+        right: 8px; // Time humesha bottom right fix rahega
         display: flex;
         align-items: center;
+        gap: 4px;
+        
+        .timestamp {
+          font-size: 11px;
+          font-weight: 500;
+        }
 
-        .tick-icon {
-          width: 15px;
-          height: 15px;
-          fill: rgba(255, 255, 255, 0.7);
-
-          &.seen {
-            fill: #7dd3fc; 
-            filter: drop-shadow(0 0 1px rgba(125, 211, 252, 0.4));
+        .status-ticks {
+          display: flex;
+          align-items: center;
+          
+          .tick-icon {
+            width: 16px;
+            height: 16px;
+            fill: #94a3b8; // Grey default tick for white background
+            
+            &.seen {
+              fill: #280ed5; // Blue tick
+            }
           }
         }
       }
     }
   }
-}
 
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  .scroll-down-btn {
+    position: absolute;
+    bottom: 80px;
+    right: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: white;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #64748b;
+    z-index: 30;
+    transition: 0.2s;
+
+    &:hover {
+      background: #f8fafc;
+      transform: translateY(-2px);
+    }
+
+    .badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #22c55e;
+      color: white;
+      font-size: 11px;
+      font-weight: bold;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid white;
+    }
+  }
+
+  .input-area {
+    padding: 10px 16px;
+    background: #f8fafc;
+  }
+
+  .empty-chat-state {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    border-bottom: 6px solid #6366f1; 
+    
+    .empty-content {
+      text-align: center;
+      max-width: 460px;
+      
+      .illustration-placeholder {
+        font-size: 80px;
+        color: #cbd5e1;
+        margin-bottom: 30px;
+      }
+      
+      h3 {
+        font-weight: 500;
+        font-size: 32px;
+        color: #1e293b;
+        margin-bottom: 16px;
+      }
+      
+      p {
+        color: #64748b;
+        font-size: 14px;
+        line-height: 20px;
+        margin-bottom: 30px;
+      }
+      
+      .encryption-notice {
+        font-size: 12px;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+      }
+    }
+  }
 }

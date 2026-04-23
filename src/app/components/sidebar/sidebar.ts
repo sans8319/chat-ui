@@ -12,6 +12,8 @@ import { ChatService } from '../../services/chat';
 })
 export class SidebarComponent implements OnInit {
   users: any[] = [];
+  groups: any[] = []; // NAYA: Groups store karne ke liye
+  activeTab: 'chats' | 'groups' = 'chats'; // NAYA: Current active tab track karne ke liye
   activeUserId: any = null;
   currentUserId: number | null = null;
 
@@ -27,6 +29,16 @@ export class SidebarComponent implements OnInit {
       this.currentUserId = Number(localStorage.getItem('userId'));
     }
 
+    // --- NAYA LOGIC: Nav Rail se tab switch sunne ke liye ---
+    this.chatService.activeTab$.subscribe(tab => {
+      this.activeTab = tab;
+      this.activeUserId = null; // Tab badalne par selection hatao
+      if (tab === 'groups') {
+        this.loadGroups();
+      }
+      this.cdr.detectChanges();
+    });
+
     this.loadUsers();
 
     this.chatService.sidebarUpdate$.subscribe(msg => {
@@ -36,6 +48,15 @@ export class SidebarComponent implements OnInit {
     });
   }
 
+  // --- NAYA LOGIC: Dummy Groups Load karna (Jab tak backend na bane) ---
+  loadGroups() {
+    this.groups = [
+      { id: 'g1', username: 'Project Alpha', lastMessage: 'Deploy complete!', unreadCount: 3, isGroup: true },
+      { id: 'g2', username: 'Weekend Plan', lastMessage: 'See you at 6.', unreadCount: 0, isGroup: true }
+    ];
+  }
+
+  // --- AAPKA PURANA SAFE LOGIC (As it is) ---
   updateSidebarUI(msg: any) {
     const currentId = Number(this.currentUserId);
     const msgSenderId = Number(msg.senderId);
@@ -99,8 +120,6 @@ export class SidebarComponent implements OnInit {
       if (room && room.id) {
         const roomIdStr = room.id.toString();
 
-        // --- MASTER FIX: Safe Subscription ---
-        // Ab hum bindass subscribe call kar sakte hain. Agar WebSocket ready nahi hoga, toh chat.ts isko Queue mein daal dega, aur aapke messages break NAHI honge.
         this.chatService.subscribeToRoom(roomIdStr);
 
         this.chatService.getChatHistory(roomIdStr).subscribe(history => {

@@ -1,0 +1,45 @@
+<div class="nav-rail-container">
+  <div class="top-nav-items">
+    
+    <div class="nav-button" 
+         [class.active]="activeTab === 'chats'" 
+         (click)="switchTab('chats')">
+      <div class="icon-wrapper">
+        <i class="bi bi-chat-dots-fill" *ngIf="activeTab === 'chats'"></i>
+        <i class="bi bi-chat-dots" *ngIf="activeTab !== 'chats'"></i>
+      </div>
+      <span class="nav-label">Chats</span>
+    </div>
+
+    <div class="nav-button" 
+         [class.active]="activeTab === 'groups'" 
+         (click)="switchTab('groups')">
+      <div class="icon-wrapper">
+        <i class="bi bi-people-fill" *ngIf="activeTab === 'groups'"></i>
+        <i class="bi bi-people" *ngIf="activeTab !== 'groups'"></i>
+      </div>
+      <span class="nav-label">Groups</span>
+    </div>
+
+    <div class="nav-button">
+      <div class="icon-wrapper">
+        <i class="bi bi-circle-uppercase"></i>
+      </div>
+      <span class="nav-label">Status</span>
+    </div>
+  </div>
+  
+  <div class="bottom-nav-items">
+    <div class="nav-button">
+      <div class="icon-wrapper">
+        <i class="bi bi-gear"></i>
+      </div>
+    </div>
+    
+    <div class="profile-section">
+      <div class="user-avatar-rail" title="Profile">
+        {{ userInitial || '?' }}
+      </div>
+    </div>
+  </div>
+</div>
