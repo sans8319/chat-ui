@@ -49,6 +49,26 @@ export class SidebarComponent implements OnInit {
         this.updateSidebarUI(msg);
       }
     });
+
+    // --- NAYA FIX: Notification Listener with Race Condition Fix ---
+    this.chatService.notificationUpdate$.subscribe(notif => {
+      if (notif) {
+        console.log("🔔 Notification Received:", notif.type);
+        
+        if (notif.type === 'NEW_GROUP') {
+          // FIX: Backend DB commit hone ke liye 800ms ka time diya
+          setTimeout(() => {
+            this.loadGroups(); 
+          }, 800);
+        }
+        if (notif.type === 'NEW_USER') {
+          // FIX: Same safety delay for new users
+          setTimeout(() => {
+            this.loadUsers();  
+          }, 800);
+        }
+      }
+    });
   }
 
   // --- UPDATED: Fetch, Subscribe & Sync Logic ---
@@ -71,10 +91,9 @@ export class SidebarComponent implements OnInit {
             lastMessageTime: null
           }));
 
-          // LOGIN/REFRESH CONSISTENCY: Har group ko subscribe aur sync karo
           this.groups.forEach(g => {
             this.chatService.subscribeToRoom(g.id);
-            this.syncGroupStatus(g); // 1-on-1 jaisa persistence logic
+            this.syncGroupStatus(g); 
           });
 
           this.cdr.detectChanges();
@@ -83,7 +102,6 @@ export class SidebarComponent implements OnInit {
       });
   }
 
-  // NAYA: Group Persistence (Refresh/Login Fix)
   syncGroupStatus(group: any) {
     this.chatService.getChatHistory(group.id).subscribe(history => {
       if (history && history.length > 0) {
@@ -96,7 +114,6 @@ export class SidebarComponent implements OnInit {
         }
         group.lastMessageTime = validTime;
 
-        // Unread Count Sync
         const unread = history.filter((m: any) => 
           Number(m.senderId) !== Number(this.currentUserId) && 
           String(this.activeUserId) !== String(group.id)
@@ -110,7 +127,7 @@ export class SidebarComponent implements OnInit {
     });
   }
 
-  // --- PURANA UI LOGIC + NEW REAL-TIME SORTING ---
+  // --- UPDATED UI LOGIC WITH SAFETY NETS ---
   updateSidebarUI(msg: any) {
     if (msg.roomId && String(msg.roomId).startsWith('GROUP_')) {
       const groupIndex = this.groups.findIndex(g => g.id === String(msg.roomId));
@@ -122,24 +139,24 @@ export class SidebarComponent implements OnInit {
         
         this.groups[groupIndex].lastMessage = msg.content;
 
-        // Sorting Logic: Time update
         let validTime = msg.timestamp;
         if (Array.isArray(msg.timestamp)) {
           validTime = new Date(msg.timestamp[0], msg.timestamp[1] - 1, msg.timestamp[2], msg.timestamp[3], msg.timestamp[4]).toISOString();
         }
         this.groups[groupIndex].lastMessageTime = validTime || new Date().toISOString();
 
-        // REAL-TIME JUMP TO TOP
         const updatedGroup = { ...this.groups[groupIndex] };
         const remainingGroups = this.groups.filter(g => g.id !== String(msg.roomId));
         this.groups = [updatedGroup, ...remainingGroups];
 
         this.cdr.detectChanges();
+      } else {
+        // NAYA SAFETY NET: Unknown group se message aaya? Refresh list!
+        setTimeout(() => { this.loadGroups(); }, 800);
       }
       return; 
     }
 
-    // --- AAPKA ORIGINAL 1-ON-1 LOGIC (100% SAFE) ---
     const currentId = Number(this.currentUserId);
     const msgSenderId = Number(msg.senderId);
     const activePartnerId = Number(this.activeUserId);
@@ -165,10 +182,12 @@ export class SidebarComponent implements OnInit {
       this.users = [updatedUser, ...remainingUsers];
 
       this.cdr.detectChanges();
+    } else {
+      // NAYA SAFETY NET: Unknown user se message aaya? Refresh list!
+      setTimeout(() => { this.loadUsers(); }, 800);
     }
   }
 
-  // Sorting Helper for Groups
   sortGroupsByTime() {
     this.groups.sort((a, b) => {
       const timeA = a.lastMessageTime ? new Date(a.lastMessageTime).getTime() : 0;

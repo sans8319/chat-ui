@@ -21,13 +21,16 @@ export class ChatService {
   private activeRooms = new Set<string>();
   private pendingRooms = new Set<string>(); 
 
+  // --- NAYA: Background Notifications (New User/Group ke liye) ---
+  private notificationSource = new BehaviorSubject<any>(null);
+  notificationUpdate$ = this.notificationSource.asObservable();
+
   // --- NAYA LOGIC: Tab Switching (Chats vs Groups) ---
   private activeTabSource = new BehaviorSubject<'chats' | 'groups'>('chats');
   activeTab$ = this.activeTabSource.asObservable();
 
   setActiveTab(tab: 'chats' | 'groups') {
     this.activeTabSource.next(tab);
-    // Jab tab change ho, toh purana selected user clear kar sakte hain
     this.selectedUserSource.next(null);
   }
 
@@ -46,12 +49,34 @@ export class ChatService {
       webSocketFactory: () => socket,
       debug: (str) => console.log(str),
       reconnectDelay: 5000,
-      heartbeatIncoming: 10000, // Optimized for production (prevents false disconnects)
+      heartbeatIncoming: 10000, 
       heartbeatOutgoing: 10000,
     });
 
     this.stompClient.onConnect = (frame) => {
       console.log('✅ Connected to WebSocket');
+
+      const currentUserId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+
+      // --- NAYA: Background Alert Subscriptions ---
+      
+      // 1. PERSONAL ALERTS: Jab koi aapko naye group mein add kare
+      if (currentUserId) {
+        this.stompClient?.subscribe(`/topic/user/${currentUserId}`, (msg) => {
+          if (msg.body) {
+            this.notificationSource.next(JSON.parse(msg.body));
+          }
+        });
+      }
+
+      // 2. PUBLIC ALERTS: Jab koi naya user register ho
+      this.stompClient?.subscribe(`/topic/public/updates`, (msg) => {
+        if (msg.body) {
+          this.notificationSource.next(JSON.parse(msg.body));
+        }
+      });
+
+      // 3. Purana pending rooms logic (DM/Group chats)
       this.pendingRooms.forEach(roomId => {
         if (!this.activeRooms.has(roomId)) {
           this.activeRooms.add(roomId);
@@ -71,7 +96,6 @@ export class ChatService {
 
   // --- SAFE SUBSCRIPTION LOGIC ---
   subscribeToRoom(roomId: string) {
-    // Agar pehle se subscribed hai, toh wapas subscribe mat karo (Prevents double messages)
     if (this.activeRooms.has(roomId)) return;
     
     if (this.stompClient && this.stompClient.connected) {
@@ -83,18 +107,14 @@ export class ChatService {
   }
 
   private performStompSubscription(roomId: string) {
-    // Main Messages Channel
     this.stompClient?.subscribe(`/topic/room/${roomId}`, (message: Message) => {
       if (message.body) {
         const parsedMsg = JSON.parse(message.body);
-        
-        // Dono streams ko update karna zaroori hai (Sidebar ke liye aur Chat window ke liye)
         this.sidebarUpdateSource.next(parsedMsg);
         this.messageSubject.next(parsedMsg);
       }
     });
 
-    // Receipts Channel (1-on-1 functionality intact)
     this.stompClient?.subscribe(`/topic/room/${roomId}/receipts`, (message: Message) => {
       if (message.body) {
         this.receiptSubject.next(JSON.parse(message.body));
@@ -142,7 +162,6 @@ export class ChatService {
     return this.http.get<any[]>(`http://localhost:8080/api/messages/${roomId}`, { headers });
   }
 
-  // --- NAYA: Logout safety method (Future use ke liye) ---
   disconnect() {
     if (this.stompClient && this.stompClient.connected) {
       this.stompClient.deactivate();
