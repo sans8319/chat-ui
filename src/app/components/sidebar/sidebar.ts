@@ -29,7 +29,6 @@ export class SidebarComponent implements OnInit {
 
     this.loadUsers();
 
-    // Live update listener - Yeh sirf tab kaam karega jab WebSocket active ho
     this.chatService.sidebarUpdate$.subscribe(msg => {
       if (msg) {
         this.updateSidebarUI(msg);
@@ -46,7 +45,6 @@ export class SidebarComponent implements OnInit {
     const userIndex = this.users.findIndex(u => Number(u.id) === partnerId);
 
     if (userIndex !== -1) {
-      // Counter: Agar chat open nahi hai, toh badhao
       if (msgSenderId !== currentId && partnerId !== activePartnerId) {
         this.users[userIndex].unreadCount = (this.users[userIndex].unreadCount || 0) + 1;
       }
@@ -59,7 +57,6 @@ export class SidebarComponent implements OnInit {
       }
       this.users[userIndex].lastMessageTime = validTime || new Date().toISOString();
 
-      // User ko top par lao
       const updatedUser = { ...this.users[userIndex] };
       const remainingUsers = this.users.filter(u => Number(u.id) !== partnerId);
       this.users = [updatedUser, ...remainingUsers];
@@ -85,7 +82,6 @@ export class SidebarComponent implements OnInit {
       next: (data) => {
         this.users = data.filter(user => user.username !== loggedInUser);
         
-        // --- SAFE SYNC: Sirf data load karo, subscription chhedne ki zaroorat nahi ---
         this.users.forEach(user => {
           this.syncUserStatus(user);
         });
@@ -101,7 +97,13 @@ export class SidebarComponent implements OnInit {
 
     this.chatService.getOrCreateRoom(this.currentUserId, user.id).subscribe(room => {
       if (room && room.id) {
-        this.chatService.getChatHistory(room.id.toString()).subscribe(history => {
+        const roomIdStr = room.id.toString();
+
+        // --- MASTER FIX: Safe Subscription ---
+        // Ab hum bindass subscribe call kar sakte hain. Agar WebSocket ready nahi hoga, toh chat.ts isko Queue mein daal dega, aur aapke messages break NAHI honge.
+        this.chatService.subscribeToRoom(roomIdStr);
+
+        this.chatService.getChatHistory(roomIdStr).subscribe(history => {
           if (history && history.length > 0) {
             const lastMsg = history[history.length - 1];
             user.lastMessage = lastMsg.content;
@@ -112,7 +114,6 @@ export class SidebarComponent implements OnInit {
             }
             user.lastMessageTime = validTime;
 
-            // Database se unread count fetch karo
             const unread = history.filter((m: any) => Number(m.senderId) !== Number(this.currentUserId) && !m.seen).length;
             user.unreadCount = unread;
           }

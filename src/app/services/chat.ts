@@ -10,25 +10,25 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 export class ChatService {
   private stompClient: Client | null = null;
   private messageSubject = new BehaviorSubject<any>(null);
-  private receiptSubject = new BehaviorSubject<any>(null); // Receipts ke liye
+  private receiptSubject = new BehaviorSubject<any>(null); 
   
   private selectedUserSource = new BehaviorSubject<any>(null); 
   selectedUser$ = this.selectedUserSource.asObservable();     
 
-  // --- NAYA LOGIC: Sidebar Update Trigger ---
   private sidebarUpdateSource = new BehaviorSubject<any>(null);
   sidebarUpdate$ = this.sidebarUpdateSource.asObservable();
 
-  // NAYA: Duplicate subscriptions rokne ke liye ek Tracker (Set)
   private activeRooms = new Set<string>();
+  // --- NAYA LOGIC: Jo rooms connect hone se pehle aayenge, unhe yahan safe rakhenge ---
+  private pendingRooms = new Set<string>(); 
 
   selectUser(user: any) {
     this.selectedUserSource.next(user);
   }
 
- constructor(private http: HttpClient) { 
-  this.initConnection();
-}
+  constructor(private http: HttpClient) { 
+    this.initConnection();
+  }
 
   private initConnection() {
     const socket = new SockJS('http://localhost:8080/ws-chat');
@@ -42,35 +42,45 @@ export class ChatService {
 
     this.stompClient.onConnect = (frame) => {
       console.log('Connected to WebSocket');
-      // Note: Room subscription ab dynamic handle hota hai chat-window se
+      
+      // --- NAYA LOGIC: Jaise hi connect ho, pending rooms ko subscribe kar do ---
+      this.pendingRooms.forEach(roomId => {
+        if (!this.activeRooms.has(roomId)) {
+          this.activeRooms.add(roomId);
+          this.performStompSubscription(roomId);
+        }
+      });
+      this.pendingRooms.clear(); // Line clear kar do
     };
 
     this.stompClient.activate();
   }
 
   subscribeToRoom(roomId: string) {
-    // --- MASTER FIX FOR MULTIPLE COUNTS (1 -> 2 -> 4 BUG) ---
-    // Agar is room ka subscription pehle se active hai, toh wapas subscribe mat karo!
     if (this.activeRooms.has(roomId)) {
       return; 
     }
-    
-    // Room ko 'Set' mein daal do taaki system ko yaad rahe
-    this.activeRooms.add(roomId);
 
-    // 1. Regular messages sunne ke liye
+    // Agar connected hai toh turant subscribe karo
+    if (this.stompClient && this.stompClient.connected) {
+      this.activeRooms.add(roomId);
+      this.performStompSubscription(roomId);
+    } else {
+      // Agar connected nahi hai, toh fail hone ki jagah pending queue mein daal do
+      this.pendingRooms.add(roomId);
+    }
+  }
+
+  // Asli subscription logic ko alag function mein daal diya taaki clean rahe
+  private performStompSubscription(roomId: string) {
     this.stompClient?.subscribe(`/topic/room/${roomId}`, (message: Message) => {
       if (message.body) {
         const parsedMsg = JSON.parse(message.body);
-        
-        // --- NAYA LOGIC: Sidebar ko batayein ki naya message aaya hai ---
         this.sidebarUpdateSource.next(parsedMsg);
-        
         this.messageSubject.next(parsedMsg);
       }
     });
 
-    // 2. Ticks (Receipts) sunne ke liye
     this.stompClient?.subscribe(`/topic/room/${roomId}/receipts`, (message: Message) => {
       if (message.body) {
         this.receiptSubject.next(JSON.parse(message.body));
@@ -125,8 +135,7 @@ export class ChatService {
     return this.http.get<any[]>(`http://localhost:8080/api/messages/${roomId}`, { headers });
   }
 
-  // chat.ts mein ye method add kijiye
-isSubscribed(roomId: string): boolean {
-  return this.activeRooms.has(roomId);
-}
+  isSubscribed(roomId: string): boolean {
+    return this.activeRooms.has(roomId) || this.pendingRooms.has(roomId);
+  }
 }
