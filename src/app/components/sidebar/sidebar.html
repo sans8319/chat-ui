@@ -4,7 +4,10 @@
     <div class="header-top">
       <h2>{{ activeTab === 'chats' ? 'Chats' : 'Groups' }}</h2>
       <div class="header-actions">
-        <i class="bi bi-plus-lg action-icon" *ngIf="activeTab === 'groups'" title="Create Group"></i>
+        <i class="bi bi-plus-lg action-icon" 
+           *ngIf="activeTab === 'groups'" 
+           title="Create Group" 
+           (click)="openCreateGroupModal()"></i>
         <i class="bi bi-three-dots-vertical action-icon"></i>
       </div>
     </div>
@@ -49,7 +52,7 @@
         <div class="user-details">
           <div class="name-row">
             <span class="username">{{ group.username }}</span>
-            <span class="time">Just now</span>
+            <span class="time"></span>
           </div>
           <div class="msg-row">
             <span class="last-msg text-truncate">{{ group.lastMessage }}</span>
@@ -64,4 +67,40 @@
     </ng-container>
 
   </div>
+
+  <div class="modal-overlay" *ngIf="showCreateGroupModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Create New Group</h3>
+        <i class="bi bi-x-lg close-btn" (click)="closeCreateGroupModal()"></i>
+      </div>
+      
+      <div class="modal-body">
+        <div class="input-group">
+          <label>Group Subject</label>
+          <input type="text" [(ngModel)]="newGroupName" placeholder="Enter group name...">
+        </div>
+        
+        <div class="member-selection">
+          <label>Add Members</label>
+          <div class="users-list-scroll">
+            <div class="user-select-item" *ngFor="let user of users" (click)="toggleUserSelection(user.id)">
+              <div class="avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
+              <span class="username">{{ user.username }}</span>
+              <i class="bi bi-check-circle-fill check-icon" *ngIf="selectedUsersForGroup.includes(user.id)"></i>
+              <i class="bi bi-circle check-icon empty" *ngIf="!selectedUsersForGroup.includes(user.id)"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="closeCreateGroupModal()">Cancel</button>
+        <button class="create-btn" (click)="createGroup()" [disabled]="newGroupName.trim() === '' || selectedUsersForGroup.length === 0">
+          Create Group
+        </button>
+      </div>
+    </div>
+  </div>
+
 </div>

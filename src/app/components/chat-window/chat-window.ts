@@ -16,7 +16,7 @@ import { NavRailComponent } from '../nav-rail/nav-rail';
 export class ChatWindowComponent implements OnInit, OnDestroy {
   messages: any[] = [];
   currentUserId: number | null = null;
-  selectedUser: any = null; // Yeh ab User ya Group dono ho sakta hai
+  selectedUser: any = null; 
   currentRoomId: string | null = null; 
   isUserAtBottom = true; 
   newMessagesCount = 0;   
@@ -41,19 +41,30 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
       this.currentUserId = Number(localStorage.getItem('userId'));
     }
 
-    // Sidebar se jo bhi click hoga (User ya Group), yahan aayega
     this.chatService.selectedUser$.subscribe(selection => {
       if (selection) {
         this.selectedUser = selection;
-        this.messages = []; // Naya chat khulne par purane messages clear karo
+        this.messages = []; 
         
-        // Agar normal user hai (isGroup nahi hai), toh history load karo
         if (this.currentUserId && !selection.isGroup) {
           this.loadRoomAndHistory(this.currentUserId, selection.id);
         } else if (selection.isGroup) {
-          // Group logic aayega (Abhi ke liye dummy array set kar dete hain)
-          this.currentRoomId = `group_${selection.id}`;
-          this.loadDummyGroupHistory();
+          // --- NAYA FIX: Actual Group History Load Logic ---
+          this.currentRoomId = selection.id; 
+          this.chatService.subscribeToRoom(this.currentRoomId!); 
+
+          // Dummy ki jagah real history API call
+          this.chatService.getChatHistory(this.currentRoomId!).subscribe(history => {
+            this.messages = history.map(msg => {
+              if (Array.isArray(msg.timestamp)) {
+                 msg.timestamp = new Date(msg.timestamp[0], msg.timestamp[1] - 1, msg.timestamp[2], msg.timestamp[3], msg.timestamp[4]).toISOString();
+              }
+              return msg;
+            });
+            setTimeout(() => this.scrollToBottom(), 100);
+            this.listenToMessages(); 
+            this.cdr.detectChanges();
+          });
         }
       } else {
         this.selectedUser = null;
@@ -62,16 +73,15 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
     });
   }
 
-  // --- NAYA LOGIC: Dummy Group History (Jab tak backend ready na ho) ---
+  // --- PURANA DUMMY LOGIC (Ab use nahi hoga) ---
   loadDummyGroupHistory() {
     this.messages = [
-      { id: 1, senderId: 999, content: 'Welcome to the group!', timestamp: new Date().toISOString(), seen: true, senderName: 'System' },
-      { id: 2, senderId: this.currentUserId, content: 'Hey everyone!', timestamp: new Date().toISOString(), seen: true }
+      { id: 1, senderId: 999, content: 'Welcome to the new group!', timestamp: new Date().toISOString(), seen: true, senderName: 'System' }
     ];
     setTimeout(() => this.scrollToBottom(), 100);
+    this.listenToMessages(); 
   }
 
-  // --- AAPKA PURANA SAFE LOGIC (As it is) ---
   loadRoomAndHistory(user1Id: number, user2Id: number) {
     this.chatService.getOrCreateRoom(user1Id, user2Id).subscribe(room => {
       if (room && room.id) {
@@ -95,59 +105,69 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
         });
 
         this.chatService.subscribeToRoom(this.currentRoomId!);
-
-        this.roomSubscription = this.chatService.getMessages().subscribe(msg => {
-          if (msg && msg.roomId === Number(this.currentRoomId)) {
-            
-            if (Array.isArray(msg.timestamp)) {
-               msg.timestamp = new Date(msg.timestamp[0], msg.timestamp[1] - 1, msg.timestamp[2], msg.timestamp[3], msg.timestamp[4]).toISOString();
-            }
-
-            this.ngZone.run(() => {
-              const exists = this.messages.some(m => m.id === msg.id);
-              if (!exists) {
-                this.messages.push(msg);
-
-                if (msg.senderId !== this.currentUserId) {
-                  if (document.hasFocus()) {
-                    this.chatService.sendReceipt(this.currentRoomId!, msg.id, 'SEEN');
-                    msg.seen = true;
-                  } else {
-                    this.chatService.sendReceipt(this.currentRoomId!, msg.id, 'DELIVERED');
-                  }
-                }
-
-                if (this.isUserAtBottom || msg.senderId === this.currentUserId) {
-                  setTimeout(() => this.scrollToBottom(), 50);
-                } else {
-                  this.newMessagesCount++;
-                }
-                this.cdr.detectChanges();
-              }
-            });
-          }
-        });
-
-        this.chatService.getReceipts().subscribe(receipt => {
-          if (receipt && receipt.roomId === Number(this.currentRoomId)) {
-            const msgIndex = this.messages.findIndex(m => m.id === receipt.messageId);
-            if (msgIndex !== -1) {
-              if (receipt.status === 'DELIVERED') {
-                this.messages[msgIndex].delivered = true;
-              } else if (receipt.status === 'SEEN') {
-                this.messages[msgIndex].delivered = true;
-                this.messages[msgIndex].seen = true;
-              }
-              this.cdr.detectChanges();
-            }
-          }
-        });
+        this.listenToMessages(); 
       }
     });
   }
 
+  // --- AAPKA ORIGINAL LISTEN LOGIC (Receipts/Scroll intact) ---
+  listenToMessages() {
+    if (this.roomSubscription) {
+      this.roomSubscription.unsubscribe();
+    }
+
+    this.roomSubscription = this.chatService.getMessages().subscribe(msg => {
+      if (msg && String(msg.roomId) === String(this.currentRoomId)) {
+        
+        if (Array.isArray(msg.timestamp)) {
+           msg.timestamp = new Date(msg.timestamp[0], msg.timestamp[1] - 1, msg.timestamp[2], msg.timestamp[3], msg.timestamp[4]).toISOString();
+        }
+
+        this.ngZone.run(() => {
+          const exists = this.messages.some(m => m.id === msg.id);
+          if (!exists) {
+            this.messages.push(msg);
+
+            // Group messages me receipts nahi bhejenge (Logic preserved)
+            if (msg.senderId !== this.currentUserId && !this.selectedUser?.isGroup) {
+              if (document.hasFocus()) {
+                this.chatService.sendReceipt(this.currentRoomId!, msg.id, 'SEEN');
+                msg.seen = true;
+              } else {
+                this.chatService.sendReceipt(this.currentRoomId!, msg.id, 'DELIVERED');
+              }
+            }
+
+            if (this.isUserAtBottom || msg.senderId === this.currentUserId) {
+              setTimeout(() => this.scrollToBottom(), 50);
+            } else {
+              this.newMessagesCount++;
+            }
+            this.cdr.detectChanges();
+          }
+        });
+      }
+    });
+
+    this.chatService.getReceipts().subscribe(receipt => {
+      if (receipt && String(receipt.roomId) === String(this.currentRoomId)) {
+        const msgIndex = this.messages.findIndex(m => m.id === receipt.messageId);
+        if (msgIndex !== -1) {
+          if (receipt.status === 'DELIVERED') {
+            this.messages[msgIndex].delivered = true;
+          } else if (receipt.status === 'SEEN') {
+            this.messages[msgIndex].delivered = true;
+            this.messages[msgIndex].seen = true;
+          }
+          this.cdr.detectChanges();
+        }
+      }
+    });
+  }
+
+  // --- AAPKA ORIGINAL SEEN LOGIC ---
   markMessagesAsSeen() {
-    if (!this.currentRoomId || !this.currentUserId || this.selectedUser?.isGroup) return; // NAYA: Groups mein seen receipt mat bhejo
+    if (!this.currentRoomId || !this.currentUserId || this.selectedUser?.isGroup) return; 
     
     let needsUpdate = false;
     this.messages.forEach(msg => {

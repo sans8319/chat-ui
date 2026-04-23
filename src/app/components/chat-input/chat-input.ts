@@ -10,7 +10,7 @@ import { ChatService } from '../../services/chat';
   styleUrl: './chat-input.scss'
 })
 export class ChatInputComponent {
-  @Input() roomId: string | null = null; // NAYA: Room ID parent se aayegi
+  @Input() roomId: string | null = null; 
   messageText: string = '';
 
   constructor(private chatService: ChatService) {}
@@ -19,11 +19,18 @@ export class ChatInputComponent {
     if (this.messageText.trim() && this.roomId) {
       const currentUserId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
       
-      const messagePayload = {
+      // 1-on-1 aur Groups dono ke liye compatible payload
+      const messagePayload: any = {
         content: this.messageText,
         sender: { id: Number(currentUserId) },
-        chatRoom: { id: Number(this.roomId) } // NAYA: Actual Room ID
+        roomId: this.roomId // Backend isko direct read karega
       };
+
+      // --- PURANI FUNCTIONALITY SAFE RAKHNE KE LIYE ---
+      // Agar ye 1-on-1 chat hai (yani GROUP_ se shuru nahi ho raha)
+      if (!this.roomId.startsWith('GROUP_')) {
+        messagePayload.chatRoom = { id: Number(this.roomId) };
+      }
 
       this.chatService.sendMessage(this.roomId, messagePayload);
       this.messageText = ''; 

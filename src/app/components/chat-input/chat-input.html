@@ -6,7 +6,7 @@
       (keyup.enter)="sendMessage()"
       placeholder="Type a premium message..." />
     
-    <button class="send-btn" (click)="sendMessage()">
+    <button class="send-btn" (click)="sendMessage()" [disabled]="!messageText.trim()">
       Send
     </button>
   </div>

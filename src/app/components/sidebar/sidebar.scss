@@ -3,6 +3,7 @@
   display: flex;
   flex-direction: column;
   background: #ffffff;
+  position: relative; // NAYA: Modal placing ke liye zaroori
 
   .sidebar-header {
     padding: 16px 20px 10px;
@@ -34,7 +35,7 @@
           transition: color 0.2s ease;
 
           &:hover {
-            color: #111b21; // Darker on hover
+            color: #111b21;
           }
         }
       }
@@ -53,7 +54,7 @@
 
         &:focus-within {
           background: #ffffff;
-          border-bottom: 2px solid #9442e0; // WhatsApp green indicator
+          border-bottom: 2px solid #6366f1; 
           box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
@@ -85,7 +86,6 @@
     overflow-y: auto;
     background: #ffffff;
     
-    // Custom scrollbar
     &::-webkit-scrollbar {
       width: 6px;
     }
@@ -99,7 +99,7 @@
       padding: 12px 20px;
       cursor: pointer;
       transition: background 0.2s;
-      border-bottom: 1px solid #f2f2f2; // Subtle separator
+      border-bottom: 1px solid #f2f2f2; 
 
       &:hover {
         background: #f5f6f6;
@@ -123,9 +123,8 @@
         margin-right: 15px;
         flex-shrink: 0;
 
-        // --- NAYA: Groups ke avatar ka styling ---
         &.group-avatar {
-          background: #00a884; // Green background for groups
+          background: #6366f1; // Blue theme for groups
           color: white;
           i {
             font-size: 22px;
@@ -177,7 +176,7 @@
           }
 
           .badge {
-            background: #25d366;
+            background: #22c55e;
             color: white;
             font-size: 12px;
             font-weight: bold;
@@ -190,13 +189,103 @@
       }
     }
 
-    // --- NAYA: Jab koi group na ho ---
     .no-groups-state {
       padding: 40px 20px;
       text-align: center;
       color: #667781;
       font-size: 14px;
       font-weight: 500;
+    }
+  }
+
+  // --- NAYA: Modal Styling ---
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(11, 20, 26, 0.4);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    .modal-content {
+      background: white;
+      width: 400px;
+      border-radius: 12px;
+      box-shadow: 0 17px 50px 0 rgba(11, 20, 26, 0.19);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+
+      .modal-header {
+        padding: 20px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #6366f1; // Blue Theme
+        color: white;
+
+        h3 { margin: 0; font-size: 18px; font-weight: 500; }
+        .close-btn { cursor: pointer; font-size: 20px; transition: 0.2s; &:hover { opacity: 0.8; } }
+      }
+
+      .modal-body {
+        padding: 24px;
+        
+        .input-group {
+          margin-bottom: 24px;
+          label { display: block; font-size: 13px; color: #6366f1; font-weight: 600; margin-bottom: 8px; }
+          input {
+            width: 100%; padding: 10px 0; border: none; border-bottom: 2px solid #e9edef;
+            font-size: 16px; outline: none; transition: 0.2s;
+            &:focus { border-bottom-color: #6366f1; }
+          }
+        }
+
+        .member-selection {
+          label { display: block; font-size: 13px; color: #8696a0; font-weight: 600; margin-bottom: 12px; }
+          
+          .users-list-scroll {
+            max-height: 250px; overflow-y: auto;
+            
+            &::-webkit-scrollbar { width: 6px; }
+            &::-webkit-scrollbar-thumb { background-color: rgba(11, 20, 26, 0.2); border-radius: 3px; }
+
+            .user-select-item {
+              display: flex; align-items: center; padding: 10px 12px; cursor: pointer;
+              transition: background 0.2s; border-radius: 8px; margin-bottom: 4px;
+              
+              &:hover { background: #f5f6f6; }
+              
+              .avatar {
+                width: 36px; height: 36px; border-radius: 50%; background: #dfe5e7; color: #54656f;
+                display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; margin-right: 12px;
+              }
+              .username { flex: 1; font-size: 15px; color: #111b21; }
+              
+              .check-icon { font-size: 20px; color: #22c55e; &.empty { color: #d1d7db; } }
+            }
+          }
+        }
+      }
+
+      .modal-footer {
+        padding: 16px 24px; display: flex; justify-content: flex-end; gap: 12px; background: #f0f2f5;
+
+        button {
+          padding: 10px 20px; border-radius: 24px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: 0.2s;
+          
+          &.cancel-btn { background: transparent; color: #54656f; border: 1px solid #d1d7db; &:hover { background: white; } }
+          &.create-btn {
+            background: #6366f1; color: white;
+            &:hover:not(:disabled) { background: #4f46e5; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+            &:disabled { background: #e9edef; color: #8696a0; cursor: not-allowed; }
+          }
+        }
+      }
     }
   }
 }

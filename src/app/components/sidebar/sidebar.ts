@@ -2,20 +2,25 @@ import { Component, OnInit, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angu
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ChatService } from '../../services/chat';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss'
 })
 export class SidebarComponent implements OnInit {
   users: any[] = [];
-  groups: any[] = []; // NAYA: Groups store karne ke liye
-  activeTab: 'chats' | 'groups' = 'chats'; // NAYA: Current active tab track karne ke liye
+  groups: any[] = []; 
+  activeTab: 'chats' | 'groups' = 'chats'; 
   activeUserId: any = null;
   currentUserId: number | null = null;
+
+  showCreateGroupModal: boolean = false;
+  newGroupName: string = '';
+  selectedUsersForGroup: number[] = [];
 
   constructor(
     private http: HttpClient, 
@@ -29,10 +34,9 @@ export class SidebarComponent implements OnInit {
       this.currentUserId = Number(localStorage.getItem('userId'));
     }
 
-    // --- NAYA LOGIC: Nav Rail se tab switch sunne ke liye ---
     this.chatService.activeTab$.subscribe(tab => {
       this.activeTab = tab;
-      this.activeUserId = null; // Tab badalne par selection hatao
+      this.activeUserId = null; 
       if (tab === 'groups') {
         this.loadGroups();
       }
@@ -48,16 +52,104 @@ export class SidebarComponent implements OnInit {
     });
   }
 
-  // --- NAYA LOGIC: Dummy Groups Load karna (Jab tak backend na bane) ---
+  // --- NAYA LOGIC: Fetch & Auto-Subscribe ---
   loadGroups() {
-    this.groups = [
-      { id: 'g1', username: 'Project Alpha', lastMessage: 'Deploy complete!', unreadCount: 3, isGroup: true },
-      { id: 'g2', username: 'Weekend Plan', lastMessage: 'See you at 6.', unreadCount: 0, isGroup: true }
-    ];
+    if (!this.currentUserId) return;
+    
+    const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : '';
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+    this.http.get<any[]>(`http://localhost:8080/api/groups/user/${this.currentUserId}`, { headers })
+      .subscribe({
+        next: (data) => {
+          // 1. Group IDs ko 'GROUP_' prefix do taaki User ID se mix na ho
+          this.groups = data.map(g => ({
+            ...g,
+            originalId: g.id,
+            id: `GROUP_${g.id}`, 
+            isGroup: true
+          }));
+
+          // 2. Load hote hi saare groups ke WebSocket rooms se jud jao!
+          this.groups.forEach(g => {
+            this.chatService.subscribeToRoom(g.id);
+          });
+
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error("Error loading groups:", err)
+      });
   }
 
-  // --- AAPKA PURANA SAFE LOGIC (As it is) ---
+  openCreateGroupModal() {
+    this.showCreateGroupModal = true;
+    this.newGroupName = '';
+    this.selectedUsersForGroup = [];
+  }
+
+  closeCreateGroupModal() {
+    this.showCreateGroupModal = false;
+  }
+
+  toggleUserSelection(userId: number) {
+    const index = this.selectedUsersForGroup.indexOf(userId);
+    if (index > -1) {
+      this.selectedUsersForGroup.splice(index, 1);
+    } else {
+      this.selectedUsersForGroup.push(userId);
+    }
+  }
+
+  createGroup() {
+    if (this.newGroupName.trim() === '' || this.selectedUsersForGroup.length === 0) {
+      alert("Please enter a group name and select at least one member.");
+      return;
+    }
+
+    const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : '';
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+    const payload = {
+      name: this.newGroupName,
+      memberIds: this.selectedUsersForGroup
+    };
+
+    this.http.post<any>(`http://localhost:8080/api/groups/create?creatorId=${this.currentUserId}`, payload, { headers })
+      .subscribe({
+        next: (response) => {
+          this.closeCreateGroupModal();
+          this.loadGroups(); 
+        },
+        error: (err) => {
+          console.error("Error creating group:", err);
+          alert("Failed to create group.");
+        }
+      });
+  }
+
+  // =======================================================
+  // AAPKA PURANA SAFE LOGIC (100% UNTOUCHED + GROUP INTERCEPTOR)
+  // =======================================================
+
   updateSidebarUI(msg: any) {
+    // --- NAYA: GROUP MESSAGE INTERCEPTOR ---
+    // Agar msg.roomId 'GROUP_' se shuru hota hai, toh iska matlab ye group message hai
+    if (msg.roomId && String(msg.roomId).startsWith('GROUP_')) {
+      const groupIndex = this.groups.findIndex(g => g.id === String(msg.roomId));
+      
+      if (groupIndex !== -1) {
+        // Agar main us group mein abhi chat nahi kar raha, aur message maine nahi bheja, tabhi badge badhao
+        if (Number(msg.senderId) !== Number(this.currentUserId) && String(this.activeUserId) !== String(msg.roomId)) {
+          this.groups[groupIndex].unreadCount = (this.groups[groupIndex].unreadCount || 0) + 1;
+        }
+        
+        this.groups[groupIndex].lastMessage = msg.content;
+        this.cdr.detectChanges();
+      }
+      return; // YAHAN SE FUNCTION ROK DO! Neeche wala 1-on-1 logic run nahi hoga.
+    }
+
+    // --- AAPKA ORIGINAL 1-ON-1 LOGIC ---
     const currentId = Number(this.currentUserId);
     const msgSenderId = Number(msg.senderId);
     const activePartnerId = Number(this.activeUserId);
