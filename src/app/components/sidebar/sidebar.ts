@@ -37,7 +37,6 @@ export class SidebarComponent implements OnInit {
     this.chatService.activeTab$.subscribe(tab => {
       this.activeTab = tab;
       this.activeUserId = null; 
-      // Background mein hamesha sync rakho taaki alerts mil sakein
       this.loadGroups();
       this.cdr.detectChanges();
     });
@@ -50,28 +49,18 @@ export class SidebarComponent implements OnInit {
       }
     });
 
-    // --- NAYA FIX: Notification Listener with Race Condition Fix ---
     this.chatService.notificationUpdate$.subscribe(notif => {
       if (notif) {
-        console.log("🔔 Notification Received:", notif.type);
-        
         if (notif.type === 'NEW_GROUP') {
-          // FIX: Backend DB commit hone ke liye 800ms ka time diya
-          setTimeout(() => {
-            this.loadGroups(); 
-          }, 800);
+          setTimeout(() => { this.loadGroups(); }, 800);
         }
         if (notif.type === 'NEW_USER') {
-          // FIX: Same safety delay for new users
-          setTimeout(() => {
-            this.loadUsers();  
-          }, 800);
+          setTimeout(() => { this.loadUsers(); }, 800);
         }
       }
     });
   }
 
-  // --- UPDATED: Fetch, Subscribe & Sync Logic ---
   loadGroups() {
     if (!this.currentUserId) return;
     
@@ -106,19 +95,51 @@ export class SidebarComponent implements OnInit {
     this.chatService.getChatHistory(group.id).subscribe(history => {
       if (history && history.length > 0) {
         const lastMsg = history[history.length - 1];
-        group.lastMessage = lastMsg.content;
 
+        const isSystemMsg = lastMsg.senderName === 'System' || lastMsg.content === 'You were added to this group.' || lastMsg.content === '###GROUP_CREATED###';
+        
+        if (isSystemMsg) {
+          group.lastMessage = Number(lastMsg.senderId) === Number(this.currentUserId) 
+              ? 'You created this group.' 
+              : 'You were added to this group.';
+        } else {
+          group.lastMessage = lastMsg.content;
+        }
+        
         let validTime = lastMsg.timestamp;
         if (Array.isArray(lastMsg.timestamp)) {
           validTime = new Date(lastMsg.timestamp[0], lastMsg.timestamp[1] - 1, lastMsg.timestamp[2], lastMsg.timestamp[3], lastMsg.timestamp[4]).toISOString();
         }
         group.lastMessageTime = validTime;
 
-        const unread = history.filter((m: any) => 
-          Number(m.senderId) !== Number(this.currentUserId) && 
-          String(this.activeUserId) !== String(group.id)
-        ).length;
-        group.unreadCount = unread;
+        // --- NAYA: SMART UNREAD COUNTER LOGIC ---
+        // 1. Check karo aakhri baar kab read kiya tha
+        let lastReadStr = localStorage.getItem(`group_last_read_${group.id}`);
+        if (!lastReadStr) {
+            // Agar naye device pe open kiya hai, toh current latest time dal do taaki 1000s messages unread na dikhein
+            const latest = validTime ? new Date(validTime).getTime() : Date.now();
+            lastReadStr = latest.toString();
+            localStorage.setItem(`group_last_read_${group.id}`, lastReadStr);
+        }
+        const lastReadTime = Number(lastReadStr);
+
+        // 2. Sirf uske BAAD aane wale messages ko count karo
+        const unread = history.filter((m: any) => {
+          if (Number(m.senderId) === Number(this.currentUserId)) return false;
+
+          let msgTime = 0;
+          if (Array.isArray(m.timestamp)) {
+             msgTime = new Date(m.timestamp[0], m.timestamp[1] - 1, m.timestamp[2], m.timestamp[3], m.timestamp[4]).getTime();
+          } else if (m.timestamp) {
+             msgTime = new Date(m.timestamp).getTime();
+          }
+
+          return msgTime > lastReadTime; // Main jaadu yahan hai
+        }).length;
+
+        // Agar group currently open hai, toh 0 warna calculated unread
+        group.unreadCount = String(this.activeUserId) === String(group.id) ? 0 : unread;
+
       } else {
         group.lastMessage = 'Tap to start chatting...';
       }
@@ -127,23 +148,36 @@ export class SidebarComponent implements OnInit {
     });
   }
 
-  // --- UPDATED UI LOGIC WITH SAFETY NETS ---
   updateSidebarUI(msg: any) {
     if (msg.roomId && String(msg.roomId).startsWith('GROUP_')) {
       const groupIndex = this.groups.findIndex(g => g.id === String(msg.roomId));
       
       if (groupIndex !== -1) {
-        if (Number(msg.senderId) !== Number(this.currentUserId) && String(this.activeUserId) !== String(msg.roomId)) {
-          this.groups[groupIndex].unreadCount = (this.groups[groupIndex].unreadCount || 0) + 1;
-        }
-        
-        this.groups[groupIndex].lastMessage = msg.content;
-
         let validTime = msg.timestamp;
         if (Array.isArray(msg.timestamp)) {
           validTime = new Date(msg.timestamp[0], msg.timestamp[1] - 1, msg.timestamp[2], msg.timestamp[3], msg.timestamp[4]).toISOString();
         }
         this.groups[groupIndex].lastMessageTime = validTime || new Date().toISOString();
+
+        // --- NAYA: Badge vs Tracking Logic ---
+        if (Number(msg.senderId) !== Number(this.currentUserId) && String(this.activeUserId) !== String(msg.roomId)) {
+          // Chat open nahi hai -> Badge badhao
+          this.groups[groupIndex].unreadCount = (this.groups[groupIndex].unreadCount || 0) + 1;
+        } else if (String(this.activeUserId) === String(msg.roomId)) {
+          // Chat open hai -> Padh liya, toh read time update kardo
+          const msgTime = new Date(this.groups[groupIndex].lastMessageTime).getTime();
+          localStorage.setItem(`group_last_read_${msg.roomId}`, msgTime.toString());
+        }
+        
+        const isSystemMsg = msg.senderName === 'System' || msg.content === 'You were added to this group.' || msg.content === '###GROUP_CREATED###';
+        
+        if (isSystemMsg) {
+          this.groups[groupIndex].lastMessage = Number(msg.senderId) === Number(this.currentUserId) 
+              ? 'You created this group.' 
+              : 'You were added to this group.';
+        } else {
+          this.groups[groupIndex].lastMessage = msg.content;
+        }
 
         const updatedGroup = { ...this.groups[groupIndex] };
         const remainingGroups = this.groups.filter(g => g.id !== String(msg.roomId));
@@ -151,7 +185,6 @@ export class SidebarComponent implements OnInit {
 
         this.cdr.detectChanges();
       } else {
-        // NAYA SAFETY NET: Unknown group se message aaya? Refresh list!
         setTimeout(() => { this.loadGroups(); }, 800);
       }
       return; 
@@ -183,7 +216,6 @@ export class SidebarComponent implements OnInit {
 
       this.cdr.detectChanges();
     } else {
-      // NAYA SAFETY NET: Unknown user se message aaya? Refresh list!
       setTimeout(() => { this.loadUsers(); }, 800);
     }
   }
@@ -196,7 +228,6 @@ export class SidebarComponent implements OnInit {
     });
   }
 
-  // --- Baki functions (As it is) ---
   openCreateGroupModal() {
     this.showCreateGroupModal = true;
     this.newGroupName = '';
@@ -288,6 +319,13 @@ export class SidebarComponent implements OnInit {
   selectUser(user: any) {
     this.activeUserId = user.id;
     user.unreadCount = 0; 
+    
+    // --- NAYA: Click karte hi latest message ka time read time set kar do ---
+    if (user.isGroup || String(user.id).startsWith('GROUP_')) {
+       const latestTime = user.lastMessageTime ? new Date(user.lastMessageTime).getTime() : Date.now();
+       localStorage.setItem(`group_last_read_${user.id}`, latestTime.toString());
+    }
+
     this.chatService.selectUser(user);
     this.cdr.detectChanges();
   }

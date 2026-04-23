@@ -43,30 +43,44 @@
       </header>
 
       <div class="messages-container" (scroll)="onScroll($event)">
-        <div *ngFor="let msg of messages" 
-             [ngClass]="msg.senderId === currentUserId ? 'message-wrapper sent' : 'message-wrapper received'">
-          <div class="bubble">
-            
-            <div class="sender-name" *ngIf="selectedUser.isGroup && msg.senderId !== currentUserId">
-              {{ msg.senderName || 'Member' }}
-            </div>
+        
+        <ng-container *ngFor="let msg of messages">
 
-            <div class="message-content">{{ msg.content }}</div>
-            
-            <div class="message-meta">
-              <span class="timestamp">{{ msg.timestamp | date:'shortTime' }}</span>
+          <div class="system-message-container" *ngIf="msg.isSystem">
+            <div class="system-toast">
+              <i class="bi bi-shield-lock-fill"></i>
+              <span>{{ msg.content }}</span>
+            </div>
+          </div>
+
+          <div class="message-wrapper" 
+               *ngIf="!msg.isSystem"
+               [ngClass]="msg.senderId === currentUserId ? 'sent' : 'received'">
+            <div class="bubble">
               
-              <div class="status-ticks" *ngIf="msg.senderId === currentUserId && !selectedUser.isGroup">
-                <svg *ngIf="msg.delivered" [class.seen]="msg.seen" class="tick-icon" viewBox="0 0 24 24">
-                  <path d="M18 7l-1.41-1.41-6.59 6.59 1.41 1.41L18 7zm4.24-4.24l-1.41-1.41L10 12.17 5.17 7.34 3.76 8.76 10 15l12.24-12.24z"/>
-                </svg>
-                <svg *ngIf="!msg.delivered" class="tick-icon" viewBox="0 0 24 24">
-                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-                </svg>
+              <div class="sender-name" *ngIf="selectedUser.isGroup && msg.senderId !== currentUserId">
+                {{ msg.senderName || 'Member' }}
+              </div>
+
+              <div class="message-content">{{ msg.content }}</div>
+              
+              <div class="message-meta">
+                <span class="timestamp">{{ msg.timestamp | date:'shortTime' }}</span>
+                
+                <div class="status-ticks" *ngIf="msg.senderId === currentUserId && !selectedUser.isGroup">
+                  <svg *ngIf="msg.delivered" [class.seen]="msg.seen" class="tick-icon" viewBox="0 0 24 24">
+                    <path d="M18 7l-1.41-1.41-6.59 6.59 1.41 1.41L18 7zm4.24-4.24l-1.41-1.41L10 12.17 5.17 7.34 3.76 8.76 10 15l12.24-12.24z"/>
+                  </svg>
+                  <svg *ngIf="!msg.delivered" class="tick-icon" viewBox="0 0 24 24">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+
+        </ng-container>
+
       </div>
 
       <button class="scroll-down-btn" *ngIf="!isUserAtBottom" (click)="scrollToBottom()">

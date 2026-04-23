@@ -49,13 +49,19 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
         if (this.currentUserId && !selection.isGroup) {
           this.loadRoomAndHistory(this.currentUserId, selection.id);
         } else if (selection.isGroup) {
-          // --- NAYA FIX: Actual Group History Load Logic ---
           this.currentRoomId = selection.id; 
           this.chatService.subscribeToRoom(this.currentRoomId!); 
 
-          // Dummy ki jagah real history API call
           this.chatService.getChatHistory(this.currentRoomId!).subscribe(history => {
             this.messages = history.map(msg => {
+              // --- BULLETPROOF INTERCEPTOR ---
+              if (msg.senderName === 'System' || msg.content === 'You were added to this group.' || msg.content === '###GROUP_CREATED###') {
+                msg.isSystem = true; 
+                msg.content = Number(msg.senderId) === Number(this.currentUserId) 
+                    ? "You created this group." 
+                    : "You were added to this group.";
+              }
+
               if (Array.isArray(msg.timestamp)) {
                  msg.timestamp = new Date(msg.timestamp[0], msg.timestamp[1] - 1, msg.timestamp[2], msg.timestamp[3], msg.timestamp[4]).toISOString();
               }
@@ -73,15 +79,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
     });
   }
 
-  // --- PURANA DUMMY LOGIC (Ab use nahi hoga) ---
-  loadDummyGroupHistory() {
-    this.messages = [
-      { id: 1, senderId: 999, content: 'Welcome to the new group!', timestamp: new Date().toISOString(), seen: true, senderName: 'System' }
-    ];
-    setTimeout(() => this.scrollToBottom(), 100);
-    this.listenToMessages(); 
-  }
-
   loadRoomAndHistory(user1Id: number, user2Id: number) {
     this.chatService.getOrCreateRoom(user1Id, user2Id).subscribe(room => {
       if (room && room.id) {
@@ -93,6 +90,11 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
 
         this.chatService.getChatHistory(this.currentRoomId!).subscribe(history => {
           this.messages = history.map(msg => {
+            if (msg.senderName === 'System' || msg.content === '###GROUP_CREATED###') {
+                msg.isSystem = true;
+                msg.content = Number(msg.senderId) === Number(this.currentUserId) ? "You created this chat." : msg.content;
+            }
+
             if (Array.isArray(msg.timestamp)) {
                msg.timestamp = new Date(msg.timestamp[0], msg.timestamp[1] - 1, msg.timestamp[2], msg.timestamp[3], msg.timestamp[4]).toISOString();
             }
@@ -110,7 +112,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
     });
   }
 
-  // --- AAPKA ORIGINAL LISTEN LOGIC (Receipts/Scroll intact) ---
   listenToMessages() {
     if (this.roomSubscription) {
       this.roomSubscription.unsubscribe();
@@ -119,6 +120,13 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
     this.roomSubscription = this.chatService.getMessages().subscribe(msg => {
       if (msg && String(msg.roomId) === String(this.currentRoomId)) {
         
+        if (msg.senderName === 'System' || msg.content === 'You were added to this group.' || msg.content === '###GROUP_CREATED###') {
+            msg.isSystem = true; 
+            msg.content = Number(msg.senderId) === Number(this.currentUserId) 
+                ? "You created this group." 
+                : "You were added to this group.";
+        }
+
         if (Array.isArray(msg.timestamp)) {
            msg.timestamp = new Date(msg.timestamp[0], msg.timestamp[1] - 1, msg.timestamp[2], msg.timestamp[3], msg.timestamp[4]).toISOString();
         }
@@ -128,7 +136,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
           if (!exists) {
             this.messages.push(msg);
 
-            // Group messages me receipts nahi bhejenge (Logic preserved)
             if (msg.senderId !== this.currentUserId && !this.selectedUser?.isGroup) {
               if (document.hasFocus()) {
                 this.chatService.sendReceipt(this.currentRoomId!, msg.id, 'SEEN');
@@ -165,7 +172,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
     });
   }
 
-  // --- AAPKA ORIGINAL SEEN LOGIC ---
   markMessagesAsSeen() {
     if (!this.currentRoomId || !this.currentUserId || this.selectedUser?.isGroup) return; 
     
