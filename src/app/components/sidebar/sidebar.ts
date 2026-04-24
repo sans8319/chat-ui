@@ -22,12 +22,28 @@ export class SidebarComponent implements OnInit {
   newGroupName: string = '';
   selectedUsersForGroup: number[] = [];
 
+  // --- NAYE UI VARIABLES (Profile & Avatar ke liye space) ---
+  newGroupDescription: string = '';
+  memberSearchQuery: string = '';
+  groupPermission: 'everyone' | 'admins' = 'everyone';
+  
+  // Interactive Avatar State
+  selectedAvatarBg: string = '';
+  selectedAvatarIcon: string = '';
+
   constructor(
     private http: HttpClient, 
     private cdr: ChangeDetectorRef,
     private chatService: ChatService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
+
+  get filteredUsersForGroup() {
+    if (!this.memberSearchQuery.trim()) return this.users;
+    return this.users.filter(u => 
+      u.username.toLowerCase().includes(this.memberSearchQuery.toLowerCase())
+    );
+  }
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
@@ -112,18 +128,14 @@ export class SidebarComponent implements OnInit {
         }
         group.lastMessageTime = validTime;
 
-        // --- NAYA: SMART UNREAD COUNTER LOGIC ---
-        // 1. Check karo aakhri baar kab read kiya tha
         let lastReadStr = localStorage.getItem(`group_last_read_${group.id}`);
         if (!lastReadStr) {
-            // Agar naye device pe open kiya hai, toh current latest time dal do taaki 1000s messages unread na dikhein
             const latest = validTime ? new Date(validTime).getTime() : Date.now();
             lastReadStr = latest.toString();
             localStorage.setItem(`group_last_read_${group.id}`, lastReadStr);
         }
         const lastReadTime = Number(lastReadStr);
 
-        // 2. Sirf uske BAAD aane wale messages ko count karo
         const unread = history.filter((m: any) => {
           if (Number(m.senderId) === Number(this.currentUserId)) return false;
 
@@ -134,10 +146,9 @@ export class SidebarComponent implements OnInit {
              msgTime = new Date(m.timestamp).getTime();
           }
 
-          return msgTime > lastReadTime; // Main jaadu yahan hai
+          return msgTime > lastReadTime; 
         }).length;
 
-        // Agar group currently open hai, toh 0 warna calculated unread
         group.unreadCount = String(this.activeUserId) === String(group.id) ? 0 : unread;
 
       } else {
@@ -159,12 +170,9 @@ export class SidebarComponent implements OnInit {
         }
         this.groups[groupIndex].lastMessageTime = validTime || new Date().toISOString();
 
-        // --- NAYA: Badge vs Tracking Logic ---
         if (Number(msg.senderId) !== Number(this.currentUserId) && String(this.activeUserId) !== String(msg.roomId)) {
-          // Chat open nahi hai -> Badge badhao
           this.groups[groupIndex].unreadCount = (this.groups[groupIndex].unreadCount || 0) + 1;
         } else if (String(this.activeUserId) === String(msg.roomId)) {
-          // Chat open hai -> Padh liya, toh read time update kardo
           const msgTime = new Date(this.groups[groupIndex].lastMessageTime).getTime();
           localStorage.setItem(`group_last_read_${msg.roomId}`, msgTime.toString());
         }
@@ -228,14 +236,32 @@ export class SidebarComponent implements OnInit {
     });
   }
 
+  // --- UI RESET ON MODAL OPEN ---
   openCreateGroupModal() {
     this.showCreateGroupModal = true;
     this.newGroupName = '';
     this.selectedUsersForGroup = [];
+    
+    this.newGroupDescription = '';
+    this.memberSearchQuery = '';
+    this.groupPermission = 'everyone';
+    this.selectedAvatarBg = '';
+    this.selectedAvatarIcon = '';
   }
 
   closeCreateGroupModal() {
     this.showCreateGroupModal = false;
+  }
+
+  // --- NAYA: Handle Avatar Selection ---
+  selectPredefinedAvatar(bgClass: string, iconClass: string) {
+    this.selectedAvatarBg = bgClass;
+    this.selectedAvatarIcon = iconClass;
+  }
+
+  // File upload trigger (UI only for now)
+  triggerFileUpload() {
+    alert("This will open file explorer to upload JPG/PNG. Backend integration pending.");
   }
 
   toggleUserSelection(userId: number) {
@@ -254,6 +280,8 @@ export class SidebarComponent implements OnInit {
     }
     const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : '';
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    
+    // Future mein description aur avatar bhi bhej sakte hain
     const payload = { name: this.newGroupName, memberIds: this.selectedUsersForGroup };
 
     this.http.post<any>(`http://localhost:8080/api/groups/create?creatorId=${this.currentUserId}`, payload, { headers })
@@ -320,7 +348,6 @@ export class SidebarComponent implements OnInit {
     this.activeUserId = user.id;
     user.unreadCount = 0; 
     
-    // --- NAYA: Click karte hi latest message ka time read time set kar do ---
     if (user.isGroup || String(user.id).startsWith('GROUP_')) {
        const latestTime = user.lastMessageTime ? new Date(user.lastMessageTime).getTime() : Date.now();
        localStorage.setItem(`group_last_read_${user.id}`, latestTime.toString());

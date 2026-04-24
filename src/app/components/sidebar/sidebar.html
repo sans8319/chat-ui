@@ -21,7 +21,6 @@
   </div>
 
   <div class="user-list">
-    
     <ng-container *ngIf="activeTab === 'chats'">
       <div *ngFor="let user of users" 
            class="user-item" 
@@ -60,33 +59,90 @@
           </div>
         </div>
       </div>
-      
       <div class="no-groups-state" *ngIf="groups.length === 0">
         <p>You are not in any groups yet.</p>
       </div>
     </ng-container>
-
   </div>
 
   <div class="modal-overlay" *ngIf="showCreateGroupModal">
-    <div class="modal-content">
+    <div class="modal-content wide-modal">
+      
       <div class="modal-header">
         <h3>Create New Group</h3>
         <i class="bi bi-x-lg close-btn" (click)="closeCreateGroupModal()"></i>
       </div>
       
-      <div class="modal-body">
-        <div class="input-group">
-          <label>Group Subject</label>
-          <input type="text" [(ngModel)]="newGroupName" placeholder="Enter group name...">
-        </div>
+      <div class="modal-body layout-3-col">
         
-        <div class="member-selection">
-          <label>Add Members</label>
+        <div class="col-left">
+          <label class="section-label text-center">Group Profile Picture</label>
+          <div class="upload-area">
+            <div class="upload-placeholder" [ngClass]="selectedAvatarBg">
+              <i class="bi bi-camera" *ngIf="!selectedAvatarBg"></i>
+              <i [class]="selectedAvatarIcon" *ngIf="selectedAvatarBg"></i>
+            </div>
+            <button class="upload-btn" (click)="triggerFileUpload()">
+              <i class="bi bi-upload"></i> Upload Image
+            </button>
+            <span class="upload-hint">JPG, PNG, GIF (Max 5MB)</span>
+            <div class="divider"><span>OR</span></div>
+            <span class="upload-hint">Choose an Avatar</span>
+            <div class="avatar-row">
+              <div class="predefined-avatar bg-1" [class.selected]="selectedAvatarBg === 'bg-1'" (click)="selectPredefinedAvatar('bg-1', 'bi bi-emoji-smile')"><i class="bi bi-emoji-smile"></i></div>
+              <div class="predefined-avatar bg-2" [class.selected]="selectedAvatarBg === 'bg-2'" (click)="selectPredefinedAvatar('bg-2', 'bi bi-rocket')"><i class="bi bi-rocket"></i></div>
+              <div class="predefined-avatar bg-3" [class.selected]="selectedAvatarBg === 'bg-3'" (click)="selectPredefinedAvatar('bg-3', 'bi bi-lightning')"><i class="bi bi-lightning"></i></div>
+              <div class="predefined-avatar bg-4" [class.selected]="selectedAvatarBg === 'bg-4'" (click)="selectPredefinedAvatar('bg-4', 'bi bi-star')"><i class="bi bi-star"></i></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-middle">
+          <label class="section-label">Group Details</label>
+
+          <div class="input-group">
+            <label>Group Name</label>
+            <input type="text" [(ngModel)]="newGroupName" maxlength="100" placeholder="Enter group name...">
+            <span class="char-limit">{{ newGroupName.length || 0 }}/100</span>
+          </div>
+
+          <div class="input-group">
+            <label>Group Description <span>(optional)</span></label>
+            <textarea [(ngModel)]="newGroupDescription" maxlength="250" placeholder="Enter a short description..." rows="3"></textarea>
+            <span class="char-limit">{{ newGroupDescription.length || 0 }}/250</span>
+          </div>
+
+          <div class="group-settings-box">
+            <label class="section-label-sm">Group Settings</label>
+            <div class="permissions-inline">
+              <span class="setting-title">Who can send messages?</span>
+              <div class="radio-group-vertical">
+                <label class="radio-label">
+                  <input type="radio" name="permission" value="everyone" [(ngModel)]="groupPermission"> 
+                  <span>Everyone</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="permission" value="admins" [(ngModel)]="groupPermission"> 
+                  <span>Only admins</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-right">
+          <label class="section-label">Add Members ({{ selectedUsersForGroup.length }} selected)</label>
+          <div class="search-bar-sm">
+            <i class="bi bi-search"></i>
+            <input type="text" [(ngModel)]="memberSearchQuery" placeholder="Search users...">
+          </div>
           <div class="users-list-scroll">
-            <div class="user-select-item" *ngFor="let user of users" (click)="toggleUserSelection(user.id)">
+            <div class="user-select-item" *ngFor="let user of filteredUsersForGroup" (click)="toggleUserSelection(user.id)">
               <div class="avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
-              <span class="username">{{ user.username }}</span>
+              <div class="user-info-sm">
+                <span class="username">{{ user.username }}</span>
+                <span class="status" [class.online]="user.online">{{ user.online ? 'Online' : 'Offline' }}</span>
+              </div>
               <i class="bi bi-check-circle-fill check-icon" *ngIf="selectedUsersForGroup.includes(user.id)"></i>
               <i class="bi bi-circle check-icon empty" *ngIf="!selectedUsersForGroup.includes(user.id)"></i>
             </div>
@@ -94,13 +150,15 @@
         </div>
       </div>
       
-      <div class="modal-footer">
-        <button class="cancel-btn" (click)="closeCreateGroupModal()">Cancel</button>
-        <button class="create-btn" (click)="createGroup()" [disabled]="newGroupName.trim() === '' || selectedUsersForGroup.length === 0">
-          Create Group
-        </button>
+      <div class="modal-bottom">
+        <div class="modal-actions">
+          <button class="cancel-btn" (click)="closeCreateGroupModal()">Cancel</button>
+          <button class="create-btn" (click)="createGroup()" [disabled]="newGroupName.trim() === '' || selectedUsersForGroup.length === 0">
+            Create Group
+          </button>
+        </div>
       </div>
+
     </div>
   </div>
-
 </div>
