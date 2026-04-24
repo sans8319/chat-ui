@@ -2,7 +2,7 @@
   
   <div class="sidebar-header">
     <div class="header-top">
-      <h2>{{ activeTab === 'chats' ? 'Chats' : 'Groups' }}</h2>
+      <h2>{{ activeTab === 'chats' ? 'WorkChat' : 'Groups' }}</h2>
       <div class="header-actions">
         <i class="bi bi-plus-lg action-icon" 
            *ngIf="activeTab === 'groups'" 
@@ -45,9 +45,24 @@
            class="user-item" 
            [class.active]="activeUserId === group.id"
            (click)="selectUser(group)">
-        <div class="avatar group-avatar">
-          <i class="bi bi-people-fill"></i>
+           
+        <div class="avatar group-avatar" 
+             [ngClass]="parseProfilePicture(group.profilePicture).bg"
+             style="overflow: hidden;">
+             
+          <ng-container *ngIf="parseProfilePicture(group.profilePicture) as avatar">
+            
+            <img *ngIf="avatar.isImage" 
+                 [src]="avatar.url" 
+                 style="width: 100%; height: 100%; object-fit: cover;">
+                 
+            <i *ngIf="avatar.isAvatar" [class]="avatar.icon"></i>
+            
+            <i *ngIf="!avatar.isImage && !avatar.isAvatar" class="bi bi-people-fill"></i>
+            
+          </ng-container>
         </div>
+
         <div class="user-details">
           <div class="name-row">
             <span class="username">{{ group.username }}</span>
@@ -78,13 +93,19 @@
         <div class="col-left">
           <label class="section-label text-center">Group Profile Picture</label>
           <div class="upload-area">
-            <div class="upload-placeholder" [ngClass]="selectedAvatarBg">
-              <i class="bi bi-camera" *ngIf="!selectedAvatarBg"></i>
-              <i [class]="selectedAvatarIcon" *ngIf="selectedAvatarBg"></i>
+            
+            <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)" accept="image/*">
+
+            <div class="upload-placeholder" [ngClass]="selectedAvatarBg" (click)="fileInput.click()" style="cursor: pointer; overflow: hidden;">
+              <i class="bi bi-camera" *ngIf="!selectedAvatarBg && !selectedAvatarImage"></i>
+              <i [class]="selectedAvatarIcon" *ngIf="selectedAvatarBg && !selectedAvatarImage"></i>
+              <img [src]="selectedAvatarImage" *ngIf="selectedAvatarImage" style="width: 100%; height: 100%; object-fit: cover;">
             </div>
-            <button class="upload-btn" (click)="triggerFileUpload()">
+            
+            <button class="upload-btn" (click)="fileInput.click()">
               <i class="bi bi-upload"></i> Upload Image
             </button>
+            
             <span class="upload-hint">JPG, PNG, GIF (Max 5MB)</span>
             <div class="divider"><span>OR</span></div>
             <span class="upload-hint">Choose an Avatar</span>

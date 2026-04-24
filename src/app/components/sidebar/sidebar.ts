@@ -30,6 +30,8 @@ export class SidebarComponent implements OnInit {
   // Interactive Avatar State
   selectedAvatarBg: string = '';
   selectedAvatarIcon: string = '';
+  selectedAvatarImage: string | null = null; // Preview ke liye
+  selectedFile: File | null = null;
 
   constructor(
     private http: HttpClient, 
@@ -247,6 +249,8 @@ export class SidebarComponent implements OnInit {
     this.groupPermission = 'everyone';
     this.selectedAvatarBg = '';
     this.selectedAvatarIcon = '';
+    this.selectedAvatarImage = null; // NAYA
+  this.selectedFile = null;
   }
 
   closeCreateGroupModal() {
@@ -257,11 +261,13 @@ export class SidebarComponent implements OnInit {
   selectPredefinedAvatar(bgClass: string, iconClass: string) {
     this.selectedAvatarBg = bgClass;
     this.selectedAvatarIcon = iconClass;
+    this.selectedAvatarImage = null; // NAYA: Uploaded image preview hatao
+  this.selectedFile = null;
   }
 
   // File upload trigger (UI only for now)
   triggerFileUpload() {
-    alert("This will open file explorer to upload JPG/PNG. Backend integration pending.");
+    
   }
 
   toggleUserSelection(userId: number) {
@@ -273,26 +279,56 @@ export class SidebarComponent implements OnInit {
     }
   }
 
-  createGroup() {
-    if (this.newGroupName.trim() === '' || this.selectedUsersForGroup.length === 0) {
-      alert("Please enter a group name and select at least one member.");
+async createGroup() { 
+  if (this.newGroupName.trim() === '' || this.selectedUsersForGroup.length === 0) {
+    alert("Please enter a group name and select at least one member.");
+    return;
+  }
+
+  // 1. Token sabse pehle nikaal lo taaki dono APIs mein use ho sake
+  const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : '';
+  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+  let finalImageUrl = '';
+
+  // 2. Pehle Image Upload Karo
+  if (this.selectedFile) {
+    const formData = new FormData();
+    formData.append('file', this.selectedFile);
+    try {
+      // --- YAHAN FIX KIYA HAI: Upload API mein { headers } add kar diya ---
+      const uploadRes: any = await this.http.post('http://localhost:8080/api/files/upload', formData, { headers }).toPromise();
+      finalImageUrl = uploadRes.url; 
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Failed to upload image. Please check console.");
       return;
     }
-    const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : '';
-    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    
-    // Future mein description aur avatar bhi bhej sakte hain
-    const payload = { name: this.newGroupName, memberIds: this.selectedUsersForGroup };
-
-    this.http.post<any>(`http://localhost:8080/api/groups/create?creatorId=${this.currentUserId}`, payload, { headers })
-      .subscribe({
-        next: () => {
-          this.closeCreateGroupModal();
-          this.loadGroups(); 
-        },
-        error: () => alert("Failed to create group.")
-      });
+  } else if (this.selectedAvatarBg) {
+    finalImageUrl = `${this.selectedAvatarBg}|${this.selectedAvatarIcon}`;
   }
+  
+  // 3. Phir Group Create Karo
+  const payload = { 
+    name: this.newGroupName, 
+    memberIds: this.selectedUsersForGroup,
+    description: this.newGroupDescription,
+    permissions: this.groupPermission,
+    profilePicture: finalImageUrl 
+  };
+
+  this.http.post<any>(`http://localhost:8080/api/groups/create?creatorId=${this.currentUserId}`, payload, { headers })
+    .subscribe({
+      next: () => {
+        this.closeCreateGroupModal();
+        this.loadGroups(); 
+      },
+      error: (err) => {
+        console.error("Group creation error:", err);
+        alert("Failed to create group.");
+      }
+    });
+}
 
   loadUsers() {
     let loggedInUser = '';
@@ -356,4 +392,43 @@ export class SidebarComponent implements OnInit {
     this.chatService.selectUser(user);
     this.cdr.detectChanges();
   }
+
+  onFileSelected(event: any) {
+  const file = event.target.files[0];
+  if (file) {
+    this.selectedFile = file;
+    this.selectedAvatarBg = ''; // Predefined avatar hata do
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.selectedAvatarImage = reader.result as string; // Preview dikhao
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+// sidebar.ts mein add karein
+parseProfilePicture(path: string) {
+  if (!path) return { isImage: false, isAvatar: false };
+
+  // Agar path '/uploads/' se shuru hota hai, toh woh image hai
+  if (path.startsWith('/uploads/')) {
+    return { 
+      isImage: true, 
+      url: `http://localhost:8080${path}` 
+    };
+  }
+
+  // Agar path mein '|' hai, toh woh predefined avatar hai
+  if (path.includes('|')) {
+    const parts = path.split('|');
+    return { 
+      isImage: false, 
+      isAvatar: true, 
+      bg: parts[0], 
+      icon: parts[1] 
+    };
+  }
+
+  return { isImage: false, isAvatar: false };
+}
 }
