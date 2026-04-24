@@ -14,13 +14,25 @@
       <header class="chat-header">
         <div class="user-info">
           
-          <div class="avatar-sm" *ngIf="selectedUser.isGroup">
-            <i class="bi bi-people-fill"></i>
+          <div class="avatar-sm header-avatar-wrapper" 
+               [ngClass]="parseProfilePicture(selectedUser.profilePicture).bg"
+               style="overflow: hidden; display: flex; align-items: center; justify-content: center; background: #dfe5e7;">
+            
+            <ng-container *ngIf="parseProfilePicture(selectedUser.profilePicture) as avatar">
+              
+              <img *ngIf="avatar.isImage" 
+                   [src]="avatar.url" 
+                   style="width: 100%; height: 100%; object-fit: cover;">
+                   
+              <i *ngIf="avatar.isAvatar" [class]="avatar.icon" style="color: white; font-size: 20px;"></i>
+              
+              <ng-container *ngIf="!avatar.isImage && !avatar.isAvatar">
+                <i *ngIf="selectedUser.isGroup" class="bi bi-people-fill" style="color: #54656f;"></i>
+                <span *ngIf="!selectedUser.isGroup" style="color: #54656f;">{{ selectedUser.username.charAt(0).toUpperCase() }}</span>
+              </ng-container>
+              
+            </ng-container>
           </div>
-          <div class="avatar-sm" *ngIf="!selectedUser.isGroup">
-            {{ selectedUser.username.charAt(0).toUpperCase() }}
-          </div>
-          
           <div class="details">
             <h3>{{ selectedUser.username }}</h3>
             

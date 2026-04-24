@@ -210,4 +210,30 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
       }
     } catch(err) {}
   }
+
+  // chat-window.component.ts mein parseProfilePicture function add karein
+parseProfilePicture(path: string) {
+  if (!path) return { isImage: false, isAvatar: false };
+
+  // Agar path '/uploads/' se shuru hota hai, toh image link hai
+  if (path.startsWith('/uploads/')) {
+    return { 
+      isImage: true, 
+      url: `http://localhost:8080${path}` 
+    };
+  }
+
+  // Agar pipe '|' hai, toh predefined avatar classes hain
+  if (path.includes('|')) {
+    const parts = path.split('|');
+    return { 
+      isImage: false, 
+      isAvatar: true, 
+      bg: parts[0], 
+      icon: parts[1] 
+    };
+  }
+
+  return { isImage: false, isAvatar: false };
+}
 }

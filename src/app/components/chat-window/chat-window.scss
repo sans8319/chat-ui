@@ -50,7 +50,7 @@
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background: #6366f1; 
+        background: #dfe5e7; // Default fallback
         color: white;
         display: flex;
         align-items: center;
@@ -58,6 +58,20 @@
         font-weight: 600;
         font-size: 18px;
         overflow: hidden;
+        flex-shrink: 0;
+
+        // NAYA: Uploaded image styling
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        // NAYA: Predefined Avatar Backgrounds (Sidebar se match karne ke liye)
+        &.bg-1 { background: #6366f1 !important; }
+        &.bg-2 { background: #22c55e !important; }
+        &.bg-3 { background: #f59e0b !important; }
+        &.bg-4 { background: #ec4899 !important; }
       }
       
       .details {
@@ -100,28 +114,26 @@
     gap: 12px;
     scroll-behavior: smooth;
     
-    // --- DOT PATTERN BACKGROUND ---
     background-color: #f8fafc;
     background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
     background-size: 20px 20px;
   }
 
-  // --- PERFECT BUBBLE STYLES (Colors + 50% Wrap Fix) ---
   .message-wrapper {
     display: flex;
     flex-direction: column;
     margin-bottom: 6px;
-    width: 100%; // Keeps row structure perfect
+    width: 100%; 
     
     &.sent {
-      align-items: flex-end; // Bubble ko right bhejo
+      align-items: flex-end; 
       .bubble {
-        background: white; // Sent -> White
+        background: white; 
         color: #1e293b;
         border-radius: 12px 12px 4px 12px;
         border: 1px solid #e2e8f0;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        padding: 8px 12px 22px 12px; // Niche space for time
+        padding: 8px 12px 22px 12px; 
       }
       .timestamp { 
         color: #94a3b8; 
@@ -129,14 +141,14 @@
     }
 
     &.received {
-      align-items: flex-start; // Bubble ko left rakho
+      align-items: flex-start; 
       .bubble {
-        background: #6366f1; // Received -> Blue
+        background: #6366f1; 
         color: white;
         border-radius: 12px 12px 12px 4px;
         box-shadow: 0 2px 4px rgba(99, 102, 241, 0.15);
         border: none;
-        padding: 8px 12px 22px 12px; // Niche space for time
+        padding: 8px 12px 22px 12px; 
       }
       .timestamp {
         color: rgba(255, 255, 255, 0.8); 
@@ -146,9 +158,9 @@
     .bubble {
       position: relative;
       font-family: 'Inter', sans-serif;
-      max-width: 50%; // Exactly half screen
+      max-width: 50%; 
       min-width: 100px;
-      width: fit-content; // Tightly wraps small texts
+      width: fit-content; 
       
       .sender-name {
         font-size: 12.5px;
@@ -161,19 +173,17 @@
         font-size: 14.5px;
         line-height: 1.5;
         letter-spacing: -0.01em;
-        
-        // --- PERFECT WRAP FIX ---
         word-wrap: break-word;
         overflow-wrap: break-word; 
-        word-break: break-word; // 50% border hit karne par todega
-        white-space: pre-wrap;  // Tumhare Enter/Spaces safe rakhega
+        word-break: break-word; 
+        white-space: pre-wrap;  
         margin: 0;
       }
 
       .message-meta {
         position: absolute;
         bottom: 4px;
-        right: 8px; // Time humesha bottom right fix rahega
+        right: 8px; 
         display: flex;
         align-items: center;
         gap: 4px;
@@ -190,10 +200,10 @@
           .tick-icon {
             width: 16px;
             height: 16px;
-            fill: #94a3b8; // Grey default tick for white background
+            fill: #94a3b8; 
             
             &.seen {
-              fill: #280ed5; // Blue tick
+              fill: #280ed5; 
             }
           }
         }
@@ -292,7 +302,6 @@
   }
 }
 
-// NAYA: System Message Toast Styling
 .system-message-container {
   display: flex;
   justify-content: center;
@@ -300,7 +309,7 @@
   width: 100%;
 
   .system-toast {
-    background: #fff8dc; // WhatsApp jaisa light yellowish tint
+    background: #fff8dc; 
     color: #54656f;
     font-size: 12.5px;
     font-weight: 500;
