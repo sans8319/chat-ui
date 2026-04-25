@@ -10,113 +10,199 @@
 
   <div class="chat-viewport-column">
     
-    <ng-container *ngIf="selectedUser">
-      <header class="chat-header">
-        <div class="user-info">
-          
-          <div class="avatar-sm header-avatar-wrapper" 
-               [ngClass]="parseProfilePicture(selectedUser.profilePicture).bg"
-               style="overflow: hidden; display: flex; align-items: center; justify-content: center; background: #dfe5e7;">
-            
-            <ng-container *ngIf="parseProfilePicture(selectedUser.profilePicture) as avatar">
-              
-              <img *ngIf="avatar.isImage" 
-                   [src]="avatar.url" 
-                   style="width: 100%; height: 100%; object-fit: cover;">
-                   
-              <i *ngIf="avatar.isAvatar" [class]="avatar.icon" style="color: white; font-size: 20px;"></i>
-              
-              <ng-container *ngIf="!avatar.isImage && !avatar.isAvatar">
-                <i *ngIf="selectedUser.isGroup" class="bi bi-people-fill" style="color: #54656f;"></i>
-                <span *ngIf="!selectedUser.isGroup" style="color: #54656f;">{{ selectedUser.username.charAt(0).toUpperCase() }}</span>
+    <ng-container *ngIf="currentTab !== 'profile'">
+      <ng-container *ngIf="selectedUser">
+        <header class="chat-header">
+          <div class="user-info">
+            <div class="avatar-sm header-avatar-wrapper" [ngClass]="parseProfilePicture(selectedUser.profilePicture).bg" style="overflow: hidden; display: flex; align-items: center; justify-content: center; background: #dfe5e7;">
+              <ng-container *ngIf="parseProfilePicture(selectedUser.profilePicture) as avatar">
+                <img *ngIf="avatar.isImage" [src]="avatar.url" style="width: 100%; height: 100%; object-fit: cover;">
+                <i *ngIf="avatar.isAvatar" [class]="avatar.icon" style="color: white; font-size: 20px;"></i>
+                <ng-container *ngIf="!avatar.isImage && !avatar.isAvatar">
+                  <i *ngIf="selectedUser.isGroup" class="bi bi-people-fill" style="color: #54656f;"></i>
+                  <span *ngIf="!selectedUser.isGroup" style="color: #54656f;">{{ selectedUser.username.charAt(0).toUpperCase() }}</span>
+                </ng-container>
               </ng-container>
-              
-            </ng-container>
-          </div>
-          <div class="details">
-            <h3>{{ selectedUser.username }}</h3>
-            
-            <span class="status-indicator" *ngIf="!selectedUser.isGroup">
-              <span class="dot" [style.background]="selectedUser.online ? '#22c55e' : '#94a3b8'"></span> 
-              {{ selectedUser.online ? 'Online' : 'Offline' }}
-            </span>
-            
-            <span class="status-indicator group-members" *ngIf="selectedUser.isGroup">
-              Tap here for group info
-            </span>
-          </div>
-
-        </div>
-        
-        <div class="header-actions">
-          <i class="bi bi-search"></i>
-          <i class="bi bi-three-dots-vertical"></i>
-        </div>
-      </header>
-
-      <div class="messages-container" (scroll)="onScroll($event)">
-        
-        <ng-container *ngFor="let msg of messages">
-
-          <div class="system-message-container" *ngIf="msg.isSystem">
-            <div class="system-toast">
-              <i class="bi bi-shield-lock-fill"></i>
-              <span>{{ msg.content }}</span>
+            </div>
+            <div class="details">
+              <h3>{{ selectedUser.username }}</h3>
+              <span class="status-indicator" *ngIf="!selectedUser.isGroup">
+                <span class="dot" [style.background]="selectedUser.online ? '#22c55e' : '#94a3b8'"></span> {{ selectedUser.online ? 'Online' : 'Offline' }}
+              </span>
+              <span class="status-indicator group-members" *ngIf="selectedUser.isGroup">Tap here for group info</span>
             </div>
           </div>
+          <div class="header-actions">
+            <i class="bi bi-search"></i>
+            <i class="bi bi-three-dots-vertical"></i>
+          </div>
+        </header>
 
-          <div class="message-wrapper" 
-               *ngIf="!msg.isSystem"
-               [ngClass]="msg.senderId === currentUserId ? 'sent' : 'received'">
-            <div class="bubble">
-              
-              <div class="sender-name" *ngIf="selectedUser.isGroup && msg.senderId !== currentUserId">
-                {{ msg.senderName || 'Member' }}
-              </div>
-
-              <div class="message-content">{{ msg.content }}</div>
-              
-              <div class="message-meta">
-                <span class="timestamp">{{ msg.timestamp | date:'shortTime' }}</span>
-                
-                <div class="status-ticks" *ngIf="msg.senderId === currentUserId && !selectedUser.isGroup">
-                  <svg *ngIf="msg.delivered" [class.seen]="msg.seen" class="tick-icon" viewBox="0 0 24 24">
-                    <path d="M18 7l-1.41-1.41-6.59 6.59 1.41 1.41L18 7zm4.24-4.24l-1.41-1.41L10 12.17 5.17 7.34 3.76 8.76 10 15l12.24-12.24z"/>
-                  </svg>
-                  <svg *ngIf="!msg.delivered" class="tick-icon" viewBox="0 0 24 24">
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-                  </svg>
+        <div class="messages-container" (scroll)="onScroll($event)">
+          <ng-container *ngFor="let msg of messages">
+            <div class="system-message-container" *ngIf="msg.isSystem">
+              <div class="system-toast"><i class="bi bi-shield-lock-fill"></i><span>{{ msg.content }}</span></div>
+            </div>
+            <div class="message-wrapper" *ngIf="!msg.isSystem" [ngClass]="msg.senderId === currentUserId ? 'sent' : 'received'">
+              <div class="bubble">
+                <div class="sender-name" *ngIf="selectedUser.isGroup && msg.senderId !== currentUserId">{{ msg.senderName || 'Member' }}</div>
+                <div class="message-content">{{ msg.content }}</div>
+                <div class="message-meta">
+                  <span class="timestamp">{{ msg.timestamp | date:'shortTime' }}</span>
+                  <div class="status-ticks" *ngIf="msg.senderId === currentUserId && !selectedUser.isGroup">
+                    <svg *ngIf="msg.delivered" [class.seen]="msg.seen" class="tick-icon" viewBox="0 0 24 24"><path d="M18 7l-1.41-1.41-6.59 6.59 1.41 1.41L18 7zm4.24-4.24l-1.41-1.41L10 12.17 5.17 7.34 3.76 8.76 10 15l12.24-12.24z"/></svg>
+                    <svg *ngIf="!msg.delivered" class="tick-icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </ng-container>
+        </div>
 
-        </ng-container>
+        <button class="scroll-down-btn" *ngIf="!isUserAtBottom" (click)="scrollToBottom()">
+          <span class="badge" *ngIf="newMessagesCount > 0">{{ newMessagesCount }}</span>↓
+        </button>
 
-      </div>
+        <div class="input-area">
+          <app-chat-input [roomId]="currentRoomId"></app-chat-input>
+        </div>
+      </ng-container>
 
-      <button class="scroll-down-btn" *ngIf="!isUserAtBottom" (click)="scrollToBottom()">
-        <span class="badge" *ngIf="newMessagesCount > 0">{{ newMessagesCount }}</span>
-        ↓
-      </button>
-
-      <div class="input-area">
-        <app-chat-input [roomId]="currentRoomId"></app-chat-input>
+      <div class="empty-chat-state" *ngIf="!selectedUser">
+        <div class="empty-content">
+          <div class="illustration-placeholder"><i class="bi bi-laptop"></i></div>
+          <h3>WorkChat</h3>
+          <p>Send and receive messages seamlessly.<br>Use the sidebar to start a personal chat or open a group.</p>
+          <div class="encryption-notice"><i class="bi bi-lock-fill"></i> End-to-end encrypted</div>
+        </div>
       </div>
     </ng-container>
 
-    <div class="empty-chat-state" *ngIf="!selectedUser">
-      <div class="empty-content">
-        <div class="illustration-placeholder">
-          <i class="bi bi-laptop"></i>
+
+    <ng-container *ngIf="currentTab === 'profile'">
+      <div class="profile-viewport">
+        
+        <div class="fixed-profile-header">
+          <h2 class="page-title">Profile</h2>
         </div>
-        <h3>ChatApp Web</h3>
-        <p>Send and receive messages seamlessly.<br>Use the sidebar to start a personal chat or open a group.</p>
-        <div class="encryption-notice">
-          <i class="bi bi-lock-fill"></i> End-to-end encrypted
+
+        <div class="scrollable-profile-content">
+          
+          <div class="main-profile-card">
+            
+            <div class="avatar-section">
+              <div class="big-avatar-wrapper">
+                <div class="big-avatar-box">
+                  {{ profileData.name ? profileData.name.charAt(0).toUpperCase() : '?' }}
+                </div>
+                <button class="cam-badge"><i class="bi bi-camera-fill"></i></button>
+              </div>
+              
+              <div class="avatar-info-group">
+                <div class="avatar-text">
+                  <h4>Profile Picture</h4>
+                  <p>Change your profile picture. This will be visible to other users.</p>
+                </div>
+                
+                <div class="preset-avatars-row">
+                  <div class="preset-img">👨🏻</div>
+                  <div class="preset-img">👩🏽</div>
+                  <div class="preset-img">👨🏽‍🦱</div>
+                  <div class="preset-img">👩🏻‍🦰</div>
+                  <div class="preset-img">⛰️</div>
+                  <div class="preset-img">🪴</div>
+                  <div class="preset-img">🎵</div>
+                  <div class="preset-icon"><i class="bi bi-three-dots"></i></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <div class="form-section">
+              <div class="form-grid-2col">
+                
+                <div class="col-stack">
+                  <div class="input-group">
+                    <label><i class="bi bi-person"></i> Name</label>
+                    <input type="text" [(ngModel)]="profileData.name">
+                  </div>
+                  
+                  <div class="input-group">
+                    <label><i class="bi bi-info-circle"></i> About</label>
+                    <input type="text" list="about-options" [(ngModel)]="profileData.about" placeholder="Select or type your status...">
+                    <datalist id="about-options">
+                      <option value="Available"></option>
+                      <option value="In a meeting"></option>
+                      <option value="Working remotely"></option>
+                      <option value="At the office"></option>
+                      <option value="On vacation"></option>
+                      <option value="Urgent calls only"></option>
+                    </datalist>
+                  </div>
+                  
+                  <div class="input-group">
+                    <label><i class="bi bi-envelope"></i> Email</label>
+                    <input type="text" [(ngModel)]="profileData.email">
+                  </div>
+                  
+                  <div class="input-group">
+                    <label><i class="bi bi-briefcase"></i> Designation</label>
+                    <input type="text" list="designation-options" [(ngModel)]="profileData.designation" placeholder="Select or type your role...">
+                    <datalist id="designation-options">
+                      <option value="Software Developer"></option>
+                      <option value="Software Developer (Intern)"></option>
+                      <option value="Senior Software Engineer"></option>
+                      <option value="Tech Lead"></option>
+                      <option value="Product Manager"></option>
+                      <option value="UI/UX Designer"></option>
+                      <option value="HR Manager"></option>
+                      <option value="QA Engineer"></option>
+                      <option value="Data Scientist"></option>
+                      <option value="Marketing Specialist"></option>
+                    </datalist>
+                  </div>
+                </div>
+
+                <div class="col-stack">
+                  <div class="input-group">
+                    <label><i class="bi bi-building"></i> Department</label>
+                    <input type="text" list="dept-options" [(ngModel)]="profileData.department" placeholder="Select or type department...">
+                    <datalist id="dept-options">
+                      <option value="Engineering"></option>
+                      <option value="Design"></option>
+                      <option value="Product"></option>
+                      <option value="Human Resources (HR)"></option>
+                      <option value="Sales"></option>
+                      <option value="Marketing"></option>
+                      <option value="Finance"></option>
+                      <option value="Customer Support"></option>
+                      <option value="Operations"></option>
+                    </datalist>
+                  </div>
+
+                  <div class="input-group">
+                    <label><i class="bi bi-geo-alt"></i> Work Location</label>
+                    <input type="text" [(ngModel)]="profileData.location">
+                  </div>
+                  <div class="input-group">
+                    <label><i class="bi bi-telephone"></i> Phone Number</label>
+                    <input type="text" [(ngModel)]="profileData.phone">
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="form-actions">
+                <button class="btn-cancel">Cancel</button>
+                <button class="btn-save" (click)="saveProfile()">Save Changes</button>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
-    </div>
+    </ng-container>
 
   </div>
 </div>

@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, NgZone, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common'; 
+import { FormsModule } from '@angular/forms'; // NAYA: Form inputs ke liye
 import { ChatInputComponent } from '../chat-input/chat-input';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { ChatService } from '../../services/chat';
@@ -9,7 +10,7 @@ import { NavRailComponent } from '../nav-rail/nav-rail';
 @Component({
   selector: 'app-chat-window',
   standalone: true,
-  imports: [CommonModule, ChatInputComponent, SidebarComponent, NavRailComponent],
+  imports: [CommonModule, FormsModule, ChatInputComponent, SidebarComponent, NavRailComponent], // FormsModule joda gaya
   templateUrl: './chat-window.html',
   styleUrl: './chat-window.scss'
 })
@@ -21,6 +22,18 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   isUserAtBottom = true; 
   newMessagesCount = 0;   
   private roomSubscription: Subscription | null = null; 
+
+  // --- NAYA: PROFILE SECTION VARIABLES ---
+  currentTab: 'chats' | 'groups' | 'profile' = 'chats';
+  profileData = {
+    name: '',
+    department: 'Design Team',
+    about: 'Hey there! I am using WorkChat.',
+    location: 'Remote',
+    email: '',
+    phone: '+91 98765 43210',
+    designation: 'Product Designer'
+  };
 
   constructor(
     private chatService: ChatService,
@@ -39,7 +52,16 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.currentUserId = Number(localStorage.getItem('userId'));
+      // Default name aur email nikal rahe hain
+      this.profileData.name = localStorage.getItem('username') || 'User';
+      this.profileData.email = this.profileData.name.toLowerCase().replace(' ', '.') + '@example.com';
     }
+
+    // --- NAYA: Listen to Tab Switch ---
+    this.chatService.activeTab$.subscribe(tab => {
+      this.currentTab = tab;
+      this.cdr.detectChanges();
+    });
 
     this.chatService.selectedUser$.subscribe(selection => {
       if (selection) {
@@ -54,14 +76,11 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
 
           this.chatService.getChatHistory(this.currentRoomId!).subscribe(history => {
             this.messages = history.map(msg => {
-              // --- BULLETPROOF INTERCEPTOR ---
               if (msg.senderName === 'System' || msg.content === 'You were added to this group.' || msg.content === '###GROUP_CREATED###') {
                 msg.isSystem = true; 
                 msg.content = Number(msg.senderId) === Number(this.currentUserId) 
-                    ? "You created this group." 
-                    : "You were added to this group.";
+                    ? "You created this group." : "You were added to this group.";
               }
-
               if (Array.isArray(msg.timestamp)) {
                  msg.timestamp = new Date(msg.timestamp[0], msg.timestamp[1] - 1, msg.timestamp[2], msg.timestamp[3], msg.timestamp[4]).toISOString();
               }
@@ -79,14 +98,18 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
     });
   }
 
+  // --- NAYA: Profile Save Logic ---
+  saveProfile() {
+    alert("Profile details saved! (Backend API connectivity pending)");
+  }
+
+  /* ... (Baki saare functions: loadRoomAndHistory, listenToMessages, markMessagesAsSeen, ngOnDestroy, onScroll, scrollToBottom, parseProfilePicture wahi purane wale hain) ... */
+
   loadRoomAndHistory(user1Id: number, user2Id: number) {
     this.chatService.getOrCreateRoom(user1Id, user2Id).subscribe(room => {
       if (room && room.id) {
         this.currentRoomId = room.id.toString();
-        
-        if (this.roomSubscription) {
-          this.roomSubscription.unsubscribe();
-        }
+        if (this.roomSubscription) this.roomSubscription.unsubscribe();
 
         this.chatService.getChatHistory(this.currentRoomId!).subscribe(history => {
           this.messages = history.map(msg => {
@@ -94,13 +117,11 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
                 msg.isSystem = true;
                 msg.content = Number(msg.senderId) === Number(this.currentUserId) ? "You created this chat." : msg.content;
             }
-
             if (Array.isArray(msg.timestamp)) {
                msg.timestamp = new Date(msg.timestamp[0], msg.timestamp[1] - 1, msg.timestamp[2], msg.timestamp[3], msg.timestamp[4]).toISOString();
             }
             return msg;
           });
-          
           this.markMessagesAsSeen();
           setTimeout(() => this.scrollToBottom(), 100);
           this.cdr.detectChanges();
@@ -113,29 +134,20 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   }
 
   listenToMessages() {
-    if (this.roomSubscription) {
-      this.roomSubscription.unsubscribe();
-    }
-
+    if (this.roomSubscription) this.roomSubscription.unsubscribe();
     this.roomSubscription = this.chatService.getMessages().subscribe(msg => {
       if (msg && String(msg.roomId) === String(this.currentRoomId)) {
-        
         if (msg.senderName === 'System' || msg.content === 'You were added to this group.' || msg.content === '###GROUP_CREATED###') {
             msg.isSystem = true; 
-            msg.content = Number(msg.senderId) === Number(this.currentUserId) 
-                ? "You created this group." 
-                : "You were added to this group.";
+            msg.content = Number(msg.senderId) === Number(this.currentUserId) ? "You created this group." : "You were added to this group.";
         }
-
         if (Array.isArray(msg.timestamp)) {
            msg.timestamp = new Date(msg.timestamp[0], msg.timestamp[1] - 1, msg.timestamp[2], msg.timestamp[3], msg.timestamp[4]).toISOString();
         }
-
         this.ngZone.run(() => {
           const exists = this.messages.some(m => m.id === msg.id);
           if (!exists) {
             this.messages.push(msg);
-
             if (msg.senderId !== this.currentUserId && !this.selectedUser?.isGroup) {
               if (document.hasFocus()) {
                 this.chatService.sendReceipt(this.currentRoomId!, msg.id, 'SEEN');
@@ -144,7 +156,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
                 this.chatService.sendReceipt(this.currentRoomId!, msg.id, 'DELIVERED');
               }
             }
-
             if (this.isUserAtBottom || msg.senderId === this.currentUserId) {
               setTimeout(() => this.scrollToBottom(), 50);
             } else {
@@ -160,9 +171,8 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
       if (receipt && String(receipt.roomId) === String(this.currentRoomId)) {
         const msgIndex = this.messages.findIndex(m => m.id === receipt.messageId);
         if (msgIndex !== -1) {
-          if (receipt.status === 'DELIVERED') {
-            this.messages[msgIndex].delivered = true;
-          } else if (receipt.status === 'SEEN') {
+          if (receipt.status === 'DELIVERED') this.messages[msgIndex].delivered = true;
+          else if (receipt.status === 'SEEN') {
             this.messages[msgIndex].delivered = true;
             this.messages[msgIndex].seen = true;
           }
@@ -174,7 +184,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
 
   markMessagesAsSeen() {
     if (!this.currentRoomId || !this.currentUserId || this.selectedUser?.isGroup) return; 
-    
     let needsUpdate = false;
     this.messages.forEach(msg => {
       if (msg.senderId !== this.currentUserId && !msg.seen) {
@@ -184,10 +193,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
         needsUpdate = true;
       }
     });
-    
-    if (needsUpdate) {
-      this.cdr.detectChanges();
-    }
+    if (needsUpdate) this.cdr.detectChanges();
   }
 
   ngOnDestroy() {
@@ -211,29 +217,13 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
     } catch(err) {}
   }
 
-  // chat-window.component.ts mein parseProfilePicture function add karein
-parseProfilePicture(path: string) {
-  if (!path) return { isImage: false, isAvatar: false };
-
-  // Agar path '/uploads/' se shuru hota hai, toh image link hai
-  if (path.startsWith('/uploads/')) {
-    return { 
-      isImage: true, 
-      url: `http://localhost:8080${path}` 
-    };
+  parseProfilePicture(path: string) {
+    if (!path) return { isImage: false, isAvatar: false };
+    if (path.startsWith('/uploads/')) return { isImage: true, url: `http://localhost:8080${path}` };
+    if (path.includes('|')) {
+      const parts = path.split('|');
+      return { isImage: false, isAvatar: true, bg: parts[0], icon: parts[1] };
+    }
+    return { isImage: false, isAvatar: false };
   }
-
-  // Agar pipe '|' hai, toh predefined avatar classes hain
-  if (path.includes('|')) {
-    const parts = path.split('|');
-    return { 
-      isImage: false, 
-      isAvatar: true, 
-      bg: parts[0], 
-      icon: parts[1] 
-    };
-  }
-
-  return { isImage: false, isAvatar: false };
-}
 }
