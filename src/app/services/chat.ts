@@ -26,12 +26,15 @@ export class ChatService {
   notificationUpdate$ = this.notificationSource.asObservable();
 
   // --- NAYA LOGIC: Tab Switching (Chats vs Groups) ---
-  private activeTabSource = new BehaviorSubject<'chats' | 'groups'>('chats');
+  private activeTabSource = new BehaviorSubject<'chats' | 'groups' | 'profile'>('chats');
   activeTab$ = this.activeTabSource.asObservable();
 
-  setActiveTab(tab: 'chats' | 'groups') {
+  setActiveTab(tab: 'chats' | 'groups' | 'profile') {
     this.activeTabSource.next(tab);
-    this.selectedUserSource.next(null);
+    // Jab user profile dekhega, toh chat window clear ho jayegi
+    if (tab === 'profile') {
+      this.selectedUserSource.next(null);
+    }
   }
 
   selectUser(user: any) {

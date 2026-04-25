@@ -1,114 +1,170 @@
 <div class="sidebar-container">
   
-  <div class="sidebar-header">
-    <div class="header-top">
-      <h2>{{ activeTab === 'chats' ? 'WorkChat' : 'Groups' }}</h2>
-      <div class="header-actions">
-        <i class="bi bi-plus-lg action-icon" 
-           *ngIf="activeTab === 'groups'" 
-           title="Create Group" 
-           (click)="openCreateGroupModal()"></i>
-        <i class="bi bi-three-dots-vertical action-icon"></i>
-      </div>
-    </div>
-
-    <div class="search-box">
-      <div class="search-input-wrapper">
-        <i class="bi bi-search"></i>
-        <input type="text" [placeholder]="activeTab === 'chats' ? 'Search chats...' : 'Search groups...'">
-      </div>
-    </div>
-  </div>
-
-  <div class="user-list">
-    <ng-container *ngIf="activeTab === 'chats'">
-      <div *ngFor="let user of users" 
-           class="user-item" 
-           [class.active]="activeUserId === user.id"
-           (click)="selectUser(user)">
-        <div class="avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
-        <div class="user-details">
-          <div class="name-row">
-            <span class="username">{{ user.username }}</span>
-            <span class="time" *ngIf="user.lastMessageTime">{{ user.lastMessageTime | date:'shortTime' }}</span>
-          </div>
-          <div class="msg-row">
-            <span class="last-msg text-truncate">{{ user.lastMessage || 'Click to start chatting... 🚀' }}</span>
-            <span class="badge" *ngIf="user.unreadCount > 0">{{ user.unreadCount }}</span>
-          </div>
+  <ng-container *ngIf="activeTab !== 'profile'">
+    <div class="sidebar-header">
+      <div class="header-top">
+        <h2>{{ activeTab === 'chats' ? 'WorkChat' : 'Groups' }}</h2>
+        <div class="header-actions">
+          <i class="bi bi-plus-lg action-icon" 
+             *ngIf="activeTab === 'groups'" 
+             title="Create Group" 
+             (click)="openCreateGroupModal()"></i>
+          <i class="bi bi-three-dots-vertical action-icon"></i>
         </div>
       </div>
-    </ng-container>
 
-    <ng-container *ngIf="activeTab === 'groups'">
-      <div *ngFor="let group of groups" 
-           class="user-item" 
-           [class.active]="activeUserId === group.id"
-           (click)="selectUser(group)">
-           
-        <div class="avatar group-avatar" 
-             [ngClass]="parseProfilePicture(group.profilePicture).bg"
-             style="overflow: hidden;">
+      <div class="search-box">
+        <div class="search-input-wrapper">
+          <i class="bi bi-search"></i>
+          <input type="text" [placeholder]="activeTab === 'chats' ? 'Search chats...' : 'Search groups...'">
+        </div>
+      </div>
+    </div>
+
+    <div class="user-list">
+      <ng-container *ngIf="activeTab === 'chats'">
+        <div *ngFor="let user of users" 
+             class="user-item" 
+             [class.active]="activeUserId === user.id"
+             (click)="selectUser(user)">
+          <div class="avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
+          <div class="user-details">
+            <div class="name-row">
+              <span class="username">{{ user.username }}</span>
+              <span class="time" *ngIf="user.lastMessageTime">{{ user.lastMessageTime | date:'shortTime' }}</span>
+            </div>
+            <div class="msg-row">
+              <span class="last-msg text-truncate">{{ user.lastMessage || 'Click to start chatting... 🚀' }}</span>
+              <span class="badge" *ngIf="user.unreadCount > 0">{{ user.unreadCount }}</span>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="activeTab === 'groups'">
+        <div *ngFor="let group of groups" 
+             class="user-item" 
+             [class.active]="activeUserId === group.id"
+             (click)="selectUser(group)">
              
-          <ng-container *ngIf="parseProfilePicture(group.profilePicture) as avatar">
-            
-            <img *ngIf="avatar.isImage" 
-                 [src]="avatar.url" 
-                 style="width: 100%; height: 100%; object-fit: cover;">
-                 
-            <i *ngIf="avatar.isAvatar" [class]="avatar.icon"></i>
-            
-            <i *ngIf="!avatar.isImage && !avatar.isAvatar" class="bi bi-people-fill"></i>
-            
-          </ng-container>
+          <div class="avatar group-avatar" 
+               [ngClass]="parseProfilePicture(group.profilePicture).bg"
+               style="overflow: hidden;">
+               
+            <ng-container *ngIf="parseProfilePicture(group.profilePicture) as avatar">
+              <img *ngIf="avatar.isImage" 
+                   [src]="avatar.url" 
+                   style="width: 100%; height: 100%; object-fit: cover;">
+                   
+              <i *ngIf="avatar.isAvatar" [class]="avatar.icon"></i>
+              
+              <i *ngIf="!avatar.isImage && !avatar.isAvatar" class="bi bi-people-fill"></i>
+            </ng-container>
+          </div>
+
+          <div class="user-details">
+            <div class="name-row">
+              <span class="username">{{ group.username }}</span>
+              <span class="time" *ngIf="group.lastMessageTime">{{ group.lastMessageTime | date:'shortTime' }}</span>
+            </div>
+            <div class="msg-row">
+              <span class="last-msg text-truncate">{{ group.lastMessage }}</span>
+              <span class="badge" *ngIf="group.unreadCount > 0">{{ group.unreadCount }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="no-groups-state" *ngIf="groups.length === 0">
+          <p>You are not in any groups yet.</p>
+        </div>
+      </ng-container>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="activeTab === 'profile'">
+    <div class="profile-view-container">
+      
+      <div class="profile-header-new">
+        <h2>WorkChat</h2>
+        <i class="bi bi-three-dots-vertical"></i>
+      </div>
+      
+      <div class="profile-content-minimal">
+        <div class="user-display-section">
+          <div class="large-avatar-circle">
+            {{ (loggedInUsername ? loggedInUsername.charAt(0).toUpperCase() : '?') }}
+            <span class="online-indicator-dot"></span>
+          </div>
+          <h3 class="display-name">{{ loggedInUsername }}</h3>
+          <span class="status-text">Online</span>
         </div>
 
-        <div class="user-details">
-          <div class="name-row">
-            <span class="username">{{ group.username }}</span>
-            <span class="time" *ngIf="group.lastMessageTime">{{ group.lastMessageTime | date:'shortTime' }}</span>
+        <div class="menu-divider-line"></div>
+
+        <div class="minimal-menu">
+          <div class="menu-row">
+            <div class="icon-box"><i class="bi bi-person"></i></div>
+            <span class="label">Profile</span>
+            <i class="bi bi-chevron-right arrow-icon"></i>
           </div>
-          <div class="msg-row">
-            <span class="last-msg text-truncate">{{ group.lastMessage }}</span>
-            <span class="badge" *ngIf="group.unreadCount > 0">{{ group.unreadCount }}</span>
+          <div class="menu-row">
+            <div class="icon-box"><i class="bi bi-clock-history"></i></div>
+            <span class="label">Status and availability</span>
+            <i class="bi bi-chevron-right arrow-icon"></i>
+          </div>
+          <div class="menu-item-row menu-row">
+            <div class="icon-box"><i class="bi bi-bell"></i></div>
+            <span class="label">Notification settings</span>
+            <i class="bi bi-chevron-right arrow-icon"></i>
+          </div>
+          <div class="menu-row">
+            <div class="icon-box"><i class="bi bi-info-circle"></i></div>
+            <span class="label">About</span>
+            <i class="bi bi-chevron-right arrow-icon"></i>
+          </div>
+          <div class="menu-row">
+            <div class="icon-box"><i class="bi bi-question-circle"></i></div>
+            <span class="label">Help and support</span>
+            <i class="bi bi-chevron-right arrow-icon"></i>
+          </div>
+          <div class="menu-row">
+            <div class="icon-box"><i class="bi bi-shield-check"></i></div>
+            <span class="label">Account settings</span>
+            <i class="bi bi-chevron-right arrow-icon"></i>
           </div>
         </div>
+
+        <div class="menu-divider-line"></div>
+
+        <div class="logout-row-minimal" (click)="logout()">
+          <div class="icon-box-logout"><i class="bi bi-box-arrow-right"></i></div>
+          <span class="label-logout">Logout</span>
+        </div>
       </div>
-      <div class="no-groups-state" *ngIf="groups.length === 0">
-        <p>You are not in any groups yet.</p>
-      </div>
-    </ng-container>
-  </div>
+    </div>
+  </ng-container>
 
   <div class="modal-overlay" *ngIf="showCreateGroupModal">
     <div class="modal-content wide-modal">
-      
       <div class="modal-header">
         <h3>Create New Group</h3>
         <i class="bi bi-x-lg close-btn" (click)="closeCreateGroupModal()"></i>
       </div>
       
       <div class="modal-body layout-3-col">
-        
         <div class="col-left">
           <label class="section-label text-center">Group Profile Picture</label>
           <div class="upload-area">
-            
             <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)" accept="image/*">
-
             <div class="upload-placeholder" [ngClass]="selectedAvatarBg" (click)="fileInput.click()" style="cursor: pointer; overflow: hidden;">
               <i class="bi bi-camera" *ngIf="!selectedAvatarBg && !selectedAvatarImage"></i>
               <i [class]="selectedAvatarIcon" *ngIf="selectedAvatarBg && !selectedAvatarImage"></i>
               <img [src]="selectedAvatarImage" *ngIf="selectedAvatarImage" style="width: 100%; height: 100%; object-fit: cover;">
             </div>
-            
             <button class="upload-btn" (click)="fileInput.click()">
               <i class="bi bi-upload"></i> Upload Image
             </button>
-            
             <span class="upload-hint">JPG, PNG, GIF (Max 5MB)</span>
             <div class="divider"><span>OR</span></div>
-            <span class="upload-hint">Choose an Avatar</span>
             <div class="avatar-row">
               <div class="predefined-avatar bg-1" [class.selected]="selectedAvatarBg === 'bg-1'" (click)="selectPredefinedAvatar('bg-1', 'bi bi-emoji-smile')"><i class="bi bi-emoji-smile"></i></div>
               <div class="predefined-avatar bg-2" [class.selected]="selectedAvatarBg === 'bg-2'" (click)="selectPredefinedAvatar('bg-2', 'bi bi-rocket')"><i class="bi bi-rocket"></i></div>
@@ -120,32 +176,23 @@
 
         <div class="col-middle">
           <label class="section-label">Group Details</label>
-
           <div class="input-group">
             <label>Group Name</label>
             <input type="text" [(ngModel)]="newGroupName" maxlength="100" placeholder="Enter group name...">
             <span class="char-limit">{{ newGroupName.length || 0 }}/100</span>
           </div>
-
           <div class="input-group">
             <label>Group Description <span>(optional)</span></label>
             <textarea [(ngModel)]="newGroupDescription" maxlength="250" placeholder="Enter a short description..." rows="3"></textarea>
             <span class="char-limit">{{ newGroupDescription.length || 0 }}/250</span>
           </div>
-
           <div class="group-settings-box">
             <label class="section-label-sm">Group Settings</label>
             <div class="permissions-inline">
               <span class="setting-title">Who can send messages?</span>
               <div class="radio-group-vertical">
-                <label class="radio-label">
-                  <input type="radio" name="permission" value="everyone" [(ngModel)]="groupPermission"> 
-                  <span>Everyone</span>
-                </label>
-                <label class="radio-label">
-                  <input type="radio" name="permission" value="admins" [(ngModel)]="groupPermission"> 
-                  <span>Only admins</span>
-                </label>
+                <label class="radio-label"><input type="radio" name="permission" value="everyone" [(ngModel)]="groupPermission"> Everyone</label>
+                <label class="radio-label"><input type="radio" name="permission" value="admins" [(ngModel)]="groupPermission"> Only admins</label>
               </div>
             </div>
           </div>
@@ -179,7 +226,6 @@
           </button>
         </div>
       </div>
-
     </div>
   </div>
 </div>

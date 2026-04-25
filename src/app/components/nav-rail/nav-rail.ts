@@ -11,7 +11,7 @@ import { ChatService } from '../../services/chat';
 })
 export class NavRailComponent implements OnInit {
   userInitial: string = '';
-  activeTab: 'chats' | 'groups' = 'chats'; // Default state
+  activeTab: 'chats' | 'groups' | 'profile' = 'chats';// Default state
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
@@ -32,7 +32,7 @@ export class NavRailComponent implements OnInit {
     });
   }
 
-  switchTab(tab: 'chats' | 'groups') {
+  switchTab(tab: 'chats' | 'groups' | 'profile') {
     this.chatService.setActiveTab(tab);
   }
 }

@@ -36,8 +36,11 @@
       </div>
     </div>
     
-    <div class="profile-section">
-      <div class="user-avatar-rail" title="Profile">
+    <div class="profile-section" 
+         [class.active]="activeTab === 'profile'" 
+         (click)="switchTab('profile')" 
+         style="cursor: pointer;">
+      <div class="user-avatar-rail" title="Profile" [style.border]="activeTab === 'profile' ? '2px solid #6366f1' : 'none'">
         {{ userInitial || '?' }}
       </div>
     </div>

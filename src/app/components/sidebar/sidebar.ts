@@ -14,7 +14,8 @@ import { FormsModule } from '@angular/forms';
 export class SidebarComponent implements OnInit {
   users: any[] = [];
   groups: any[] = []; 
-  activeTab: 'chats' | 'groups' = 'chats'; 
+  activeTab: 'chats' | 'groups' | 'profile' = 'chats';
+  loggedInUsername: string = '';
   activeUserId: any = null;
   currentUserId: number | null = null;
 
@@ -33,6 +34,8 @@ export class SidebarComponent implements OnInit {
   selectedAvatarImage: string | null = null; // Preview ke liye
   selectedFile: File | null = null;
 
+
+
   constructor(
     private http: HttpClient, 
     private cdr: ChangeDetectorRef,
@@ -50,12 +53,17 @@ export class SidebarComponent implements OnInit {
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.currentUserId = Number(localStorage.getItem('userId'));
+      this.loggedInUsername = localStorage.getItem('username') || 'User'; // NAYA
     }
 
+    // sidebar.ts ke ngOnInit mein isse replace kijiye
     this.chatService.activeTab$.subscribe(tab => {
       this.activeTab = tab;
       this.activeUserId = null; 
-      this.loadGroups();
+      if (tab !== 'profile') {
+        this.loadGroups();
+      }
+      
       this.cdr.detectChanges();
     });
 
@@ -431,4 +439,11 @@ parseProfilePicture(path: string) {
 
   return { isImage: false, isAvatar: false };
 }
+
+ logout() {
+    if (confirm("Are you sure you want to logout?")) {
+      localStorage.clear();
+      window.location.reload(); // Login page par bhej dega
+    }
+  }
 }
