@@ -32,6 +32,7 @@ export class SidebarComponent implements OnInit {
   selectedAvatarIcon: string = '';
   selectedAvatarImage: string | null = null; 
   selectedFile: File | null = null;
+  loggedInDesignation: string = 'Online';
 
   constructor(
     private http: HttpClient, 
@@ -85,9 +86,22 @@ export class SidebarComponent implements OnInit {
     this.chatService.profileUpdate$.subscribe(updatedUser => {
       if (updatedUser) {
         this.loggedInUsername = updatedUser.username;
+        this.loggedInDesignation = updatedUser.designation || 'Employee'; // Designation update hogi
         this.cdr.detectChanges();
       }
     });
+
+    if (this.currentUserId) {
+      const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : '';
+      const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+      this.http.get<any>(`http://localhost:8080/api/users/${this.currentUserId}`, { headers })
+        .subscribe(user => {
+          if (user) {
+            this.loggedInDesignation = user.designation || 'Online';
+            this.cdr.detectChanges();
+          }
+        });
+    }
   }
 
   loadGroups() {
