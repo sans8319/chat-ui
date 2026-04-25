@@ -23,18 +23,15 @@ export class SidebarComponent implements OnInit {
   newGroupName: string = '';
   selectedUsersForGroup: number[] = [];
 
-  // --- NAYE UI VARIABLES (Profile & Avatar ke liye space) ---
   newGroupDescription: string = '';
   memberSearchQuery: string = '';
   groupPermission: 'everyone' | 'admins' = 'everyone';
+  activeSetting: string = 'profile'; 
   
-  // Interactive Avatar State
   selectedAvatarBg: string = '';
   selectedAvatarIcon: string = '';
-  selectedAvatarImage: string | null = null; // Preview ke liye
+  selectedAvatarImage: string | null = null; 
   selectedFile: File | null = null;
-
-
 
   constructor(
     private http: HttpClient, 
@@ -53,17 +50,15 @@ export class SidebarComponent implements OnInit {
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.currentUserId = Number(localStorage.getItem('userId'));
-      this.loggedInUsername = localStorage.getItem('username') || 'User'; // NAYA
+      this.loggedInUsername = localStorage.getItem('username') || 'User'; 
     }
 
-    // sidebar.ts ke ngOnInit mein isse replace kijiye
     this.chatService.activeTab$.subscribe(tab => {
       this.activeTab = tab;
       this.activeUserId = null; 
       if (tab !== 'profile') {
         this.loadGroups();
       }
-      
       this.cdr.detectChanges();
     });
 
@@ -83,6 +78,14 @@ export class SidebarComponent implements OnInit {
         if (notif.type === 'NEW_USER') {
           setTimeout(() => { this.loadUsers(); }, 800);
         }
+      }
+    });
+
+    // --- NAYA: Profile sync ke liye listener ---
+    this.chatService.profileUpdate$.subscribe(updatedUser => {
+      if (updatedUser) {
+        this.loggedInUsername = updatedUser.username;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -246,7 +249,6 @@ export class SidebarComponent implements OnInit {
     });
   }
 
-  // --- UI RESET ON MODAL OPEN ---
   openCreateGroupModal() {
     this.showCreateGroupModal = true;
     this.newGroupName = '';
@@ -257,23 +259,21 @@ export class SidebarComponent implements OnInit {
     this.groupPermission = 'everyone';
     this.selectedAvatarBg = '';
     this.selectedAvatarIcon = '';
-    this.selectedAvatarImage = null; // NAYA
-  this.selectedFile = null;
+    this.selectedAvatarImage = null; 
+    this.selectedFile = null;
   }
 
   closeCreateGroupModal() {
     this.showCreateGroupModal = false;
   }
 
-  // --- NAYA: Handle Avatar Selection ---
   selectPredefinedAvatar(bgClass: string, iconClass: string) {
     this.selectedAvatarBg = bgClass;
     this.selectedAvatarIcon = iconClass;
-    this.selectedAvatarImage = null; // NAYA: Uploaded image preview hatao
-  this.selectedFile = null;
+    this.selectedAvatarImage = null; 
+    this.selectedFile = null;
   }
 
-  // File upload trigger (UI only for now)
   triggerFileUpload() {
     
   }
@@ -287,56 +287,52 @@ export class SidebarComponent implements OnInit {
     }
   }
 
-async createGroup() { 
-  if (this.newGroupName.trim() === '' || this.selectedUsersForGroup.length === 0) {
-    alert("Please enter a group name and select at least one member.");
-    return;
-  }
-
-  // 1. Token sabse pehle nikaal lo taaki dono APIs mein use ho sake
-  const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : '';
-  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-
-  let finalImageUrl = '';
-
-  // 2. Pehle Image Upload Karo
-  if (this.selectedFile) {
-    const formData = new FormData();
-    formData.append('file', this.selectedFile);
-    try {
-      // --- YAHAN FIX KIYA HAI: Upload API mein { headers } add kar diya ---
-      const uploadRes: any = await this.http.post('http://localhost:8080/api/files/upload', formData, { headers }).toPromise();
-      finalImageUrl = uploadRes.url; 
-    } catch (err) {
-      console.error("Upload error:", err);
-      alert("Failed to upload image. Please check console.");
+  async createGroup() { 
+    if (this.newGroupName.trim() === '' || this.selectedUsersForGroup.length === 0) {
+      alert("Please enter a group name and select at least one member.");
       return;
     }
-  } else if (this.selectedAvatarBg) {
-    finalImageUrl = `${this.selectedAvatarBg}|${this.selectedAvatarIcon}`;
-  }
-  
-  // 3. Phir Group Create Karo
-  const payload = { 
-    name: this.newGroupName, 
-    memberIds: this.selectedUsersForGroup,
-    description: this.newGroupDescription,
-    permissions: this.groupPermission,
-    profilePicture: finalImageUrl 
-  };
 
-  this.http.post<any>(`http://localhost:8080/api/groups/create?creatorId=${this.currentUserId}`, payload, { headers })
-    .subscribe({
-      next: () => {
-        this.closeCreateGroupModal();
-        this.loadGroups(); 
-      },
-      error: (err) => {
-        console.error("Group creation error:", err);
-        alert("Failed to create group.");
+    const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : '';
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+    let finalImageUrl = '';
+
+    if (this.selectedFile) {
+      const formData = new FormData();
+      formData.append('file', this.selectedFile);
+      try {
+        const uploadRes: any = await this.http.post('http://localhost:8080/api/files/upload', formData, { headers }).toPromise();
+        finalImageUrl = uploadRes.url; 
+      } catch (err) {
+        console.error("Upload error:", err);
+        alert("Failed to upload image. Please check console.");
+        return;
       }
-    });
-}
+    } else if (this.selectedAvatarBg) {
+      finalImageUrl = `${this.selectedAvatarBg}|${this.selectedAvatarIcon}`;
+    }
+    
+    const payload = { 
+      name: this.newGroupName, 
+      memberIds: this.selectedUsersForGroup,
+      description: this.newGroupDescription,
+      permissions: this.groupPermission,
+      profilePicture: finalImageUrl 
+    };
+
+    this.http.post<any>(`http://localhost:8080/api/groups/create?creatorId=${this.currentUserId}`, payload, { headers })
+      .subscribe({
+        next: () => {
+          this.closeCreateGroupModal();
+          this.loadGroups(); 
+        },
+        error: (err) => {
+          console.error("Group creation error:", err);
+          alert("Failed to create group.");
+        }
+      });
+  }
 
   loadUsers() {
     let loggedInUser = '';
@@ -402,48 +398,49 @@ async createGroup() {
   }
 
   onFileSelected(event: any) {
-  const file = event.target.files[0];
-  if (file) {
-    this.selectedFile = file;
-    this.selectedAvatarBg = ''; // Predefined avatar hata do
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.selectedAvatarImage = reader.result as string; // Preview dikhao
-    };
-    reader.readAsDataURL(file);
-  }
-}
-
-// sidebar.ts mein add karein
-parseProfilePicture(path: string) {
-  if (!path) return { isImage: false, isAvatar: false };
-
-  // Agar path '/uploads/' se shuru hota hai, toh woh image hai
-  if (path.startsWith('/uploads/')) {
-    return { 
-      isImage: true, 
-      url: `http://localhost:8080${path}` 
-    };
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+      this.selectedAvatarBg = ''; 
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.selectedAvatarImage = reader.result as string; 
+      };
+      reader.readAsDataURL(file);
+    }
   }
 
-  // Agar path mein '|' hai, toh woh predefined avatar hai
-  if (path.includes('|')) {
-    const parts = path.split('|');
-    return { 
-      isImage: false, 
-      isAvatar: true, 
-      bg: parts[0], 
-      icon: parts[1] 
-    };
+  parseProfilePicture(path: string) {
+    if (!path) return { isImage: false, isAvatar: false };
+
+    if (path.startsWith('/uploads/')) {
+      return { 
+        isImage: true, 
+        url: `http://localhost:8080${path}` 
+      };
+    }
+
+    if (path.includes('|')) {
+      const parts = path.split('|');
+      return { 
+        isImage: false, 
+        isAvatar: true, 
+        bg: parts[0], 
+        icon: parts[1] 
+      };
+    }
+
+    return { isImage: false, isAvatar: false };
   }
 
-  return { isImage: false, isAvatar: false };
-}
-
- logout() {
+  logout() {
     if (confirm("Are you sure you want to logout?")) {
       localStorage.clear();
-      window.location.reload(); // Login page par bhej dega
+      window.location.reload(); 
     }
+  }
+
+   selectSettingMenu(menuName: string) {
+    this.activeSetting = menuName;
   }
 }

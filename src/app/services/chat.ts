@@ -21,17 +21,25 @@ export class ChatService {
   private activeRooms = new Set<string>();
   private pendingRooms = new Set<string>(); 
 
-  // --- NAYA: Background Notifications (New User/Group ke liye) ---
+  // Background Notifications (New User/Group ke liye)
   private notificationSource = new BehaviorSubject<any>(null);
   notificationUpdate$ = this.notificationSource.asObservable();
 
-  // --- NAYA LOGIC: Tab Switching (Chats vs Groups) ---
+  // Tab Switching (Chats vs Groups)
   private activeTabSource = new BehaviorSubject<'chats' | 'groups' | 'profile'>('chats');
   activeTab$ = this.activeTabSource.asObservable();
 
+  // --- NAYA: Profile Update Sync ke liye ---
+  private profileUpdateSource = new BehaviorSubject<any>(null);
+  profileUpdate$ = this.profileUpdateSource.asObservable();
+
+  notifyProfileUpdate(userData: any) {
+    this.profileUpdateSource.next(userData);
+  }
+  // ----------------------------------------
+
   setActiveTab(tab: 'chats' | 'groups' | 'profile') {
     this.activeTabSource.next(tab);
-    // Jab user profile dekhega, toh chat window clear ho jayegi
     if (tab === 'profile') {
       this.selectedUserSource.next(null);
     }
@@ -45,7 +53,6 @@ export class ChatService {
     this.initConnection();
   }
 
-  // --- PRODUCTION GRADE CONNECTION LOGIC ---
   private initConnection() {
     const socket = new SockJS('http://localhost:8080/ws-chat');
     this.stompClient = new Client({
@@ -61,9 +68,6 @@ export class ChatService {
 
       const currentUserId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
 
-      // --- NAYA: Background Alert Subscriptions ---
-      
-      // 1. PERSONAL ALERTS: Jab koi aapko naye group mein add kare
       if (currentUserId) {
         this.stompClient?.subscribe(`/topic/user/${currentUserId}`, (msg) => {
           if (msg.body) {
@@ -72,14 +76,12 @@ export class ChatService {
         });
       }
 
-      // 2. PUBLIC ALERTS: Jab koi naya user register ho
       this.stompClient?.subscribe(`/topic/public/updates`, (msg) => {
         if (msg.body) {
           this.notificationSource.next(JSON.parse(msg.body));
         }
       });
 
-      // 3. Purana pending rooms logic (DM/Group chats)
       this.pendingRooms.forEach(roomId => {
         if (!this.activeRooms.has(roomId)) {
           this.activeRooms.add(roomId);
@@ -97,7 +99,6 @@ export class ChatService {
     this.stompClient.activate();
   }
 
-  // --- SAFE SUBSCRIPTION LOGIC ---
   subscribeToRoom(roomId: string) {
     if (this.activeRooms.has(roomId)) return;
     

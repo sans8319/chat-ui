@@ -1,16 +1,17 @@
 import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, NgZone, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common'; 
-import { FormsModule } from '@angular/forms'; // NAYA: Form inputs ke liye
+import { FormsModule } from '@angular/forms'; 
 import { ChatInputComponent } from '../chat-input/chat-input';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { ChatService } from '../../services/chat';
 import { Subscription } from 'rxjs'; 
 import { NavRailComponent } from '../nav-rail/nav-rail';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Component({
   selector: 'app-chat-window',
   standalone: true,
-  imports: [CommonModule, FormsModule, ChatInputComponent, SidebarComponent, NavRailComponent], // FormsModule joda gaya
+  imports: [CommonModule, FormsModule, ChatInputComponent, SidebarComponent, NavRailComponent], 
   templateUrl: './chat-window.html',
   styleUrl: './chat-window.scss'
 })
@@ -23,22 +24,27 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   newMessagesCount = 0;   
   private roomSubscription: Subscription | null = null; 
 
-  // --- NAYA: PROFILE SECTION VARIABLES ---
   currentTab: 'chats' | 'groups' | 'profile' = 'chats';
   profileData = {
     name: '',
-    department: 'Design Team',
-    about: 'Hey there! I am using WorkChat.',
-    location: 'Remote',
+    department: '',
+    about: '',
+    location: '',
     email: '',
-    phone: '+91 98765 43210',
-    designation: 'Product Designer'
+    phone: '',
+    designation: ''
   };
+
+  selectedAvatarBg: string = '';
+  selectedAvatarIcon: string = '';
+  selectedAvatarImage: string | null = null; 
+  selectedFile: File | null = null;
 
   constructor(
     private chatService: ChatService,
     private ngZone: NgZone,
     private cdr: ChangeDetectorRef,
+    private http: HttpClient,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
@@ -52,14 +58,14 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.currentUserId = Number(localStorage.getItem('userId'));
-      // Default name aur email nikal rahe hain
-      this.profileData.name = localStorage.getItem('username') || 'User';
-      this.profileData.email = this.profileData.name.toLowerCase().replace(' ', '.') + '@example.com';
+      this.fetchUserProfile();
     }
 
-    // --- NAYA: Listen to Tab Switch ---
     this.chatService.activeTab$.subscribe(tab => {
       this.currentTab = tab;
+      if (tab === 'profile') {
+        this.fetchUserProfile();
+      }
       this.cdr.detectChanges();
     });
 
@@ -98,12 +104,108 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
     });
   }
 
-  // --- NAYA: Profile Save Logic ---
-  saveProfile() {
-    alert("Profile details saved! (Backend API connectivity pending)");
+  fetchUserProfile() {
+    if (!this.currentUserId) return;
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+    this.http.get<any>(`http://localhost:8080/api/users/${this.currentUserId}`, { headers })
+      .subscribe(user => {
+        if (user) {
+          this.profileData = {
+            name: user.username || '',
+            department: user.department || '',
+            about: user.about || '',
+            location: user.location || '',
+            email: user.email || '',
+            phone: user.phone || '',
+            designation: user.designation || ''
+          };
+          
+          if (user.profilePicture) {
+            (this.profileData as any).profilePicture = user.profilePicture;
+            this.updateLocalPreview(user.profilePicture);
+          }
+        }
+      });
   }
 
-  /* ... (Baki saare functions: loadRoomAndHistory, listenToMessages, markMessagesAsSeen, ngOnDestroy, onScroll, scrollToBottom, parseProfilePicture wahi purane wale hain) ... */
+  updateLocalPreview(path: string) {
+    const parsed = this.parseProfilePicture(path);
+    if (parsed.isImage) {
+      this.selectedAvatarImage = parsed.url!;
+      this.selectedAvatarBg = '';
+      this.selectedAvatarIcon = '';
+    } else if (parsed.isAvatar) {
+      this.selectedAvatarBg = parsed.bg!;
+      this.selectedAvatarIcon = parsed.icon!;
+      this.selectedAvatarImage = null;
+    }
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+      this.selectedAvatarBg = ''; 
+      this.selectedAvatarIcon = '';
+      const reader = new FileReader();
+      reader.onload = () => this.selectedAvatarImage = reader.result as string; 
+      reader.readAsDataURL(file);
+    }
+  }
+
+  selectPredefinedAvatar(bg: string, icon: string) {
+    this.selectedAvatarBg = bg;
+    this.selectedAvatarIcon = icon;
+    this.selectedAvatarImage = null;
+    this.selectedFile = null;
+  }
+
+  async saveProfile() {
+    if (!this.currentUserId) return;
+    
+    const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : '';
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+    let finalImageUrl = (this.profileData as any).profilePicture || '';
+
+    if (this.selectedFile) {
+      const formData = new FormData();
+      formData.append('file', this.selectedFile);
+      try {
+        const uploadRes: any = await this.http.post('http://localhost:8080/api/files/upload', formData, { headers }).toPromise();
+        finalImageUrl = uploadRes.url; 
+      } catch (err) {
+        alert("Failed to upload image.");
+        return; 
+      }
+    } 
+    else if (this.selectedAvatarBg && this.selectedAvatarIcon) {
+      finalImageUrl = `${this.selectedAvatarBg}|${this.selectedAvatarIcon}`;
+    }
+
+    const payload = { 
+      ...this.profileData, 
+      profilePicture: finalImageUrl 
+    };
+
+    this.http.put(`http://localhost:8080/api/users/${this.currentUserId}/profile`, payload, { headers })
+      .subscribe({
+        next: (response: any) => {
+          alert("Profile updated successfully! ✅");
+          if (isPlatformBrowser(this.platformId)) {
+            localStorage.setItem('username', this.profileData.name);
+            if (finalImageUrl) localStorage.setItem('profilePicture', finalImageUrl);
+            (this.profileData as any).profilePicture = finalImageUrl;
+          }
+          // --- NAYA: Services ko notify karein ---
+          this.chatService.notifyProfileUpdate(response);
+          this.cdr.detectChanges();
+        },
+        error: (err) => alert("Failed to save profile.")
+      });
+  }
 
   loadRoomAndHistory(user1Id: number, user2Id: number) {
     this.chatService.getOrCreateRoom(user1Id, user2Id).subscribe(room => {
