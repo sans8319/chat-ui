@@ -496,3 +496,63 @@
 .preview-section-shift {
   margin-top: 30px !important; // Behtar spacing ke liye margin badhaya
 }
+
+// =====================================
+// CUSTOM PHONE DROPDOWN UI
+// =====================================
+.phone-wrapper {
+  display: flex;
+  gap: 8px;
+
+  input { flex: 1; }
+}
+
+.custom-dropdown-container {
+  position: relative; width: 120px; user-select: none;
+
+  .selected-trigger {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 14px; background: #ffffff;
+    border: 1px solid #e2e8f0; border-radius: 8px;
+    cursor: pointer; font-size: 14.5px; color: #111b21;
+    transition: 0.2s;
+    
+    &:hover { border-color: #cbd5e1; }
+    .current-flag { font-size: 16px; }
+    .current-code { font-weight: 500; flex: 1; }
+    i { font-size: 10px; color: #667781; }
+  }
+
+  .dropdown-menu-box {
+    position: absolute; top: calc(100% + 4px); left: 0;
+    width: 260px; background: white; border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border: 1px solid #f0f2f5; z-index: 100;
+    overflow: hidden;
+
+    .search-sticky {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px; border-bottom: 1px solid #f0f2f5; background: #fcfcfc;
+
+      i { font-size: 13px; color: #8696a0; }
+      input { border: none; background: transparent; width: 100%; outline: none; font-size: 14px; padding: 0; }
+    }
+
+    .options-list {
+      max-height: 200px; overflow-y: auto;
+      &::-webkit-scrollbar { width: 5px; }
+      &::-webkit-scrollbar-thumb { background-color: rgba(11, 20, 26, 0.1); border-radius: 3px; }
+      
+      .option-item {
+        display: flex; align-items: center; gap: 12px;
+        padding: 10px 16px; cursor: pointer; transition: 0.1s;
+        
+        &:hover { background: #f5f6f6; }
+        .f { font-size: 18px; }
+        .n { flex: 1; font-size: 13.5px; color: #111b21; }
+        .c { font-size: 13px; color: #667781; font-weight: 500; }
+      }
+      .no-results { padding: 20px; text-align: center; color: #8696a0; font-size: 13px; }
+    }
+  }
+}

@@ -7,6 +7,7 @@ import { ChatService } from '../../services/chat';
 import { Subscription } from 'rxjs'; 
 import { NavRailComponent } from '../nav-rail/nav-rail';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { COUNTRY_CODES } from '../../utils/countries';
 
 @Component({
   selector: 'app-chat-window',
@@ -36,9 +37,21 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
     profilePicture: '',
     statusState: 'Online', // NAYA
     customStatusText: '' ,  // NAYA
-    customStatusColor: '#22c55e'
+    customStatusColor: '#22c55e',
+    countryCode: '+91'
 
   };
+
+  allCountryCodes = COUNTRY_CODES;
+  isCountryDropdownOpen = false;
+  countrySearchQuery = '';
+  get filteredCountries() {
+    if (!this.countrySearchQuery.trim()) return this.allCountryCodes;
+    return this.allCountryCodes.filter(c => 
+      c.name.toLowerCase().includes(this.countrySearchQuery.toLowerCase()) ||
+      c.code.includes(this.countrySearchQuery)
+    );
+  }
   
   customColors = ['#14b8a6', '#f43f5e', '#6366f1', '#f97316', '#06b6d4', '#84cc16'];
   selectedStatusColor: string = '#22c55e'; // Draft state
@@ -67,6 +80,46 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   onStatusChange(opt: any) {
     this.selectedStatusColor = opt.color;
     this.customStatusText = ''; // Custom text ko forcefully clear karega
+  }
+
+  // NAYA: Dropdown Functions
+  toggleCountryDropdown() {
+    this.isCountryDropdownOpen = !this.isCountryDropdownOpen;
+    if (this.isCountryDropdownOpen) this.countrySearchQuery = ''; 
+  }
+
+  selectCountry(country: any) {
+    this.profileData.countryCode = country.code;
+    this.isCountryDropdownOpen = false;
+  }
+
+  allowOnlyNumbers(event: KeyboardEvent) {
+    const charCode = event.which ? event.which : event.keyCode;
+    if (charCode < 48 || charCode > 57) {
+      event.preventDefault(); 
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.custom-dropdown-container')) {
+      this.isCountryDropdownOpen = false;
+    }
+  }
+
+  onPhoneInput(value: string) {
+    let cleaned = value.replace(/\D/g, ''); // Sirf number allow karega
+    if (cleaned.length > 10) cleaned = cleaned.substring(0, 10);
+    
+    let formatted = cleaned;
+    if (cleaned.length > 6) {
+      formatted = `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6)}`;
+    } else if (cleaned.length > 3) {
+      formatted = `${cleaned.slice(0, 3)} ${cleaned.slice(3)}`;
+    }
+    
+    this.profileData.phone = formatted;
   }
 
   // NAYA: Jab user custom type karna shuru kare toh radio button hata do
@@ -209,7 +262,8 @@ async saveStatus() {
             profilePicture: user.profilePicture || '',
             statusState: user.statusState || 'Online', // NAYA
             customStatusText: user.customStatusText || '' ,// NAYA
-            customStatusColor: user.customStatusColor || '#22c55e'  // NAYA
+            customStatusColor: user.customStatusColor || '#22c55e' , // NAYA
+            countryCode: user.countryCode || '+91' // NAYA
 
           };
           
@@ -259,6 +313,11 @@ async saveStatus() {
 
   async saveProfile() {
     if (!this.currentUserId) return;
+    const rawPhone = this.profileData.phone ? this.profileData.phone.replace(/\D/g, '') : '';
+    if (rawPhone.length > 0 && rawPhone.length !== 10) {
+      alert("⚠️ Phone number must be exactly 10 digits!");
+      return; 
+    }
     
     const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : '';
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });

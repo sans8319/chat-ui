@@ -186,11 +186,41 @@
 
                   <div class="input-group">
                     <label><i class="bi bi-geo-alt"></i> Work Location</label>
-                    <input type="text" [(ngModel)]="profileData.location">
+                    <input type="text" [(ngModel)]="profileData.location" placeholder="Enter your work location...">
                   </div>
-                  <div class="input-group">
+                  <div class="input-group phone-input-group">
                     <label><i class="bi bi-telephone"></i> Phone Number</label>
-                    <input type="text" [(ngModel)]="profileData.phone">
+                    <div class="phone-wrapper">
+                      
+                      <div class="custom-dropdown-container">
+                        <div class="selected-trigger" (click)="toggleCountryDropdown()">
+                          <span class="current-flag">{{ allCountryCodes.find(c => c.code === profileData.countryCode)?.flag || '🌐' }}</span>
+                          <span class="current-code">{{ profileData.countryCode }}</span>
+                          <i class="bi bi-chevron-down"></i>
+                        </div>
+
+                        <div class="dropdown-menu-box" *ngIf="isCountryDropdownOpen">
+                          <div class="search-sticky">
+                            <i class="bi bi-search"></i>
+                            <input type="text" [(ngModel)]="countrySearchQuery" placeholder="Search country..." (click)="$event.stopPropagation()">
+                          </div>
+                          <div class="options-list">
+                            <div class="option-item" *ngFor="let c of filteredCountries" (click)="selectCountry(c)">
+                              <span class="f">{{ c.flag }}</span>
+                              <span class="n">{{ c.name }}</span>
+                              <span class="c">{{ c.code }}</span>
+                            </div>
+                            <div class="no-results" *ngIf="filteredCountries.length === 0">No country found</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <input type="text" 
+                             [ngModel]="profileData.phone" 
+                             (ngModelChange)="onPhoneInput($event)"
+                             maxlength="12" 
+                             placeholder="987 654 3210">
+                    </div>
                   </div>
                 </div>
 
