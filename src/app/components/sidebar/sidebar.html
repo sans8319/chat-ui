@@ -90,9 +90,14 @@
       
       <div class="profile-content-minimal">
         <div class="user-display-section">
-          <div class="large-avatar-circle">
-            {{ (loggedInUsername ? loggedInUsername.charAt(0).toUpperCase() : '?') }}
-            <span class="online-indicator-dot"></span>
+          <div class="large-avatar-circle" [ngClass]="parseProfilePicture(loggedInProfilePicture).bg">
+            <img *ngIf="parseProfilePicture(loggedInProfilePicture).isImage" [src]="parseProfilePicture(loggedInProfilePicture).url" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+            <i *ngIf="parseProfilePicture(loggedInProfilePicture).isAvatar" [class]="parseProfilePicture(loggedInProfilePicture).icon"></i>
+            <ng-container *ngIf="!parseProfilePicture(loggedInProfilePicture).isImage && !parseProfilePicture(loggedInProfilePicture).isAvatar">
+              {{ (loggedInUsername ? loggedInUsername.charAt(0).toUpperCase() : '?') }}
+            </ng-container>
+            
+            <span class="online-indicator-dot" [style.backgroundColor]="loggedInStatusColor"></span>
           </div>
           <h3 class="display-name">{{ loggedInUsername }}</h3>
           <span class="status-text">{{ loggedInDesignation }}</span>

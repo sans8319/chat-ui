@@ -363,3 +363,136 @@
     }
   }
 }
+// =====================================
+// STATUS & AVAILABILITY UI (NAYA)
+// =====================================
+.status-card-ui {
+  .status-grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px; // NAYA: Gap 60px se 40px kiya
+
+    @media (max-width: 1000px) { grid-template-columns: 1fr; gap: 30px; }
+  }
+
+  .section-block {
+    margin-bottom: 40px; // NAYA: Margin 35px se 20px kiya
+
+    .section-lbl {
+      display: block; font-size: 14px; font-weight: 700; color: #111b21; margin-bottom: 8px;
+    }
+    .sub-lbl {
+      display: block; font-size: 13px; color: #667781; margin-bottom: 8px;
+    }
+
+    .current-status-pill {
+      display: flex; align-items: center; gap: 10px; padding: 10px 16px; // NAYA: Padding kam ki
+      border-radius: 8px; font-size: 14px; font-weight: 600; margin-bottom: 8px;
+    }
+
+    .helper-text { font-size: 12.5px; color: #8696a0; margin: 0; line-height: 1.4; }
+
+    .status-options-list {
+      display: flex; flex-direction: column; gap: 4px; margin-top: 10px; // NAYA: Gap aur margin kam kiya
+
+      .status-option-item {
+        display: flex; align-items: center; gap: 12px; padding: 8px 12px; // NAYA: List ki height kam ki
+        border-radius: 8px; cursor: pointer; transition: background 0.2s;
+
+        &:hover { background: #f8fafc; }
+        
+        input[type="radio"] { accent-color: #111b21; width: 16px; height: 16px; cursor: pointer; }
+
+        .opt-icon {
+          width: 32px; height: 32px; border-radius: 50%; display: flex; // NAYA: Icon 36px se 32px kiya
+          align-items: center; justify-content: center; color: white;
+          font-size: 14px; font-weight: 600;
+        }
+
+        .opt-text {
+          display: flex; flex-direction: column;
+          .opt-title { font-size: 14px; font-weight: 600; color: #111b21; margin-bottom: 0px;}
+          .opt-desc { font-size: 12.5px; color: #667781; }
+        }
+      }
+    }
+
+    .custom-status-input {
+      position: relative;
+      textarea {
+        width: 100%; height: 75px; padding: 12px; border: 1px solid #d1d7db; // NAYA: Textarea height 120px se 75px ki
+        border-radius: 8px; resize: none; font-family: inherit; font-size: 14px; color: #111b21; outline: none;
+        &:focus { border-color: #5a67d8; box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.1); }
+      }
+      .char-count { position: absolute; bottom: 8px; right: 12px; font-size: 11px; color: #8696a0; }
+    }
+
+    .preview-card {
+      display: flex; align-items: center; gap: 14px; padding: 16px; // NAYA: Preview card padding kam ki
+      border-radius: 12px; background: #f8fafc; border: 1px solid #f0f2f5;
+
+      .preview-avatar {
+        width: 48px; height: 48px; border-radius: 50%; background: #00a884;
+        color: white; display: flex; align-items: center; justify-content: center;
+        font-size: 18px; font-weight: 600; position: relative;
+        overflow: visible; // Taaki status dot dikhe
+
+        // NAYA: Background colors jo sidebar mein bhi hain
+        &.bg-1 { background: #6366f1 !important; color: white; }
+        &.bg-2 { background: #22c55e !important; color: white; }
+        &.bg-3 { background: #f59e0b !important; color: white; }
+        &.bg-4 { background: #ec4899 !important; color: white; }
+
+        span { display: block; line-height: 1; }
+        .status-dot {
+          position: absolute; bottom: 0; right: 0; width: 12px; height: 12px;
+          border-radius: 50%; border: 2px solid white; z-index: 2;
+        }
+      }
+
+      .preview-info {
+        display: flex; flex-direction: column;
+        .p-name { font-size: 15px; font-weight: 700; color: #111b21; margin-bottom: 2px;}
+        .p-status { font-size: 13px; font-weight: 600; }
+      }
+    }
+  }
+
+  // --- BUTTONS BHI COMPACT KIYE GAYE HAIN ---
+  .form-actions {
+    display: flex; justify-content: flex-end; align-items: center; gap: 16px;
+    margin-top: 15px; padding-top: 15px; border-top: 1px solid #f0f2f5; // Margin/Padding 30px se 15px ki
+    
+    button {
+      padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s;
+      &.btn-cancel { background: #ffffff; color: #111b21; border: 1px solid #d1d7db; &:hover { background: #f8f9fa; } }
+      &.btn-save { background: #5a67d8; color: white; border: none; &:hover { background: #4c51bf; box-shadow: 0 4px 12px rgba(90, 103, 216, 0.2); } }
+    }
+  }
+}
+
+.color-picker-row {
+  margin-top: 15px;
+  display: flex; align-items: center; gap: 12px;
+  
+  .picker-label { font-size: 13px; color: #667781; font-weight: 500; }
+  
+  .color-options {
+    display: flex; gap: 8px;
+    
+    .color-circle {
+      width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: 0.2s; border: 2px solid transparent;
+      
+      i { color: white; font-size: 14px; font-weight: bold; }
+      &:hover { transform: scale(1.1); }
+      &.active { border-color: #111b21; transform: scale(1.1); }
+    }
+  }
+}
+
+// NAYA: Status preview ko neeche shift karne ke liye
+.preview-section-shift {
+  margin-top: 30px !important; // Behtar spacing ke liye margin badhaya
+}

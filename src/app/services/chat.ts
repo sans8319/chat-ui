@@ -29,9 +29,16 @@ export class ChatService {
   private activeTabSource = new BehaviorSubject<'chats' | 'groups' | 'profile'>('chats');
   activeTab$ = this.activeTabSource.asObservable();
 
+  private activeSettingSource = new BehaviorSubject<string>('profile');
+  activeSetting$ = this.activeSettingSource.asObservable();
+
   // --- NAYA: Profile Update Sync ke liye ---
   private profileUpdateSource = new BehaviorSubject<any>(null);
   profileUpdate$ = this.profileUpdateSource.asObservable();
+
+  setActiveSetting(setting: string) {
+    this.activeSettingSource.next(setting);
+  }
 
   notifyProfileUpdate(userData: any) {
     this.profileUpdateSource.next(userData);

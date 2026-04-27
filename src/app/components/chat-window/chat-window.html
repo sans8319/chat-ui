@@ -78,21 +78,19 @@
       </div>
     </ng-container>
 
-
     <ng-container *ngIf="currentTab === 'profile'">
       <div class="profile-viewport">
         
         <div class="fixed-profile-header">
-          <h2 class="page-title">Profile</h2>
+          <h2 class="page-title">{{ activeSetting === 'status' ? 'Status and availability' : 'Profile' }}</h2>
         </div>
 
         <div class="scrollable-profile-content">
           
-          <div class="main-profile-card">
+          <div class="main-profile-card" *ngIf="activeSetting === 'profile'">
             
             <div class="avatar-section">
               <div class="big-avatar-wrapper">
-                
                 <div class="big-avatar-box" [style.background]="selectedAvatarBg || '#00a884'">
                   <img *ngIf="selectedAvatarImage" [src]="selectedAvatarImage" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                   <span *ngIf="!selectedAvatarImage && !selectedAvatarIcon">{{ profileData.name ? profileData.name.charAt(0).toUpperCase() : '?' }}</span>
@@ -205,6 +203,100 @@
             </div>
 
           </div>
+
+          <div class="main-profile-card status-card-ui" *ngIf="activeSetting === 'status'">
+            <div class="status-grid-2col">
+              
+              <div class="col-left">
+                <div class="section-block">
+                  <label class="section-lbl">Current Status</label>
+                  <div class="current-status-pill" [style.background]="profileData.customStatusColor + '1A'">
+                    <i class="bi bi-circle-fill" [style.color]="profileData.customStatusColor" style="font-size: 10px;"></i>
+                    <span [style.color]="profileData.customStatusColor">{{ profileData.customStatusText || savedStatusObj.name }}</span>
+                  </div>
+                  <p class="helper-text">This status will be visible to your contacts and team members.</p>
+                </div>
+
+                <div class="section-block">
+                  <label class="section-lbl">Select a status</label>
+                  <div class="status-options-list">
+                    
+                    <label class="status-option-item" *ngFor="let opt of statusOptions" [class.selected]="selectedStatus === opt.name">
+                      <input type="radio" name="statusOption" [value]="opt.name" [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange(opt)">
+                      
+                      <div class="opt-icon" [style.background]="opt.color">
+                        <span *ngIf="opt.isInitial">{{ profileData.name ? profileData.name.charAt(0).toUpperCase() : 'U' }}</span>
+                        <i *ngIf="!opt.isInitial" class="bi" [ngClass]="opt.icon"></i>
+                      </div>
+                      
+                      <div class="opt-text">
+                        <span class="opt-title">{{ opt.name }}</span>
+                        <span class="opt-desc">{{ opt.desc }}</span>
+                      </div>
+                    </label>
+                    
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-right">
+                <div class="section-block">
+                  <label class="section-lbl">Custom Status</label>
+                  <span class="sub-lbl">Set a custom status message</span>
+                  <div class="custom-status-input">
+                    <textarea [(ngModel)]="customStatusText" (ngModelChange)="onCustomTextType()" maxlength="120" placeholder="Type your custom status..."></textarea>
+                    <div class="char-count">{{ customStatusText.length }}/120</div>
+                  </div>
+
+                  <div class="color-picker-row">
+                    <span class="picker-label">Pick a color:</span>
+                    <div class="color-options">
+                      <div *ngFor="let color of customColors" 
+                           class="color-circle" 
+                           [style.backgroundColor]="color"
+                           [class.active]="selectedStatusColor === color"
+                           (click)="selectedStatusColor = color">
+                        <i class="bi bi-check" *ngIf="selectedStatusColor === color"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="section-block preview-section-shift">
+                  <label class="section-lbl">Status Preview</label>
+                  <div class="preview-card">
+                    <div class="preview-avatar" [ngClass]="parseProfilePicture(profileData.profilePicture).bg">
+                      
+                      <img *ngIf="parseProfilePicture(profileData.profilePicture).isImage" 
+                          [src]="parseProfilePicture(profileData.profilePicture).url" 
+                          style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                      
+                      <span *ngIf="parseProfilePicture(profileData.profilePicture).isAvatar">
+                        {{ parseProfilePicture(profileData.profilePicture).icon }}
+                      </span>
+
+                      <span *ngIf="!parseProfilePicture(profileData.profilePicture).isImage && !parseProfilePicture(profileData.profilePicture).isAvatar">
+                        {{ profileData.name ? profileData.name.charAt(0).toUpperCase() : '?' }}
+                      </span>
+                      
+                      <div class="status-dot" [style.background]="selectedStatusColor"></div>
+                    </div>
+                    
+                    <div class="preview-info">
+                      <span class="p-name">{{ profileData.name || 'User' }}</span>
+                      <span class="p-status" [style.color]="selectedStatusColor">{{ customStatusText || selectedStatus }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn-cancel" (click)="customStatusText=profileData.customStatusText; selectedStatus=profileData.statusState; selectedStatusColor=profileData.customStatusColor">Cancel</button>
+              <button class="btn-save" (click)="saveStatus()">Save Changes</button>
+            </div>
+          </div>
+
         </div>
       </div>
     </ng-container>

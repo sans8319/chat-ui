@@ -32,8 +32,81 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
     location: '',
     email: '',
     phone: '',
-    designation: ''
+    designation: '',
+    profilePicture: '',
+    statusState: 'Online', // NAYA
+    customStatusText: '' ,  // NAYA
+    customStatusColor: '#22c55e'
+
   };
+  
+  customColors = ['#14b8a6', '#f43f5e', '#6366f1', '#f97316', '#06b6d4', '#84cc16'];
+  selectedStatusColor: string = '#22c55e'; // Draft state
+  activeSetting: string = 'profile'; 
+  selectedStatus: string = 'Online';
+  customStatusText: string = '';
+
+  
+
+  statusOptions = [
+    { name: 'Online', desc: 'Available and ready to chat', color: '#22c55e', isInitial: true },
+    { name: 'Away', desc: 'Away from keyboard', color: '#f59e0b', icon: 'bi-clock-fill' },
+    { name: 'In a meeting', desc: 'Currently in a meeting', color: '#3b82f6', icon: 'bi-cup-hot-fill' },
+    { name: 'On a call', desc: 'Busy on a call', color: '#8b5cf6', icon: 'bi-telephone-fill' },
+    { name: 'Do not disturb', desc: 'Not available right now', color: '#ef4444', icon: 'bi-slash-circle-fill' },
+    { name: 'Offline', desc: 'Not available', color: '#94a3b8', icon: 'bi-three-dots' }
+  ];
+
+  get currentStatusObj() {
+    return this.statusOptions.find(s => s.name === this.selectedStatus) || this.statusOptions[0];
+  }
+  get savedStatusObj() {
+    return this.statusOptions.find(s => s.name === this.profileData.statusState) || this.statusOptions[0];
+  }
+  
+  onStatusChange(opt: any) {
+    this.selectedStatusColor = opt.color;
+    this.customStatusText = ''; // Custom text ko forcefully clear karega
+  }
+
+  // NAYA: Jab user custom type karna shuru kare toh radio button hata do
+  onCustomTextType() {
+    if (this.customStatusText.trim().length > 0) {
+      this.selectedStatus = ''; // Radio button deselect
+    } else {
+      // Agar user text mita de, toh wapas DB wala ya default select kar do
+      this.selectedStatus = this.profileData.statusState || 'Online';
+      this.selectedStatusColor = this.profileData.customStatusColor || '#22c55e';
+    }
+  }
+
+async saveStatus() {
+      if (!this.currentUserId) return;
+      
+      const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : '';
+      const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+      // Draft ko profileData mein set karein
+      this.profileData.statusState = this.selectedStatus;
+      this.profileData.customStatusText = this.customStatusText;
+      this.profileData.customStatusColor = this.selectedStatusColor;
+
+      let finalImageUrl = (this.profileData as any).profilePicture || '';
+      const payload = { ...this.profileData, profilePicture: finalImageUrl };
+
+      this.http.put(`http://localhost:8080/api/users/${this.currentUserId}/profile`, payload, { headers })
+        .subscribe({
+          next: (response: any) => {
+            alert("Status updated successfully! ✅");
+            if (isPlatformBrowser(this.platformId)) {
+            localStorage.setItem('statusColor', this.selectedStatusColor);
+          }
+            this.chatService.notifyProfileUpdate(response); // Sidebar update hogi
+            this.cdr.detectChanges();
+          },
+          error: (err) => alert("Failed to save status.")
+        });
+    }
 
   selectedAvatarBg: string = '';
   selectedAvatarIcon: string = '';
@@ -66,6 +139,19 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
       if (tab === 'profile') {
         this.fetchUserProfile();
       }
+      this.cdr.detectChanges();
+    });
+
+    this.chatService.activeSetting$.subscribe(setting => {
+      this.activeSetting = setting;
+      
+      // NAYA: Jab bhi Status tab khule, radio button aur text ko saved DB data par Reset/Lock kardo
+      if (setting === 'status') {
+        this.selectedStatus = this.profileData.statusState || 'Online';
+        this.customStatusText = this.profileData.customStatusText || '';
+        this.selectedStatusColor = this.profileData.customStatusColor || '#22c55e';
+      }
+      
       this.cdr.detectChanges();
     });
 
@@ -119,9 +205,18 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
             location: user.location || '',
             email: user.email || '',
             phone: user.phone || '',
-            designation: user.designation || ''
+            designation: user.designation || '',
+            profilePicture: user.profilePicture || '',
+            statusState: user.statusState || 'Online', // NAYA
+            customStatusText: user.customStatusText || '' ,// NAYA
+            customStatusColor: user.customStatusColor || '#22c55e'  // NAYA
+
           };
           
+          this.profileData.customStatusColor = user.customStatusColor || '#22c55e';
+          this.selectedStatusColor = this.profileData.customStatusColor;
+          this.selectedStatus = this.profileData.statusState;
+          this.customStatusText = this.profileData.customStatusText;
           if (user.profilePicture) {
             (this.profileData as any).profilePicture = user.profilePicture;
             this.updateLocalPreview(user.profilePicture);

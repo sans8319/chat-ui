@@ -1,9 +1,7 @@
 <div class="nav-rail-container">
   <div class="top-nav-items">
     
-    <div class="nav-button" 
-         [class.active]="activeTab === 'chats'" 
-         (click)="switchTab('chats')">
+    <div class="nav-button" [class.active]="activeTab === 'chats'" (click)="switchTab('chats')">
       <div class="icon-wrapper">
         <i class="bi bi-chat-dots-fill" *ngIf="activeTab === 'chats'"></i>
         <i class="bi bi-chat-dots" *ngIf="activeTab !== 'chats'"></i>
@@ -11,9 +9,7 @@
       <span class="nav-label">Chats</span>
     </div>
 
-    <div class="nav-button" 
-         [class.active]="activeTab === 'groups'" 
-         (click)="switchTab('groups')">
+    <div class="nav-button" [class.active]="activeTab === 'groups'" (click)="switchTab('groups')">
       <div class="icon-wrapper">
         <i class="bi bi-people-fill" *ngIf="activeTab === 'groups'"></i>
         <i class="bi bi-people" *ngIf="activeTab !== 'groups'"></i>
@@ -22,26 +18,28 @@
     </div>
 
     <div class="nav-button">
-      <div class="icon-wrapper">
-        <i class="bi bi-circle-uppercase"></i>
-      </div>
+      <div class="icon-wrapper"><i class="bi bi-circle-uppercase"></i></div>
       <span class="nav-label">Status</span>
     </div>
   </div>
   
   <div class="bottom-nav-items">
-    <div class="nav-button">
-      <div class="icon-wrapper">
-        <i class="bi bi-gear"></i>
-      </div>
-    </div>
+    <div class="nav-button"><div class="icon-wrapper"><i class="bi bi-gear"></i></div></div>
     
-    <div class="profile-section" 
-         [class.active]="activeTab === 'profile'" 
-         (click)="switchTab('profile')" 
-         style="cursor: pointer;">
-      <div class="user-avatar-rail" title="Profile" [style.border]="activeTab === 'profile' ? '2px solid #6366f1' : 'none'">
-        {{ userInitial || '?' }}
+    <div class="profile-section" [class.active]="activeTab === 'profile'" (click)="switchTab('profile')" style="cursor: pointer;">
+      <div class="user-avatar-rail" title="Profile" 
+           [style.border]="activeTab === 'profile' ? '2px solid #6366f1' : 'none'"
+           [ngClass]="parseProfilePicture(loggedInProfilePicture).bg">
+        
+        <img *ngIf="parseProfilePicture(loggedInProfilePicture).isImage" [src]="parseProfilePicture(loggedInProfilePicture).url" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+        <span *ngIf="parseProfilePicture(loggedInProfilePicture).isAvatar" style="font-size: 18px;">
+          {{ parseProfilePicture(loggedInProfilePicture).icon }}
+        </span>
+        <ng-container *ngIf="!parseProfilePicture(loggedInProfilePicture).isImage && !parseProfilePicture(loggedInProfilePicture).isAvatar">
+          {{ userInitial || '?' }}
+        </ng-container>
+
+        <span class="status-dot-rail" [style.backgroundColor]="loggedInStatusColor"></span>
       </div>
     </div>
   </div>

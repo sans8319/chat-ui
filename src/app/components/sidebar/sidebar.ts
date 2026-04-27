@@ -33,6 +33,16 @@ export class SidebarComponent implements OnInit {
   selectedAvatarImage: string | null = null; 
   selectedFile: File | null = null;
   loggedInDesignation: string = 'Online';
+  loggedInProfilePicture: string = '';
+  loggedInStatusColor: string = '#22c55e';
+
+  getStatusColor(statusName: string) {
+    const colors: any = {
+      'Online': '#22c55e', 'Away': '#f59e0b', 'In a meeting': '#3b82f6',
+      'On a call': '#8b5cf6', 'Do not disturb': '#ef4444', 'Offline': '#94a3b8'
+    };
+    return colors[statusName] || '#22c55e';
+  }
 
   constructor(
     private http: HttpClient, 
@@ -52,6 +62,7 @@ export class SidebarComponent implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       this.currentUserId = Number(localStorage.getItem('userId'));
       this.loggedInUsername = localStorage.getItem('username') || 'User'; 
+      this.loggedInProfilePicture = localStorage.getItem('profilePicture') || '';
     }
 
     this.chatService.activeTab$.subscribe(tab => {
@@ -87,6 +98,8 @@ export class SidebarComponent implements OnInit {
       if (updatedUser) {
         this.loggedInUsername = updatedUser.username;
         this.loggedInDesignation = updatedUser.designation || 'Employee'; // Designation update hogi
+        this.loggedInProfilePicture = updatedUser.profilePicture || '';
+        this.loggedInStatusColor = updatedUser.customStatusColor || this.getStatusColor(updatedUser.statusState || 'Online');
         this.cdr.detectChanges();
       }
     });
@@ -98,6 +111,8 @@ export class SidebarComponent implements OnInit {
         .subscribe(user => {
           if (user) {
             this.loggedInDesignation = user.designation || 'Online';
+            this.loggedInProfilePicture = user.profilePicture || '';
+            this.loggedInStatusColor = user.customStatusColor || this.getStatusColor(user.statusState || 'Online');
             this.cdr.detectChanges();
           }
         });
@@ -454,7 +469,10 @@ export class SidebarComponent implements OnInit {
     }
   }
 
-   selectSettingMenu(menuName: string) {
+  selectSettingMenu(menuName: string) {
     this.activeSetting = menuName;
+    this.chatService.setActiveSetting(menuName); // NAYA: Service ko batana
   }
+
+  
 }
