@@ -26,7 +26,7 @@ export class LoginComponent {
         localStorage.setItem('token', res.token);
         localStorage.setItem('username', this.loginData.username);
         localStorage.setItem('userId', res.id);
-        this.router.navigate(['/chat']);
+        window.location.href = '/chat';
       },
       error: (err) => {
         this.errorMessage = 'Invalid credentials. Please try again.';

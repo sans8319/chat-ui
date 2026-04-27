@@ -3,12 +3,14 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ChatService } from '../../services/chat';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './sidebar.html',
+  
   styleUrl: './sidebar.scss'
 })
 export class SidebarComponent implements OnInit {
@@ -48,6 +50,7 @@ export class SidebarComponent implements OnInit {
     private http: HttpClient, 
     private cdr: ChangeDetectorRef,
     private chatService: ChatService,
+    private router: Router,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
@@ -464,8 +467,14 @@ export class SidebarComponent implements OnInit {
 
   logout() {
     if (confirm("Are you sure you want to logout?")) {
+      // 1. Chat server se connection close karein
+      this.chatService.disconnect();
+      
+      // 2. Saara local data aur tokens delete karein
       localStorage.clear();
-      window.location.reload(); 
+      
+      // 3. User ko smoothly Login page par bhej dein
+      this.router.navigate(['/login']); 
     }
   }
 
