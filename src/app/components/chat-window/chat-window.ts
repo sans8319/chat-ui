@@ -64,7 +64,8 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   showNewPwd = false;
   showConfirmPwd = false;
   showDeleteAccountModal = false;
-
+  isCurrentPwdInvalid = false; // Current password galat hai ya nahi
+  isCheckingPwd = false;       // API call ho rahi hai ya nahi
   
   statusOptions = [
     { name: 'Online', desc: 'Available and ready to chat', color: '#22c55e', isInitial: true },
@@ -349,14 +350,58 @@ async saveStatus() {
     return strength; // Returns 0, 1 (Weak), 2 (Medium), 3 (Strong)
   }
 
+   checkCurrentPassword() {
+    if (!this.passwordData.current) return;
+    
+    this.isCheckingPwd = true;
+
+    // NAYA: Token Headers add kiye
+    const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : '';
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+    // NAYA: String ki jagah JSON Object bhej rahe hain
+    const payload = { password: this.passwordData.current };
+
+    this.http.post<boolean>(`http://localhost:8080/api/users/${this.currentUserId}/verify-password`, payload, { headers })
+      .subscribe({
+        next: (isValid) => {
+          this.isCurrentPwdInvalid = !isValid; 
+          this.isCheckingPwd = false;
+        },
+        error: (err) => {
+          // NAYA: Agar API token ya kisi wajah se fail ho, toh UI mein red border aayega taaki aapko pata chale
+          console.error("Verification API failed:", err);
+          this.isCurrentPwdInvalid = true; 
+          this.isCheckingPwd = false;
+        }
+      });
+  }
+
+  // 2. Real API Update call
   updatePassword() {
-    if (this.passwordData.new !== this.passwordData.confirm) {
-      alert("⚠️ Passwords do not match!");
-      return;
-    }
-    // API call yahan aayegi (Future backend integration)
-    alert("Password updated successfully! (Frontend UI Triggered)");
-    this.closeChangePassword();
+    const payload = {
+      currentPassword: this.passwordData.current,
+      newPassword: this.passwordData.new
+    };
+
+    // NAYA: Update request mein bhi Token Headers add kiye
+    const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : '';
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+    this.http.put(`http://localhost:8080/api/users/${this.currentUserId}/change-password`, payload, { 
+      headers: headers, 
+      responseType: 'text' as 'json' 
+    })
+      .subscribe({
+        next: () => {
+          alert("✅ Password updated successfully!");
+          this.closeChangePassword();
+        },
+        error: (err) => {
+          console.error("Update failed:", err);
+          alert("❌ Failed to update password. Please check your current password.");
+        }
+      });
   }
 
   // =====================================

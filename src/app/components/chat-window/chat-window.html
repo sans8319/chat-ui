@@ -389,18 +389,20 @@
             </div>
 
             <div class="pwd-form-section">
+              
               <div class="input-group">
                 <label>Current Password</label>
-                <div class="input-wrapper">
+                <div class="input-wrapper" [class.error-border]="isCurrentPwdInvalid">
                   <input [type]="showCurrentPwd ? 'text' : 'password'" [(ngModel)]="passwordData.current" placeholder="Enter your current password">
                   <i class="bi" [ngClass]="showCurrentPwd ? 'bi-eye-slash' : 'bi-eye'" (click)="togglePwd('current')"></i>
                 </div>
+                <span class="error-text" *ngIf="isCurrentPwdInvalid">Your current password is not correct</span>
               </div>
 
               <div class="input-group">
                 <label>New Password</label>
                 <div class="input-wrapper">
-                  <input [type]="showNewPwd ? 'text' : 'password'" [(ngModel)]="passwordData.new" placeholder="Enter your new password">
+                  <input [type]="showNewPwd ? 'text' : 'password'" [(ngModel)]="passwordData.new" (focus)="checkCurrentPassword()" placeholder="Enter your new password">
                   <i class="bi" [ngClass]="showNewPwd ? 'bi-eye-slash' : 'bi-eye'" (click)="togglePwd('new')"></i>
                 </div>
                 <span class="hint-text">Use a mix of letters, numbers and symbols (min. 8 characters)</span>
@@ -408,11 +410,14 @@
 
               <div class="input-group">
                 <label>Confirm New Password</label>
-                <div class="input-wrapper">
+                <div class="input-wrapper" 
+                     [class.match-border]="passwordData.confirm && passwordData.new === passwordData.confirm"
+                     [class.error-border]="passwordData.confirm && passwordData.new !== passwordData.confirm">
                   <input [type]="showConfirmPwd ? 'text' : 'password'" [(ngModel)]="passwordData.confirm" placeholder="Confirm your new password">
                   <i class="bi" [ngClass]="showConfirmPwd ? 'bi-eye-slash' : 'bi-eye'" (click)="togglePwd('confirm')"></i>
                 </div>
-                <span class="hint-text">Make sure both passwords match</span>
+                <span class="error-text" *ngIf="passwordData.confirm && passwordData.new !== passwordData.confirm">Passwords do not match</span>
+                <span class="match-text" *ngIf="passwordData.confirm && passwordData.new === passwordData.confirm">✅ Passwords match</span>
               </div>
 
               <div class="pwd-strength-container">
@@ -428,6 +433,7 @@
                   <span>Strong</span>
                 </div>
               </div>
+
             </div>
 
             <div class="form-actions pwd-actions">
