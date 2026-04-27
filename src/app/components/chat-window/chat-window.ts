@@ -58,9 +58,14 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   activeSetting: string = 'profile'; 
   selectedStatus: string = 'Online';
   customStatusText: string = '';
+  isChangingPassword = false;
+  passwordData = { current: '', new: '', confirm: '' };
+  showCurrentPwd = false;
+  showNewPwd = false;
+  showConfirmPwd = false;
+  showDeleteAccountModal = false;
 
   
-
   statusOptions = [
     { name: 'Online', desc: 'Available and ready to chat', color: '#22c55e', isInitial: true },
     { name: 'Away', desc: 'Away from keyboard', color: '#f59e0b', icon: 'bi-clock-fill' },
@@ -197,6 +202,7 @@ async saveStatus() {
 
     this.chatService.activeSetting$.subscribe(setting => {
       this.activeSetting = setting;
+      this.isChangingPassword = false; 
       
       // NAYA: Jab bhi Status tab khule, radio button aur text ko saved DB data par Reset/Lock kardo
       if (setting === 'status') {
@@ -309,6 +315,65 @@ async saveStatus() {
     this.selectedAvatarIcon = icon;
     this.selectedAvatarImage = null;
     this.selectedFile = null;
+  }
+
+  // =====================================
+  // CHANGE PASSWORD LOGIC
+  // =====================================
+
+   openChangePassword() {
+    this.isChangingPassword = true;
+    this.passwordData = { current: '', new: '', confirm: '' };
+    this.showCurrentPwd = false; this.showNewPwd = false; this.showConfirmPwd = false;
+  }
+
+  closeChangePassword() {
+    this.isChangingPassword = false;
+  }
+
+
+
+  togglePwd(field: string) {
+    if (field === 'current') this.showCurrentPwd = !this.showCurrentPwd;
+    if (field === 'new') this.showNewPwd = !this.showNewPwd;
+    if (field === 'confirm') this.showConfirmPwd = !this.showConfirmPwd;
+  }
+
+  get pwdStrength() {
+    const p = this.passwordData.new;
+    if (!p) return 0;
+    let strength = 0;
+    if (p.length >= 8) strength++; // Min 8 chars
+    if (/[A-Za-z]/.test(p) && /[0-9]/.test(p)) strength++; // Letters & numbers
+    if (/[\W_]/.test(p)) strength++; // Symbols
+    return strength; // Returns 0, 1 (Weak), 2 (Medium), 3 (Strong)
+  }
+
+  updatePassword() {
+    if (this.passwordData.new !== this.passwordData.confirm) {
+      alert("⚠️ Passwords do not match!");
+      return;
+    }
+    // API call yahan aayegi (Future backend integration)
+    alert("Password updated successfully! (Frontend UI Triggered)");
+    this.closeChangePassword();
+  }
+
+  // =====================================
+  // DELETE ACCOUNT LOGIC
+  // =====================================
+  openDeleteAccountModal() {
+    this.showDeleteAccountModal = true;
+  }
+
+  closeDeleteAccountModal() {
+    this.showDeleteAccountModal = false;
+  }
+
+  confirmDeleteAccount() {
+    alert("Account deleted successfully! (Backend integration pending)");
+    this.showDeleteAccountModal = false;
+    // Real app mein yahan logout hook call karenge
   }
 
   async saveProfile() {

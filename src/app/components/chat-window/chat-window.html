@@ -82,7 +82,14 @@
       <div class="profile-viewport">
         
         <div class="fixed-profile-header">
-          <h2 class="page-title">{{ activeSetting === 'status' ? 'Status and availability' : 'Profile' }}</h2>
+          <h2 class="page-title">
+            <ng-container *ngIf="activeSetting === 'account' && isChangingPassword">
+              <i class="bi bi-arrow-left back-icon" (click)="closeChangePassword()"></i> Change Password
+            </ng-container>
+            <ng-container *ngIf="!(activeSetting === 'account' && isChangingPassword)">
+              {{ activeSetting === 'account' ? 'Account settings' : (activeSetting === 'status' ? 'Status and availability' : 'Profile') }}
+            </ng-container>
+          </h2>
         </div>
 
         <div class="scrollable-profile-content">
@@ -326,10 +333,131 @@
               <button class="btn-save" (click)="saveStatus()">Save Changes</button>
             </div>
           </div>
+          <div class="main-profile-card account-card-ui" *ngIf="activeSetting === 'account' && !isChangingPassword">
+            
+            <div class="account-section">
+              <div class="icon-column">
+                <div class="icon-box-large purple-box"><i class="bi bi-shield-lock"></i></div>
+              </div>
+              <div class="content-column">
+                <div class="text-info">
+                  <h3>Change Password</h3>
+                  <p>Update your password to keep your account secure.</p>
+                  <ul class="benefit-list">
+                    <li><i class="bi bi-check-circle"></i> Choose a strong password</li>
+                    <li><i class="bi bi-check-circle"></i> Don't share your password with others</li>
+                    <li><i class="bi bi-check-circle"></i> Use a mix of letters, numbers and symbols</li>
+                  </ul>
+                </div>
+                <div class="action-column">
+                  <button class="btn-outline-primary" (click)="openChangePassword()">Change Password <i class="bi bi-chevron-right"></i></button>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <div class="account-section">
+              <div class="icon-column">
+                <div class="icon-box-large red-box"><i class="bi bi-trash"></i></div>
+              </div>
+              <div class="content-column">
+                <div class="text-info">
+                  <h3>Delete Account</h3>
+                  <p>Once you delete your account, there is no going back.</p>
+                  <ul class="danger-list">
+                    <li><i class="bi bi-exclamation-circle"></i> All your messages and data will be permanently deleted</li>
+                    <li><i class="bi bi-exclamation-circle"></i> You will be removed from all groups and conversations</li>
+                    <li><i class="bi bi-exclamation-circle"></i> This action cannot be undone</li>
+                  </ul>
+                </div>
+                <div class="action-column">
+                  <button class="btn-outline-danger" (click)="openDeleteAccountModal()">Delete Account <i class="bi bi-trash"></i></button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <div class="main-profile-card change-password-card-ui" *ngIf="activeSetting === 'account' && isChangingPassword">
+            
+            <div class="pwd-header-info">
+              <div class="icon-box-large purple-box"><i class="bi bi-shield-lock"></i></div>
+              <div>
+                <h3>Change your password</h3>
+                <p>Update your password to keep your account secure.</p>
+              </div>
+            </div>
+
+            <div class="pwd-form-section">
+              <div class="input-group">
+                <label>Current Password</label>
+                <div class="input-wrapper">
+                  <input [type]="showCurrentPwd ? 'text' : 'password'" [(ngModel)]="passwordData.current" placeholder="Enter your current password">
+                  <i class="bi" [ngClass]="showCurrentPwd ? 'bi-eye-slash' : 'bi-eye'" (click)="togglePwd('current')"></i>
+                </div>
+              </div>
+
+              <div class="input-group">
+                <label>New Password</label>
+                <div class="input-wrapper">
+                  <input [type]="showNewPwd ? 'text' : 'password'" [(ngModel)]="passwordData.new" placeholder="Enter your new password">
+                  <i class="bi" [ngClass]="showNewPwd ? 'bi-eye-slash' : 'bi-eye'" (click)="togglePwd('new')"></i>
+                </div>
+                <span class="hint-text">Use a mix of letters, numbers and symbols (min. 8 characters)</span>
+              </div>
+
+              <div class="input-group">
+                <label>Confirm New Password</label>
+                <div class="input-wrapper">
+                  <input [type]="showConfirmPwd ? 'text' : 'password'" [(ngModel)]="passwordData.confirm" placeholder="Confirm your new password">
+                  <i class="bi" [ngClass]="showConfirmPwd ? 'bi-eye-slash' : 'bi-eye'" (click)="togglePwd('confirm')"></i>
+                </div>
+                <span class="hint-text">Make sure both passwords match</span>
+              </div>
+
+              <div class="pwd-strength-container">
+                <label>Password strength</label>
+                <div class="bars-container">
+                  <div class="bar" [class.active-weak]="pwdStrength >= 1"></div>
+                  <div class="bar" [class.active-medium]="pwdStrength >= 2"></div>
+                  <div class="bar" [class.active-strong]="pwdStrength === 3"></div>
+                </div>
+                <div class="labels">
+                  <span>Weak</span>
+                  <span>Medium</span>
+                  <span>Strong</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions pwd-actions">
+              <button class="btn-pwd" (click)="updatePassword()" 
+                      [disabled]="!passwordData.current || !passwordData.new || passwordData.new !== passwordData.confirm">
+                Update Password
+              </button>
+            </div>
+
+          </div>
 
         </div>
       </div>
     </ng-container>
 
   </div>
+  <div class="modal-overlay-danger" *ngIf="showDeleteAccountModal">
+    <div class="danger-modal-content">
+      <div class="modal-icon-header">
+        <div class="icon-circle"><i class="bi bi-exclamation-triangle"></i></div>
+      </div>
+      <div class="modal-text-body">
+        <h3>Delete Account?</h3>
+        <p>Are you sure you want to permanently delete your account? This action cannot be undone and you will lose all your data.</p>
+      </div>
+      <div class="modal-actions-footer">
+        <button class="btn-cancel" (click)="closeDeleteAccountModal()">Cancel</button>
+        <button class="btn-delete" (click)="confirmDeleteAccount()">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+
 </div>
