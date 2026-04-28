@@ -16,14 +16,14 @@
       <div class="search-box">
         <div class="search-input-wrapper">
           <i class="bi bi-search"></i>
-          <input type="text" [placeholder]="activeTab === 'chats' ? 'Search chats...' : 'Search groups...'">
+          <input type="text" [(ngModel)]="searchQuery" [placeholder]="activeTab === 'chats' ? 'Search chats...' : 'Search groups...'">
         </div>
       </div>
     </div>
 
     <div class="user-list">
       <ng-container *ngIf="activeTab === 'chats'">
-        <div *ngFor="let user of users" 
+        <div *ngFor="let user of filteredUsers" 
              class="user-item" 
              [class.active]="activeUserId === user.id"
              (click)="selectUser(user)">
@@ -53,10 +53,14 @@
             </div>
           </div>
         </div>
+        <div class="no-search-results" *ngIf="filteredUsers.length === 0 && searchQuery.trim() !== ''">
+          <i class="bi bi-search"></i>
+          <p>No results found for <strong>"{{ searchQuery }}"</strong></p>
+        </div>
       </ng-container>
 
       <ng-container *ngIf="activeTab === 'groups'">
-        <div *ngFor="let group of groups" 
+        <div *ngFor="let group of filteredGroups" 
              class="user-item" 
              [class.active]="activeUserId === group.id"
              (click)="selectUser(group)">
@@ -80,8 +84,13 @@
             </div>
           </div>
         </div>
-        <div class="no-groups-state" *ngIf="groups.length === 0">
+        <div class="no-groups-state" *ngIf="groups.length === 0 && searchQuery.trim() === ''">
           <p>You are not in any groups yet.</p>
+        </div>
+
+        <div class="no-search-results" *ngIf="filteredGroups.length === 0 && searchQuery.trim() !== ''">
+          <i class="bi bi-search"></i>
+          <p>No results found for <strong>"{{ searchQuery }}"</strong></p>
         </div>
       </ng-container>
     </div>

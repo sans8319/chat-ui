@@ -38,6 +38,23 @@ export class SidebarComponent implements OnInit {
   loggedInProfilePicture: string = '';
   loggedInStatusColor: string = '#22c55e';
 
+  searchQuery: string = '';
+
+  get filteredUsers() {
+    if (!this.searchQuery.trim()) return this.users;
+    return this.users.filter(u => 
+      u.username.toLowerCase().includes(this.searchQuery.toLowerCase())
+    );
+  }
+
+  get filteredGroups() {
+    if (!this.searchQuery.trim()) return this.groups;
+    // Group ke naam ke liye check kar rahe hain (username ya name jo bhi backend se aaye)
+    return this.groups.filter(g => 
+      (g.username || g.name || '').toLowerCase().includes(this.searchQuery.toLowerCase())
+    );
+  }
+
   getStatusColor(statusName: string) {
     const colors: any = {
       'Online': '#22c55e', 'Away': '#f59e0b', 'In a meeting': '#3b82f6',
@@ -77,6 +94,7 @@ export class SidebarComponent implements OnInit {
     this.chatService.activeTab$.subscribe(tab => {
       this.activeTab = tab;
       this.activeUserId = null; 
+      this.searchQuery = ''; 
       if (tab !== 'profile') {
         this.loadGroups();
       }
