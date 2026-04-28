@@ -1,10 +1,10 @@
 <div class="input-container">
   <div class="input-wrapper">
-    <input 
-      type="text" 
+    <textarea 
       [(ngModel)]="messageText" 
-      (keyup.enter)="sendMessage()"
-      placeholder="Type a premium message..." />
+      (keydown)="onKeyDown($event)"
+      placeholder="Type a premium message..."
+      rows="1"></textarea>
     
     <button class="send-btn" (click)="sendMessage()" [disabled]="!messageText.trim()">
       Send

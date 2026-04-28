@@ -5,32 +5,48 @@
 
   .input-wrapper {
     display: flex;
-    align-items: center;
+    align-items: flex-end; /* NAYA: Taki agar textarea lamba ho toh button neeche rahe */
     background: #f1f5f9;
     border-radius: 12px;
     padding: 8px 16px;
     gap: 12px;
 
-    input {
+    /* NAYA: Textarea ki styling */
+    textarea {
       flex: 1;
       border: none;
       background: transparent;
       outline: none;
       font-size: 14px;
       color: #1e293b;
+      font-family: inherit; /* Font input jaisa hi rakhne ke liye */
+      resize: none;         /* User khud se drag karke bada na kar sake */
+      padding: 6px 0;       /* Padding adjust ki taaki text center lage */
+      line-height: 1.5;
+      min-height: 33px;     /* Minimum 1 line ki height */
+      max-height: 120px;    /* 4-5 line ke baad scrollbar aa jayega */
+      overflow-y: auto;
+
+      &::-webkit-scrollbar { width: 4px; }
+      &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     }
 
     .send-btn {
       background: #6366f1;
       color: white;
       border: none;
-      padding: 8px 16px;
+      padding: 0 16px;
+      height: 36px; /* NAYA: Fixed height taaki textarea lamba hone par ye khiche nahi */
+      margin-bottom: 5px; /* Button ko bottom se align karne ke liye */
       border-radius: 8px;
       font-weight: 600;
       font-size: 13px;
       cursor: pointer;
       transition: 0.2s;
+      flex-shrink: 0;
+      
       &:hover { background: #4f46e5; }
+      &:disabled { background: #cbd5e1; cursor: not-allowed; }
     }
   }
 }

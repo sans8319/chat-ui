@@ -36,4 +36,17 @@ export class ChatInputComponent {
       this.messageText = ''; 
     }
   }
+
+  onKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+      if (event.shiftKey) {
+        // Agar Shift + Enter dabaya hai, toh browser ko apna kaam karne do (Nayi line banayega)
+        return;
+      } else {
+        // Agar sirf Enter dabaya hai, toh nayi line banne se roko aur message send kar do
+        event.preventDefault();
+        this.sendMessage();
+      }
+    }
+  }
 }
