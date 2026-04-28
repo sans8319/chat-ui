@@ -25,7 +25,10 @@
               </ng-container>
             </div>
             <div class="details">
-              <h3>{{ selectedUser.username }}</h3>
+              <h3>
+                {{ selectedUser.username }}
+                <i *ngIf="selectedUser.isDeleted" class="bi bi-ban" style="color: #ef4444; font-size: 15px; margin-left: 6px; -webkit-text-stroke: 0.8px;" title="Deleted Account"></i>
+              </h3>
               <span class="status-indicator" *ngIf="!selectedUser.isGroup">
                 <span class="dot" [style.background]="selectedUser.online ? '#22c55e' : '#94a3b8'"></span> {{ selectedUser.online ? 'Online' : 'Offline' }}
               </span>
@@ -438,7 +441,7 @@
 
             <div class="form-actions pwd-actions">
               <button class="btn-pwd" (click)="updatePassword()" 
-                      [disabled]="!passwordData.current || !passwordData.new || passwordData.new !== passwordData.confirm">
+                      [disabled]="!passwordData.current || isCurrentPwdInvalid || !passwordData.new || passwordData.new !== passwordData.confirm">
                 Update Password
               </button>
             </div>

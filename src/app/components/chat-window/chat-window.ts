@@ -416,9 +416,21 @@ async saveStatus() {
   }
 
   confirmDeleteAccount() {
-    alert("Account deleted successfully! (Backend integration pending)");
-    this.showDeleteAccountModal = false;
-    // Real app mein yahan logout hook call karenge
+    if (!this.currentUserId) return;
+    const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : '';
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+    this.http.delete(`http://localhost:8080/api/users/${this.currentUserId}`, { 
+      headers: headers, responseType: 'text' as 'json' 
+    }).subscribe({
+      next: () => {
+        alert("Your account has been deleted successfully. 🗑️");
+        this.chatService.disconnect();
+        localStorage.clear();
+        window.location.href = '/'; // Login page par bhej dein
+      },
+      error: (err) => alert("Failed to delete account.")
+    });
   }
 
   async saveProfile() {
@@ -479,6 +491,10 @@ async saveStatus() {
 
         this.chatService.getChatHistory(this.currentRoomId!).subscribe(history => {
           this.messages = history.map(msg => {
+            if (msg.senderName && msg.senderName.includes('_DELETED_')) {
+              msg.senderName = msg.senderName.split('_DELETED_')[0];
+            }
+            
             if (msg.senderName === 'System' || msg.content === '###GROUP_CREATED###') {
                 msg.isSystem = true;
                 msg.content = Number(msg.senderId) === Number(this.currentUserId) ? "You created this chat." : msg.content;

@@ -55,8 +55,14 @@ export class SidebarComponent implements OnInit {
   ) {}
 
   get filteredUsersForGroup() {
-    if (!this.memberSearchQuery.trim()) return this.users;
-    return this.users.filter(u => 
+    // NAYA: Sabse pehle un users ko filter kar lo jo deleted NAHI hain
+    const activeUsers = this.users.filter(u => !u.isDeleted);
+
+    // Agar search khali hai, toh sirf active users dikhayein
+    if (!this.memberSearchQuery.trim()) return activeUsers;
+
+    // Agar kuch search kiya hai, toh sirf active users mein se hi search karein
+    return activeUsers.filter(u => 
       u.username.toLowerCase().includes(this.memberSearchQuery.toLowerCase())
     );
   }
@@ -376,7 +382,17 @@ export class SidebarComponent implements OnInit {
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
     this.http.get<any[]>('http://localhost:8080/api/users', { headers }).subscribe({
       next: (data) => {
-        this.users = data.filter(user => user.username !== loggedInUser);
+        this.users = data.filter(user => !user.username.startsWith(loggedInUser)).map(user => {
+          // NAYA: Deleted user detect karein aur naam clean karein
+          if (user.username && user.username.includes('_DELETED_')) {
+            user.isDeleted = true;
+            user.username = user.username.split('_DELETED_')[0];
+          } else {
+            user.isDeleted = false;
+          }
+          return user;
+        });
+        
         this.users.forEach(user => this.syncUserStatus(user));
         this.cdr.detectChanges();
       }
