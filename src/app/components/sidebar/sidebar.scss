@@ -131,6 +131,12 @@
           height: 100%;
           object-fit: cover; 
         }
+        
+        // NAYA: Colors support
+        &.bg-1 { background: #6366f1 !important; color: white !important; }
+        &.bg-2 { background: #22c55e !important; color: white !important; }
+        &.bg-3 { background: #f59e0b !important; color: white !important; }
+        &.bg-4 { background: #ec4899 !important; color: white !important; }
 
         &.group-avatar {
           background: #6366f1; 
@@ -502,6 +508,13 @@
               .avatar {
                 width: 38px; height: 38px; border-radius: 50%; background: #dfe5e7; color: #54656f;
                 display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; margin-right: 12px; flex-shrink: 0;
+                overflow: hidden; position: relative;
+                
+                img { width: 100%; height: 100%; object-fit: cover; }
+                &.bg-1 { background: #6366f1 !important; color: white !important; }
+                &.bg-2 { background: #22c55e !important; color: white !important; }
+                &.bg-3 { background: #f59e0b !important; color: white !important; }
+                &.bg-4 { background: #ec4899 !important; color: white !important; }
               }
               .user-info-sm {
                 flex: 1; display: flex; flex-direction: column; overflow: hidden;
