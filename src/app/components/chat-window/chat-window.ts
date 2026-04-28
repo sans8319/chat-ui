@@ -214,6 +214,15 @@ async saveStatus() {
       
       this.cdr.detectChanges();
     });
+    // NAYA: Jab koi dusra user status badle, toh header ko turant refresh karo
+    this.chatService.notificationUpdate$.subscribe(notif => {
+      if (notif && notif.type === 'PROFILE_UPDATED') {
+        // Agar hum kisi se chat kar rahe hain aur wo group nahi hai, toh uska data re-fetch karo
+        if (this.selectedUser && !this.selectedUser.isGroup) {
+          this.refreshHeaderData();
+        }
+      }
+    });
 
     this.chatService.selectedUser$.subscribe(selection => {
       if (selection) {
@@ -282,6 +291,25 @@ async saveStatus() {
             (this.profileData as any).profilePicture = user.profilePicture;
             this.updateLocalPreview(user.profilePicture);
           }
+        }
+      });
+  }
+
+   refreshHeaderData() {
+    if (!this.selectedUser || this.selectedUser.isGroup) return;
+
+    const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : '';
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+    this.http.get<any>(`http://localhost:8080/api/users/${this.selectedUser.id}`, { headers })
+      .subscribe(updatedUser => {
+        if (updatedUser) {
+          // Sirf status aur identity fields update karenge taaki chat break na ho
+          this.selectedUser.online = updatedUser.online;
+          this.selectedUser.customStatusColor = updatedUser.customStatusColor;
+          this.selectedUser.customStatusText = updatedUser.customStatusText;
+          this.selectedUser.statusState = updatedUser.statusState;
+          this.cdr.detectChanges();
         }
       });
   }

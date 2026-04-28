@@ -27,14 +27,17 @@
              class="user-item" 
              [class.active]="activeUserId === user.id"
              (click)="selectUser(user)">
-          <div class="avatar" [ngClass]="parseProfilePicture(user.profilePicture).bg" style="overflow: hidden;">
-            <ng-container *ngIf="parseProfilePicture(user.profilePicture) as avatar">
-              <img *ngIf="avatar.isImage" [src]="avatar.url" style="width: 100%; height: 100%; object-fit: cover;">
-              <i *ngIf="avatar.isAvatar" [class]="avatar.icon" style="color: white; font-size: 22px;"></i>
-              <ng-container *ngIf="!avatar.isImage && !avatar.isAvatar">
-                {{ user.username.charAt(0).toUpperCase() }}
+          <div class="avatar" [ngClass]="parseProfilePicture(user.profilePicture).bg" style="overflow: visible;">
+            <div style="width: 100%; height: 100%; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+              <ng-container *ngIf="parseProfilePicture(user.profilePicture) as avatar">
+                <img *ngIf="avatar.isImage" [src]="avatar.url" style="width: 100%; height: 100%; object-fit: cover;">
+                <i *ngIf="avatar.isAvatar" [class]="avatar.icon" style="color: white; font-size: 22px;"></i>
+                <ng-container *ngIf="!avatar.isImage && !avatar.isAvatar">
+                  {{ user.username.charAt(0).toUpperCase() }}
+                </ng-container>
               </ng-container>
-            </ng-container>
+            </div>
+            <span class="status-dot" [style.backgroundColor]="user.customStatusColor || (user.online ? '#22c55e' : '#94a3b8')"></span>
           </div>
           <div class="user-details">
             <div class="name-row">
@@ -215,21 +218,28 @@
           </div>
           <div class="users-list-scroll">
             <div class="user-select-item" *ngFor="let user of filteredUsersForGroup" (click)="toggleUserSelection(user.id)">
-              <div class="avatar" [ngClass]="parseProfilePicture(user.profilePicture).bg" style="overflow: hidden;">
-            <ng-container *ngIf="parseProfilePicture(user.profilePicture) as avatar">
-              <img *ngIf="avatar.isImage" [src]="avatar.url" style="width: 100%; height: 100%; object-fit: cover;">
-              <i *ngIf="avatar.isAvatar" [class]="avatar.icon" style="color: white; font-size: 22px;"></i>
-              <ng-container *ngIf="!avatar.isImage && !avatar.isAvatar">
-                {{ user.username.charAt(0).toUpperCase() }}
-              </ng-container>
-            </ng-container>
-          </div>
+
+            <div class="avatar" [ngClass]="parseProfilePicture(user.profilePicture).bg" style="overflow: visible;">
+                <div style="width: 100%; height: 100%; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                  <ng-container *ngIf="parseProfilePicture(user.profilePicture) as avatar">
+                    <img *ngIf="avatar.isImage" [src]="avatar.url" style="width: 100%; height: 100%; object-fit: cover;">
+                    <i *ngIf="avatar.isAvatar" [class]="avatar.icon" style="color: white; font-size: 18px;"></i>
+                    <ng-container *ngIf="!avatar.isImage && !avatar.isAvatar">
+                      {{ user.username.charAt(0).toUpperCase() }}
+                    </ng-container>
+                  </ng-container>
+                </div>
+                <span class="status-dot" [style.backgroundColor]="user.customStatusColor || (user.online ? '#22c55e' : '#94a3b8')"></span>
+              </div>
+              
               <div class="user-info-sm">
                 <span class="username">
                 {{ user.username }}
-                  <i *ngIf="user.isDeleted" class="bi bi-ban" style="color: #ef4444; font-size: 13px; margin-left: 5px; -webkit-text-stroke: 0.6px;" title="Deleted Account"></i>
+                  <i *ngIf="user.isDeleted" class="bi bi-ban-fill" style="color: #ef4444; font-size: 13px; margin-left: 5px;" title="Deleted Account"></i>
                  </span>
-                <span class="status" [class.online]="user.online">{{ user.online ? 'Online' : 'Offline' }}</span>
+                <span class="status dynamic-status-text" [style.color]="user.customStatusColor || (user.online ? '#22c55e' : '#94a3b8')">
+                  {{ user.customStatusText || user.statusState || (user.online ? 'Online' : 'Offline') }}
+                </span>
               </div>
               <i class="bi bi-check-circle-fill check-icon" *ngIf="selectedUsersForGroup.includes(user.id)"></i>
               <i class="bi bi-circle check-icon empty" *ngIf="!selectedUsersForGroup.includes(user.id)"></i>

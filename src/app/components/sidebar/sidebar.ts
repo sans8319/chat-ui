@@ -96,7 +96,8 @@ export class SidebarComponent implements OnInit {
         if (notif.type === 'NEW_GROUP') {
           setTimeout(() => { this.loadGroups(); }, 800);
         }
-        if (notif.type === 'NEW_USER') {
+        // NAYA: 'PROFILE_UPDATED' event ko bhi sunega aur list naye colors ke sath refresh kar dega
+        if (notif.type === 'NEW_USER' || notif.type === 'PROFILE_UPDATED') {
           setTimeout(() => { this.loadUsers(); }, 800);
         }
       }

@@ -125,6 +125,18 @@
         flex-shrink: 0;
         position: relative; // NAYA: safety ke liye add kiya
 
+        .status-dot {
+          position: absolute;
+          bottom: 0px;
+          right: 0px;
+          width: 13px;
+          height: 13px;
+          border-radius: 50%;
+          border: 2px solid #ffffff; // White border taaki image se alag dikhe
+          z-index: 5;
+          transition: background-color 0.3s ease;
+        }
+
         // NAYA: Uploaded image stretch na ho aur perfect circle me dikhe
         img {
           width: 100%;
@@ -138,13 +150,7 @@
         &.bg-3 { background: #f59e0b !important; color: white !important; }
         &.bg-4 { background: #ec4899 !important; color: white !important; }
 
-        &.group-avatar {
-          background: #6366f1; 
-          color: white;
-          i {
-            font-size: 22px;
-          }
-        }
+       
       }
 
       .user-details {
@@ -519,7 +525,11 @@
               .user-info-sm {
                 flex: 1; display: flex; flex-direction: column; overflow: hidden;
                 .username { font-size: 14.5px; color: #111b21; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
-                .status { font-size: 12px; color: #8696a0; &.online { color: #22c55e; } }
+                .status.dynamic-status-text { 
+                  font-size: 12.5px; 
+                  font-weight: 600; // Bold karega taaki status padhne me aaye
+                  transition: color 0.3s ease;
+                }
               }
               
               .check-icon { font-size: 20px; color: #22c55e; margin-left: 10px; &.empty { color: #d1d7db; } }
