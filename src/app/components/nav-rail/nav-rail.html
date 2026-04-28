@@ -3,16 +3,14 @@
     
     <div class="nav-button" [class.active]="activeTab === 'chats'" (click)="switchTab('chats')">
       <div class="icon-wrapper">
-        <i class="bi bi-chat-dots-fill" *ngIf="activeTab === 'chats'"></i>
-        <i class="bi bi-chat-dots" *ngIf="activeTab !== 'chats'"></i>
+        <img src="/assets/chat.png" class="custom-nav-icon" alt="Chats">
       </div>
       <span class="nav-label">Chats</span>
     </div>
 
     <div class="nav-button" [class.active]="activeTab === 'groups'" (click)="switchTab('groups')">
       <div class="icon-wrapper">
-        <i class="bi bi-people-fill" *ngIf="activeTab === 'groups'"></i>
-        <i class="bi bi-people" *ngIf="activeTab !== 'groups'"></i>
+        <img src="/assets/groupchat.png" class="custom-nav-icon" alt="Groups">
       </div>
       <span class="nav-label">Groups</span>
     </div>
