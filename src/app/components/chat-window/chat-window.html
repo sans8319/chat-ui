@@ -54,10 +54,17 @@
                 <div class="sender-name" *ngIf="selectedUser.isGroup && msg.senderId !== currentUserId">{{ msg.senderName || 'Member' }}</div>
                 <div class="media-attachment" *ngIf="msg.fileUrl">
                   
+                  <!-- Is block ko dhoondhiye -->
                   <div class="image-wrapper" *ngIf="isImage(msg.fileType)">
-                    <img [src]="'http://localhost:8080' + msg.fileUrl" alt="Shared Image" class="chat-image">
-                  </div>
+                    
+                    <!-- PURANI IMAGE TAG KO HATA KAR YEH NAYI WALI LAGAIYE -->
+                    <img [src]="'http://localhost:8080' + msg.fileUrl" 
+                        (click)="openMediaPreview(msg.fileUrl, msg.fileType, msg.fileName)"
+                        alt="Shared Image" 
+                        class="chat-image"
+                        style="cursor: pointer;"> <!-- Pointer dikhega toh user ko pata chalega click karna hai -->
 
+                  </div>
                   <a *ngIf="!isImage(msg.fileType)" [href]="'http://localhost:8080' + msg.fileUrl" target="_blank" class="file-card" download>
                     <div class="file-icon-box">
                       <i class="bi" [ngClass]="getFileIcon(msg.fileName, msg.fileType)"></i>
@@ -492,4 +499,27 @@
     </div>
   </div>
 
+</div>
+
+<div class="media-preview-overlay" *ngIf="selectedMediaForPreview" (click)="closeMediaPreview()">
+  <button class="close-preview-btn" (click)="closeMediaPreview()">
+    <i class="bi bi-x-lg"></i>
+  </button>
+
+  <div class="preview-content" (click)="$event.stopPropagation()">
+    <!-- Agar Image hai -->
+    <img *ngIf="isImage(selectedMediaForPreview.type)" 
+         [src]="'http://localhost:8080' + selectedMediaForPreview.url" 
+         class="full-preview-media">
+
+    <!-- Agar Video hai -->
+    <video *ngIf="selectedMediaForPreview.type && selectedMediaForPreview.type.startsWith('video/')" 
+           [src]="'http://localhost:8080' + selectedMediaForPreview.url" 
+           controls autoplay class="full-preview-media">
+    </video>
+    
+    <div class="preview-footer">
+      <span>{{ selectedMediaForPreview.name }}</span>
+    </div>
+  </div>
 </div>

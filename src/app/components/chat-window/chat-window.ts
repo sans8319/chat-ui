@@ -25,6 +25,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   isUserAtBottom = true; 
   newMessagesCount = 0;   
   private roomSubscription: Subscription | null = null; 
+  selectedMediaForPreview: { url: string, type: string, name: string } | null = null;
 
   currentTab: 'chats' | 'groups' | 'profile' = 'chats';
   profileData = {
@@ -682,5 +683,13 @@ async saveStatus() {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  }
+
+  openMediaPreview(url: string, type: string, name: string) {
+  this.selectedMediaForPreview = { url, type, name };
+  }
+
+  closeMediaPreview() {
+    this.selectedMediaForPreview = null;
   }
 }

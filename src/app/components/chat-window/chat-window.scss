@@ -955,3 +955,35 @@
   font-weight: 500;
   margin-top: 4px;
 }
+
+.media-preview-overlay {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.9); // Backend fade effect
+  backdrop-filter: blur(5px);
+  z-index: 9999; display: flex; align-items: center; justify-content: center;
+  animation: fadeIn 0.2s ease-out;
+
+  .close-preview-btn {
+    position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1);
+    border: none; color: white; width: 45px; height: 45px; border-radius: 50%;
+    font-size: 24px; cursor: pointer; transition: 0.2s;
+    &:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
+  }
+
+  .preview-content {
+    max-width: 90%; max-height: 85%; display: flex; flex-direction: column; align-items: center;
+    
+    .full-preview-media {
+      max-width: 100%; max-height: 80vh; border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .preview-footer {
+      margin-top: 20px; color: white; font-size: 16px; font-weight: 500;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+  }
+}
+
+@keyframes zoomIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
