@@ -1,13 +1,70 @@
 <div class="input-container">
-  <div class="input-wrapper">
-    <textarea 
-      [(ngModel)]="messageText" 
-      (keydown)="onKeyDown($event)"
-      placeholder="Type a premium message..."
-      rows="1"></textarea>
-    
-    <button class="send-btn" (click)="sendMessage()" [disabled]="!messageText.trim()">
-      Send
-    </button>
+  <div class="chat-input-wrapper"
+     (dragover)="onDragOver($event)"
+     (dragleave)="onDragLeave($event)"
+     (drop)="onDrop($event)"
+     [class.drag-active]="isDragging">
+
+  <div class="drag-overlay" *ngIf="isDragging">
+    <i class="bi bi-cloud-arrow-up-fill"></i>
+    <h3>Drop files here to send</h3>
   </div>
+
+  <div class="file-preview-container" *ngIf="selectedFiles.length > 0">
+     <div class="preview-scroll-wrapper">
+       
+       <div class="file-preview-card" *ngFor="let fileObj of selectedFiles; let i = index">
+          <img *ngIf="isImage(fileObj.file)" [src]="fileObj.previewUrl" class="preview-img">
+          <div *ngIf="!isImage(fileObj.file)" class="file-icon-box">
+            <i class="bi" [ngClass]="getFileIcon(fileObj.file)"></i>
+          </div>
+          <div class="file-details">
+             <span class="file-name">{{ fileObj.file.name }}</span>
+             <span class="file-size">{{ formatBytes(fileObj.file.size) }}</span>
+          </div>
+          <button class="remove-btn" (click)="removeFile(i)" [disabled]="isUploading"><i class="bi bi-x"></i></button>
+       </div>
+
+     </div>
+     <div class="upload-progress-bar" *ngIf="isUploading">
+        <div class="progress-indeterminate"></div>
+     </div>
+  </div>
+
+  <div class="input-container">
+    <div class="input-wrapper">
+      
+      <div class="attachment-container">
+        <button class="icon-btn attach-btn" (click)="toggleAttachmentMenu()" [disabled]="isUploading" [class.active]="showAttachmentMenu">
+          <i class="bi bi-paperclip"></i>
+        </button>
+
+        <div class="attachment-menu" *ngIf="showAttachmentMenu">
+          <div class="menu-item" (click)="triggerFileInput('document')">
+            <div class="menu-icon doc-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
+            <span>Document</span>
+          </div>
+          <div class="menu-item" (click)="triggerFileInput('media')">
+            <div class="menu-icon media-icon"><i class="bi bi-image-fill"></i></div>
+            <span>Photos & Videos</span>
+          </div>
+        </div>
+      </div>
+      <input type="file" #fileInput multiple style="display: none" (change)="onFileSelected($event)">
+
+      <textarea 
+        [(ngModel)]="messageText" 
+        (keydown)="onKeyDown($event)"
+        placeholder="Type a premium message..."
+        rows="1"
+        [disabled]="isUploading"
+        (focus)="closeAttachmentMenu()"></textarea>
+      
+      <button class="send-btn" (click)="sendMessage()" [disabled]="(!messageText.trim() && selectedFiles.length === 0) || isUploading">
+        <i class="bi bi-send-fill" *ngIf="!isUploading"></i>
+        <i class="bi bi-hourglass-split" *ngIf="isUploading"></i>
+      </button>
+    </div>
+  </div>
+</div>
 </div>

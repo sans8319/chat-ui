@@ -63,6 +63,24 @@ export class SidebarComponent implements OnInit {
     return colors[statusName] || '#22c55e';
   }
 
+  // NAYA: Media check karke label return karne ke liye helper
+  private getMediaLabel(m: any): string {
+    if (m.fileUrl) {
+      const type = m.fileType || '';
+      const name = (m.fileName || '').toLowerCase();
+      
+      if (type.startsWith('image/')) return '🖼️ Photo';
+      if (type.startsWith('video/')) return '🎥 Video';
+      if (type.includes('gif')) return '👾 GIF';
+      if (name.endsWith('.pdf')) return '📄 PDF Document';
+      if (name.endsWith('.apk')) return '🤖 Android Package';
+      if (name.endsWith('.zip') || name.endsWith('.rar')) return '📦 Archive File';
+      return '📁 Attached File';
+    }
+    // Agar text message hai toh wo return karo, agar dono nahi hai toh fallback string
+    return m.content || 'Tap to chat...'; 
+  }
+
   constructor(
     private http: HttpClient, 
     private cdr: ChangeDetectorRef,
@@ -189,7 +207,7 @@ export class SidebarComponent implements OnInit {
               ? 'You created this group.' 
               : 'You were added to this group.';
         } else {
-          group.lastMessage = lastMsg.content;
+          group.lastMessage = this.getMediaLabel(lastMsg); // NAYA FIX
         }
         
         let validTime = lastMsg.timestamp;
@@ -254,7 +272,7 @@ export class SidebarComponent implements OnInit {
               ? 'You created this group.' 
               : 'You were added to this group.';
         } else {
-          this.groups[groupIndex].lastMessage = msg.content;
+          this.groups[groupIndex].lastMessage = this.getMediaLabel(msg); // NAYA FIX
         }
 
         const updatedGroup = { ...this.groups[groupIndex] };
@@ -280,7 +298,7 @@ export class SidebarComponent implements OnInit {
         this.users[userIndex].unreadCount = (this.users[userIndex].unreadCount || 0) + 1;
       }
 
-      this.users[userIndex].lastMessage = msg.content;
+      this.users[userIndex].lastMessage = this.getMediaLabel(msg);
       
       let validTime = msg.timestamp;
       if (Array.isArray(msg.timestamp)) {
@@ -427,7 +445,7 @@ export class SidebarComponent implements OnInit {
         this.chatService.getChatHistory(roomIdStr).subscribe(history => {
           if (history && history.length > 0) {
             const lastMsg = history[history.length - 1];
-            user.lastMessage = lastMsg.content;
+            user.lastMessage = this.getMediaLabel(lastMsg);
             let validTime = lastMsg.timestamp;
             if (Array.isArray(lastMsg.timestamp)) {
               validTime = new Date(lastMsg.timestamp[0], lastMsg.timestamp[1] - 1, lastMsg.timestamp[2], lastMsg.timestamp[3], lastMsg.timestamp[4]).toISOString();

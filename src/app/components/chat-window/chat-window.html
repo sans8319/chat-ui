@@ -50,9 +50,29 @@
               <div class="system-toast"><i class="bi bi-shield-lock-fill"></i><span>{{ msg.content }}</span></div>
             </div>
             <div class="message-wrapper" *ngIf="!msg.isSystem" [ngClass]="msg.senderId === currentUserId ? 'sent' : 'received'">
-              <div class="bubble">
+              <div class="bubble" [class.has-media]="msg.fileUrl">
                 <div class="sender-name" *ngIf="selectedUser.isGroup && msg.senderId !== currentUserId">{{ msg.senderName || 'Member' }}</div>
-                <div class="message-content">{{ msg.content }}</div>
+                <div class="media-attachment" *ngIf="msg.fileUrl">
+                  
+                  <div class="image-wrapper" *ngIf="isImage(msg.fileType)">
+                    <img [src]="'http://localhost:8080' + msg.fileUrl" alt="Shared Image" class="chat-image">
+                  </div>
+
+                  <a *ngIf="!isImage(msg.fileType)" [href]="'http://localhost:8080' + msg.fileUrl" target="_blank" class="file-card" download>
+                    <div class="file-icon-box">
+                      <i class="bi" [ngClass]="getFileIcon(msg.fileName, msg.fileType)"></i>
+                    </div>
+                    <div class="file-info">
+                      <span class="f-name">{{ msg.fileName }}</span>
+                      <span class="f-size">{{ formatBytes(msg.fileSize) }} • {{ (msg.fileName.split('.').pop() || 'FILE') | uppercase }}</span>
+                    </div>
+                    <div class="download-circle">
+                      <i class="bi bi-download"></i>
+                    </div>
+                  </a>
+                </div>
+
+                <div class="message-content" *ngIf="msg.content">{{ msg.content }}</div>
                 <div class="message-meta">
                   <span class="timestamp">{{ msg.timestamp | date:'shortTime' }}</span>
                   <div class="status-ticks" *ngIf="msg.senderId === currentUserId && !selectedUser.isGroup">

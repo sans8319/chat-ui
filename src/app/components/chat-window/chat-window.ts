@@ -237,6 +237,7 @@ async saveStatus() {
 
           this.chatService.getChatHistory(this.currentRoomId!).subscribe(history => {
             this.messages = history.map(msg => {
+              // ... aapka system message logic ...
               if (msg.senderName === 'System' || msg.content === 'You were added to this group.' || msg.content === '###GROUP_CREATED###') {
                 msg.isSystem = true; 
                 msg.content = Number(msg.senderId) === Number(this.currentUserId) 
@@ -245,7 +246,16 @@ async saveStatus() {
               if (Array.isArray(msg.timestamp)) {
                  msg.timestamp = new Date(msg.timestamp[0], msg.timestamp[1] - 1, msg.timestamp[2], msg.timestamp[3], msg.timestamp[4]).toISOString();
               }
-              return msg;
+              // =====================================
+              // NAYA: Media fields directly pass hone chahiye group messages mein
+              // =====================================
+              return {
+                 ...msg,
+                 fileUrl: msg.fileUrl || null,
+                 fileName: msg.fileName || null,
+                 fileType: msg.fileType || null,
+                 fileSize: msg.fileSize || null
+              };
             });
             setTimeout(() => this.scrollToBottom(), 100);
             this.listenToMessages(); 
@@ -557,7 +567,13 @@ async saveStatus() {
         this.ngZone.run(() => {
           const exists = this.messages.some(m => m.id === msg.id);
           if (!exists) {
-            this.messages.push(msg);
+            this.messages.push({
+               ...msg,
+               fileUrl: msg.fileUrl || null,
+               fileName: msg.fileName || null,
+               fileType: msg.fileType || null,
+               fileSize: msg.fileSize || null
+            });
             if (msg.senderId !== this.currentUserId && !this.selectedUser?.isGroup) {
               if (document.hasFocus()) {
                 this.chatService.sendReceipt(this.currentRoomId!, msg.id, 'SEEN');
@@ -635,5 +651,35 @@ async saveStatus() {
       return { isImage: false, isAvatar: true, bg: parts[0], icon: parts[1] };
     }
     return { isImage: false, isAvatar: false };
+  }
+
+  // =====================================
+  // NAYA: MEDIA SHARING HELPERS
+  // =====================================
+  isImage(fileType: string): boolean {
+    return fileType ? fileType.startsWith('image/') : false;
+  }
+
+  getFileIcon(fileName: string, fileType: string): string {
+    if (!fileName) return 'bi-file-earmark-fill';
+    const name = fileName.toLowerCase();
+    
+    if (name.endsWith('.pdf')) return 'bi-file-earmark-pdf-fill';
+    if (name.endsWith('.zip') || name.endsWith('.rar')) return 'bi-file-earmark-zip-fill';
+    if (fileType && fileType.startsWith('video/')) return 'bi-file-earmark-play-fill';
+    if (name.endsWith('.apk')) return 'bi-android2';
+    if (name.endsWith('.doc') || name.endsWith('.docx')) return 'bi-file-earmark-word-fill';
+    if (name.endsWith('.xls') || name.endsWith('.xlsx')) return 'bi-file-earmark-excel-fill';
+    
+    return 'bi-file-earmark-fill';
+  }
+
+  formatBytes(bytes: number, decimals = 2) {
+    if (!bytes || bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   }
 }
