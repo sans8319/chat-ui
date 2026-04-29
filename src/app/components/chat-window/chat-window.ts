@@ -8,11 +8,12 @@ import { Subscription } from 'rxjs';
 import { NavRailComponent } from '../nav-rail/nav-rail';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { COUNTRY_CODES } from '../../utils/countries';
+import { LinkifyPipe } from '../../pipes/linkify-pipe';
 
 @Component({
   selector: 'app-chat-window',
   standalone: true,
-  imports: [CommonModule, FormsModule, ChatInputComponent, SidebarComponent, NavRailComponent], 
+  imports: [CommonModule, FormsModule, ChatInputComponent, SidebarComponent, NavRailComponent, LinkifyPipe], 
   templateUrl: './chat-window.html',
   styleUrl: './chat-window.scss'
 })

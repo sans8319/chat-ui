@@ -72,7 +72,7 @@
                   </a>
                 </div>
 
-                <div class="message-content" *ngIf="msg.content">{{ msg.content }}</div>
+                <div class="message-content" *ngIf="msg.content" [innerHTML]="msg.content | linkify"></div>
                 <div class="message-meta">
                   <span class="timestamp">{{ msg.timestamp | date:'shortTime' }}</span>
                   <div class="status-ticks" *ngIf="msg.senderId === currentUserId && !selectedUser.isGroup">
