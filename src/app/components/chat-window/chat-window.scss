@@ -148,7 +148,7 @@
     &.received {
       align-items: flex-start; 
       .bubble {
-        background: #6366f1; 
+        background: #5a97e2; 
         color: white;
         border-radius: 12px 12px 12px 4px;
         box-shadow: 0 2px 4px rgba(99, 102, 241, 0.15);
@@ -164,8 +164,8 @@
           border: none;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
           
-          .file-icon-box { background: #e0e7ff; color: #6366f1; }
-          .download-circle { background: #f1f5f9; color: #6366f1; }
+          .file-icon-box { background: #e0e7ff; color: #5890d5; }
+          .download-circle { background: #f1f5f9; color: #0e59b6; }
           &:hover { background: #f8fafc; }
           
           .file-info {
@@ -324,11 +324,49 @@
     background: #f8fafc; border-bottom: 6px solid #6366f1; 
     
     .empty-content {
-      text-align: center; max-width: 460px;
-      .illustration-placeholder { font-size: 80px; color: #cbd5e1; margin-bottom: 30px; }
-      h3 { font-weight: 500; font-size: 32px; color: #1e293b; margin-bottom: 16px; }
-      p { color: #64748b; font-size: 14px; line-height: 20px; margin-bottom: 30px; }
-      .encryption-notice { font-size: 12px; color: #94a3b8; display: flex; align-items: center; justify-content: center; gap: 5px; }
+      text-align: center; max-width: 500px;
+      display: flex; flex-direction: column; align-items: center;
+      animation: fadeIn 0.4s ease-out;
+       
+      .blended-bg-image {
+        width: 100%;
+        max-width: 420px; // Image ka size
+        height: auto;
+        margin-bottom: 30px;
+        pointer-events: none;
+        
+        // MAGIC: Ye poori image ke white background ko evenly gayab kar dega aur sirf design ko #f8fafc ke sath mix karega
+        mix-blend-mode: multiply; 
+        
+        // Poori image par ek-samaan transparency (koi side-fading nahi)
+        opacity: 0.37; 
+      }
+
+      .brand-title { 
+        font-weight: 800; 
+        font-size: 38px; 
+        margin: 0 0 10px 0; 
+        // Premium Gradient Color Effect
+        background: linear-gradient(135deg, #4f46e5, #ec4899); 
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.5px;
+      }
+
+      // =====================================
+      // 3. NAYA SUBTITLE
+      // =====================================
+      .brand-subtitle { 
+        color: #64748b; 
+        font-size: 16px; 
+        font-weight: 500;
+        margin-bottom: 30px; 
+        letter-spacing: 0.2px;
+      }
+
+      .encryption-notice { 
+        font-size: 12px; color: #94a3b8; display: flex; align-items: center; justify-content: center; gap: 5px; 
+      }
     }
   }
 }

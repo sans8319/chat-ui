@@ -1,9 +1,12 @@
 <div class="sidebar-container">
+  <div class="sidebar-watermark">
+    <img src="assets/company_logo.png" alt="Company Logo">
+  </div>
   
   <ng-container *ngIf="activeTab !== 'profile'">
     <div class="sidebar-header">
       <div class="header-top">
-        <h2>{{ activeTab === 'chats' ? 'WorkChat' : 'Groups' }}</h2>
+        <h2>{{ activeTab === 'chats' ? 'TeamLink' : 'Groups' }}</h2>
         <div class="header-actions">
           <i class="bi bi-plus-lg action-icon" 
              *ngIf="activeTab === 'groups'" 
@@ -100,7 +103,7 @@
     <div class="profile-view-container">
       
       <div class="profile-header-new">
-        <h2>WorkChat</h2>
+        <h2>TeamLink</h2>
         <i class="bi bi-three-dots-vertical"></i>
       </div>
       

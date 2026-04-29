@@ -4,12 +4,34 @@
   flex-direction: column;
   background: #ffffff;
   position: relative; 
+  
+  .sidebar-watermark {
+    position: absolute;
+    bottom: 40px; 
+    left: 50%;
+    transform: translateX(-50%);
+    width: 190px; 
+    
+    // NAYA: Opacity 8% se badha kar 40% kar di hai taaki dikhe
+    opacity: 0.8; 
+    
+    pointer-events: none; 
+    z-index: 0; 
+    
+    // NAYA: mix-blend-mode hata diya taaki logo apne asli form me rahe aur gayab na ho
+    
+    img {
+      width: 100%;
+      height: auto;
+      filter: grayscale(50%); 
+    }
+  }
 
   .sidebar-header {
-    padding: 16px 20px 10px;
+    padding: 24px 20px 20px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 26px;
     background: #ffffff;
 
     .header-top {
@@ -84,7 +106,9 @@
   .user-list {
     flex: 1;
     overflow-y: auto;
-    background: #ffffff;
+    background: transparent; 
+    position: relative; 
+    z-index: 1;
     
     &::-webkit-scrollbar {
       width: 6px;
@@ -259,7 +283,9 @@
   // =====================================
   .profile-view-container {
     height: 100%;
-    background: #ffffff;
+    background: transparent; 
+    position: relative; 
+    z-index: 1;
     display: flex;
     flex-direction: column;
     animation: fadeInSidebar 0.3s ease-out;
