@@ -11,112 +11,185 @@
   <div class="chat-viewport-column">
     
     <ng-container *ngIf="currentTab !== 'profile'">
-      <ng-container *ngIf="selectedUser">
-        <header class="chat-header">
-          <div class="user-info">
-            <div class="avatar-sm header-avatar-wrapper" [ngClass]="parseProfilePicture(selectedUser.profilePicture).bg" style="overflow: hidden; display: flex; align-items: center; justify-content: center; background: #dfe5e7;">
-              <ng-container *ngIf="parseProfilePicture(selectedUser.profilePicture) as avatar">
-                <img *ngIf="avatar.isImage" [src]="avatar.url" style="width: 100%; height: 100%; object-fit: cover;">
-                <i *ngIf="avatar.isAvatar" [class]="avatar.icon" style="color: white; font-size: 20px;"></i>
-                <ng-container *ngIf="!avatar.isImage && !avatar.isAvatar">
-                  <i *ngIf="selectedUser.isGroup" class="bi bi-people-fill" style="color: #54656f;"></i>
-                  <span *ngIf="!selectedUser.isGroup" style="color: #54656f;">{{ selectedUser.username.charAt(0).toUpperCase() }}</span>
-                </ng-container>
-              </ng-container>
-            </div>
-            <div class="details">
-              <h3>
-                {{ selectedUser.username }}
-                <i *ngIf="selectedUser.isDeleted" class="bi bi-ban" style="color: #ef4444; font-size: 15px; margin-left: 6px; -webkit-text-stroke: 0.8px;" title="Deleted Account"></i>
-              </h3>
-              
-              <span class="status-indicator" *ngIf="!selectedUser.isGroup">
-                <span class="dot" [style.background]="selectedUser.customStatusColor || (selectedUser.online ? '#22c55e' : '#94a3b8')"></span> 
-                {{ selectedUser.customStatusText || selectedUser.statusState || (selectedUser.online ? 'Online' : 'Offline') }}
-              </span>
-              
-              <span class="status-indicator group-members" *ngIf="selectedUser.isGroup">Tap here for group info</span>
-            </div>
-          </div>
-          <div class="header-actions">
-            <i class="bi bi-search"></i>
-            <i class="bi bi-three-dots-vertical"></i>
-          </div>
-        </header>
-
-        <div class="messages-container" (scroll)="onScroll($event)">
-          <ng-container *ngFor="let msg of messages">
-            <div class="system-message-container" *ngIf="msg.isSystem">
-              <div class="system-toast"><i class="bi bi-shield-lock-fill"></i><span>{{ msg.content }}</span></div>
-            </div>
-            <div class="message-wrapper" *ngIf="!msg.isSystem" [ngClass]="msg.senderId === currentUserId ? 'sent' : 'received'">
-              <div class="bubble" [class.has-media]="msg.fileUrl">
-                <div class="sender-name" *ngIf="selectedUser.isGroup && msg.senderId !== currentUserId">{{ msg.senderName || 'Member' }}</div>
-                <div class="media-attachment" *ngIf="msg.fileUrl">
-                  
-                  <!-- Is block ko dhoondhiye -->
-                  <div class="image-wrapper" *ngIf="isImage(msg.fileType)">
-                    
-                    <!-- PURANI IMAGE TAG KO HATA KAR YEH NAYI WALI LAGAIYE -->
-                    <img [src]="'http://localhost:8080' + msg.fileUrl" 
-                        (click)="openMediaPreview(msg.fileUrl, msg.fileType, msg.fileName)"
-                        alt="Shared Image" 
-                        class="chat-image"
-                        style="cursor: pointer;"> <!-- Pointer dikhega toh user ko pata chalega click karna hai -->
-
-                  </div>
-                  <a *ngIf="!isImage(msg.fileType)" [href]="'http://localhost:8080' + msg.fileUrl" target="_blank" class="file-card" download>
-                    <div class="file-icon-box">
-                      <i class="bi" [ngClass]="getFileIcon(msg.fileName, msg.fileType)"></i>
-                    </div>
-                    <div class="file-info">
-                      <span class="f-name">{{ msg.fileName }}</span>
-                      <span class="f-size">{{ formatBytes(msg.fileSize) }} • {{ (msg.fileName.split('.').pop() || 'FILE') | uppercase }}</span>
-                    </div>
-                    <div class="download-circle">
-                      <i class="bi bi-download"></i>
-                    </div>
-                  </a>
+      <!-- NAYA WRAPPER: 3-Column Layout ke liye -->
+      <div class="chat-layout-wrapper">
+        
+        <!-- MAIN CHAT AREA (Ye shrink hoga jab panel khulega) -->
+        <div class="chat-main-area" [class.panel-open]="showProfilePanel && selectedUser">
+          
+          <ng-container *ngIf="selectedUser">
+            <header class="chat-header">
+              <!-- NAYA: (click)="toggleProfilePanel()" lagaya hai yahan -->
+              <div class="user-info" (click)="toggleProfilePanel()" style="cursor: pointer;" title="Click for contact info">
+                <div class="avatar-sm header-avatar-wrapper" [ngClass]="parseProfilePicture(selectedUser.profilePicture).bg" style="overflow: hidden; display: flex; align-items: center; justify-content: center; background: #dfe5e7;">
+                  <ng-container *ngIf="parseProfilePicture(selectedUser.profilePicture) as avatar">
+                    <img *ngIf="avatar.isImage" [src]="avatar.url" style="width: 100%; height: 100%; object-fit: cover;">
+                    <i *ngIf="avatar.isAvatar" [class]="avatar.icon" style="color: white; font-size: 20px;"></i>
+                    <ng-container *ngIf="!avatar.isImage && !avatar.isAvatar">
+                      <i *ngIf="selectedUser.isGroup" class="bi bi-people-fill" style="color: #54656f;"></i>
+                      <span *ngIf="!selectedUser.isGroup" style="color: #54656f;">{{ selectedUser.username.charAt(0).toUpperCase() }}</span>
+                    </ng-container>
+                  </ng-container>
                 </div>
-
-                <div class="message-content" *ngIf="msg.content" [innerHTML]="msg.content | linkify"></div>
-                <div class="message-meta">
-                  <span class="timestamp">{{ msg.timestamp | date:'shortTime' }}</span>
-                  <div class="status-ticks" *ngIf="msg.senderId === currentUserId && !selectedUser.isGroup">
-                    <svg *ngIf="msg.delivered" [class.seen]="msg.seen" class="tick-icon" viewBox="0 0 24 24"><path d="M18 7l-1.41-1.41-6.59 6.59 1.41 1.41L18 7zm4.24-4.24l-1.41-1.41L10 12.17 5.17 7.34 3.76 8.76 10 15l12.24-12.24z"/></svg>
-                    <svg *ngIf="!msg.delivered" class="tick-icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
-                  </div>
+                <div class="details">
+                  <h3>
+                    {{ selectedUser.username }}
+                    <i *ngIf="selectedUser.isDeleted" class="bi bi-ban" style="color: #ef4444; font-size: 15px; margin-left: 6px; -webkit-text-stroke: 0.8px;" title="Deleted Account"></i>
+                  </h3>
+                  
+                  <span class="status-indicator" *ngIf="!selectedUser.isGroup">
+                    <span class="dot" [style.background]="selectedUser.customStatusColor || (selectedUser.online ? '#22c55e' : '#94a3b8')"></span> 
+                    {{ selectedUser.customStatusText || selectedUser.statusState || (selectedUser.online ? 'Online' : 'Offline') }}
+                  </span>
+                  
+                  <span class="status-indicator group-members" *ngIf="selectedUser.isGroup">Tap here for group info</span>
                 </div>
               </div>
+              <div class="header-actions">
+                <i class="bi bi-search"></i>
+                <i class="bi bi-three-dots-vertical"></i>
+              </div>
+            </header>
+
+            <div class="messages-container" (scroll)="onScroll($event)">
+              <ng-container *ngFor="let msg of messages">
+                <div class="system-message-container" *ngIf="msg.isSystem">
+                  <div class="system-toast"><i class="bi bi-shield-lock-fill"></i><span>{{ msg.content }}</span></div>
+                </div>
+                <div class="message-wrapper" *ngIf="!msg.isSystem" [ngClass]="msg.senderId === currentUserId ? 'sent' : 'received'">
+                  <div class="bubble" [class.has-media]="msg.fileUrl">
+                    <div class="sender-name" *ngIf="selectedUser.isGroup && msg.senderId !== currentUserId">{{ msg.senderName || 'Member' }}</div>
+                    <div class="media-attachment" *ngIf="msg.fileUrl">
+                      <div class="image-wrapper" *ngIf="isImage(msg.fileType)">
+                        <img [src]="'http://localhost:8080' + msg.fileUrl" 
+                            (click)="openMediaPreview(msg.fileUrl, msg.fileType, msg.fileName)"
+                            alt="Shared Image" class="chat-image" style="cursor: pointer;">
+                      </div>
+                      <a *ngIf="!isImage(msg.fileType)" [href]="'http://localhost:8080' + msg.fileUrl" target="_blank" class="file-card" download>
+                        <div class="file-icon-box"><i class="bi" [ngClass]="getFileIcon(msg.fileName, msg.fileType)"></i></div>
+                        <div class="file-info">
+                          <span class="f-name">{{ msg.fileName }}</span>
+                          <span class="f-size">{{ formatBytes(msg.fileSize) }} • {{ (msg.fileName.split('.').pop() || 'FILE') | uppercase }}</span>
+                        </div>
+                        <div class="download-circle"><i class="bi bi-download"></i></div>
+                      </a>
+                    </div>
+                    <div class="message-content" *ngIf="msg.content" [innerHTML]="msg.content | linkify"></div>
+                    <div class="message-meta">
+                      <span class="timestamp">{{ msg.timestamp | date:'shortTime' }}</span>
+                      <div class="status-ticks" *ngIf="msg.senderId === currentUserId && !selectedUser.isGroup">
+                        <svg *ngIf="msg.delivered" [class.seen]="msg.seen" class="tick-icon" viewBox="0 0 24 24"><path d="M18 7l-1.41-1.41-6.59 6.59 1.41 1.41L18 7zm4.24-4.24l-1.41-1.41L10 12.17 5.17 7.34 3.76 8.76 10 15l12.24-12.24z"/></svg>
+                        <svg *ngIf="!msg.delivered" class="tick-icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
+
+            <button class="scroll-down-btn" *ngIf="!isUserAtBottom" (click)="scrollToBottom()">
+              <span class="badge" *ngIf="newMessagesCount > 0">{{ newMessagesCount }}</span>↓
+            </button>
+
+            <div class="input-area">
+              <app-chat-input [roomId]="currentRoomId"></app-chat-input>
             </div>
           </ng-container>
-        </div>
 
-        <button class="scroll-down-btn" *ngIf="!isUserAtBottom" (click)="scrollToBottom()">
-          <span class="badge" *ngIf="newMessagesCount > 0">{{ newMessagesCount }}</span>↓
-        </button>
-
-        <div class="input-area">
-          <app-chat-input [roomId]="currentRoomId"></app-chat-input>
-        </div>
-      </ng-container>
-
-     
-      <div class="empty-chat-state" *ngIf="!selectedUser">
-        <div class="empty-content">
-          
-          <!-- Image ab text ke theek upar aayegi -->
-          <img src="assets/background.png" alt="TeamLink Graphic" class="blended-bg-image">
-
-          <!-- Naya Stylish Title aur Subtitle -->
-          <h3 class="brand-title">TeamLink</h3>
-          <p class="brand-subtitle">• Connecting teams efficiently.</p>
+          <div class="empty-chat-state" *ngIf="!selectedUser">
+            <div class="empty-content">
+              <img src="assets/background.png" alt="TeamLink Graphic" class="blended-bg-image">
+              <h3 class="brand-title">TeamLink</h3>
+              <p class="brand-subtitle">• Connecting teams efficiently.</p>
+            </div>
+          </div>
           
         </div>
+
+        <!-- NAYA RIGHT PROFILE PANEL -->
+        <div class="right-profile-panel" *ngIf="showProfilePanel && selectedUser">
+          <div class="panel-header">
+            <i class="bi bi-x-lg" (click)="closeProfilePanel()"></i>
+          </div>
+
+          <div class="panel-profile-section">
+            <div class="large-avatar" [ngClass]="parseProfilePicture(selectedUser.profilePicture).bg">
+              <img *ngIf="parseProfilePicture(selectedUser.profilePicture).isImage" [src]="parseProfilePicture(selectedUser.profilePicture).url" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+              <i *ngIf="parseProfilePicture(selectedUser.profilePicture).isAvatar" [class]="parseProfilePicture(selectedUser.profilePicture).icon"></i>
+              <ng-container *ngIf="!parseProfilePicture(selectedUser.profilePicture).isImage && !parseProfilePicture(selectedUser.profilePicture).isAvatar">
+                <i *ngIf="selectedUser.isGroup" class="bi bi-people-fill"></i>
+                <span *ngIf="!selectedUser.isGroup">{{ selectedUser.username.charAt(0).toUpperCase() }}</span>
+              </ng-container>
+              <span class="status-dot" *ngIf="!selectedUser.isGroup" [style.background]="selectedUser.customStatusColor || (selectedUser.online ? '#22c55e' : '#94a3b8')"></span>
+            </div>
+            <h2>{{ selectedUser.username }}</h2>
+            <p class="designation" *ngIf="!selectedUser.isGroup">{{ selectedUser.designation || 'TeamLink User' }}</p>
+            <p class="status-text" *ngIf="!selectedUser.isGroup" [style.color]="selectedUser.customStatusColor || (selectedUser.online ? '#22c55e' : '#94a3b8')">
+              {{ selectedUser.customStatusText || selectedUser.statusState || (selectedUser.online ? 'Online' : 'Offline') }}
+            </p>
+          </div>
+
+          <div class="panel-divider"></div>
+
+          <div class="panel-info-section" *ngIf="!selectedUser.isGroup">
+            <div class="info-item" *ngIf="selectedUser.about">
+              <i class="bi bi-info-circle"></i>
+              <div class="info-text">
+                <label>About</label>
+                <span>{{ selectedUser.about }}</span>
+              </div>
+            </div>
+            <div class="info-item" *ngIf="selectedUser.department">
+              <i class="bi bi-building"></i>
+              <div class="info-text">
+                <label>Department</label>
+                <span>{{ selectedUser.department }}</span>
+              </div>
+            </div>
+            <div class="info-item">
+              <i class="bi bi-envelope"></i>
+              <div class="info-text">
+                <label>Email</label>
+                <span>{{ selectedUser.email || selectedUser.username + '@teamlink.com' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-divider" *ngIf="!selectedUser.isGroup"></div>
+
+          <div class="panel-media-section">
+            <div class="media-title"><i class="bi bi-image"></i> Media, links, and docs</div>
+            <div class="media-cards">
+              <div class="media-card">
+                <i class="bi bi-image"></i><span class="card-label">Media</span>
+              </div>
+              <div class="media-card">
+                <i class="bi bi-link-45deg"></i><span class="card-label">Links</span>
+              </div>
+              <div class="media-card">
+                <i class="bi bi-file-earmark-text"></i><span class="card-label">Docs</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-divider"></div>
+
+          <div class="panel-actions-section">
+            <div class="action-item">
+              <i class="bi bi-pin-angle"></i><span>Pin Chat</span>
+            </div>
+            <div class="action-item danger">
+              <i class="bi bi-trash3"></i><span>Clear Chat</span>
+            </div>
+          </div>
+        </div>
+
       </div>
     </ng-container>
 
+    <!-- BAQI KA PROFILE TAB AUR MODALS WAISE HI RAHENGE -->
     <ng-container *ngIf="currentTab === 'profile'">
+      <!-- Aapka Purana Profile Viewport Yahan Hai -->
       <div class="profile-viewport">
         
         <div class="fixed-profile-header">
@@ -488,6 +561,7 @@
     </ng-container>
 
   </div>
+
   <div class="modal-overlay-danger" *ngIf="showDeleteAccountModal">
     <div class="danger-modal-content">
       <div class="modal-icon-header">
@@ -506,25 +580,12 @@
 
 </div>
 
+<!-- MEDIA PREVIEW LIGHTBOX (Purana wala safe hai) -->
 <div class="media-preview-overlay" *ngIf="selectedMediaForPreview" (click)="closeMediaPreview()">
-  <button class="close-preview-btn" (click)="closeMediaPreview()">
-    <i class="bi bi-x-lg"></i>
-  </button>
-
+  <button class="close-preview-btn" (click)="closeMediaPreview()"><i class="bi bi-x-lg"></i></button>
   <div class="preview-content" (click)="$event.stopPropagation()">
-    <!-- Agar Image hai -->
-    <img *ngIf="isImage(selectedMediaForPreview.type)" 
-         [src]="'http://localhost:8080' + selectedMediaForPreview.url" 
-         class="full-preview-media">
-
-    <!-- Agar Video hai -->
-    <video *ngIf="selectedMediaForPreview.type && selectedMediaForPreview.type.startsWith('video/')" 
-           [src]="'http://localhost:8080' + selectedMediaForPreview.url" 
-           controls autoplay class="full-preview-media">
-    </video>
-    
-    <div class="preview-footer">
-      <span>{{ selectedMediaForPreview.name }}</span>
-    </div>
+    <img *ngIf="isImage(selectedMediaForPreview.type)" [src]="'http://localhost:8080' + selectedMediaForPreview.url" class="full-preview-media">
+    <video *ngIf="selectedMediaForPreview.type && selectedMediaForPreview.type.startsWith('video/')" [src]="'http://localhost:8080' + selectedMediaForPreview.url" controls autoplay class="full-preview-media"></video>
+    <div class="preview-footer"><span>{{ selectedMediaForPreview.name }}</span></div>
   </div>
 </div>

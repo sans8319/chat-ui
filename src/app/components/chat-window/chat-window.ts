@@ -47,6 +47,21 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   allCountryCodes = COUNTRY_CODES;
   isCountryDropdownOpen = false;
   countrySearchQuery = '';
+
+   // =====================================
+  // NAYA: Profile Panel State
+  // =====================================
+  showProfilePanel: boolean = false;
+
+  toggleProfilePanel() {
+    this.showProfilePanel = !this.showProfilePanel;
+  }
+
+  closeProfilePanel() {
+    this.showProfilePanel = false;
+  }
+
+
   get filteredCountries() {
     if (!this.countrySearchQuery.trim()) return this.allCountryCodes;
     return this.allCountryCodes.filter(c => 
@@ -68,6 +83,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   showDeleteAccountModal = false;
   isCurrentPwdInvalid = false; // Current password galat hai ya nahi
   isCheckingPwd = false;       // API call ho rahi hai ya nahi
+
   
   statusOptions = [
     { name: 'Online', desc: 'Available and ready to chat', color: '#22c55e', isInitial: true },
