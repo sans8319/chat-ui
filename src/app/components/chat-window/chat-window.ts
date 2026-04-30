@@ -107,7 +107,45 @@ toggleProfilePanel() {
   isCurrentPwdInvalid = false; // Current password galat hai ya nahi
   isCheckingPwd = false;       // API call ho rahi hai ya nahi
 
-  
+  // =====================================
+  // NAYA: CLEAR CHAT STATE & LOGIC
+  // =====================================
+  showClearChatModal = false;
+  isClearingChat = false;
+
+  openClearChatModal() {
+    this.showClearChatModal = true;
+  }
+
+  closeClearChatModal() {
+    this.showClearChatModal = false;
+  }
+
+  confirmClearChat() {
+    if (!this.currentRoomId) return;
+    
+    this.isClearingChat = true;
+    
+    // API call karke messages clear karenge
+    this.chatService.clearChatHistory(this.currentRoomId).subscribe({
+      next: () => {
+        this.messages = []; // 1. Screen se saare messages hata do
+        this.roomMediaFiles = []; // 2. Media panel se bhi hata do
+        this.roomLinks = [];
+        this.roomDocs = [];
+        
+        this.showClearChatModal = false; // 3. Modal band karo
+        this.isClearingChat = false;
+        this.closeProfilePanel(); // 4. Right panel bhi band kardo
+      },
+      error: (err) => {
+        alert("Failed to clear chat.");
+        this.isClearingChat = false;
+      }
+    });
+  }
+
+
   statusOptions = [
     { name: 'Online', desc: 'Available and ready to chat', color: '#22c55e', isInitial: true },
     { name: 'Away', desc: 'Away from keyboard', color: '#f59e0b', icon: 'bi-clock-fill' },

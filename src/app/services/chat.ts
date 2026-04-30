@@ -169,8 +169,11 @@ export class ChatService {
 
   getChatHistory(roomId: string): Observable<any[]> {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : ''; // NAYA
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    return this.http.get<any[]>(`http://localhost:8080/api/messages/${roomId}`, { headers });
+    
+    // NAYA: URL mein ?userId= add kiya
+    return this.http.get<any[]>(`http://localhost:8080/api/messages/${roomId}?userId=${userId}`, { headers });
   }
 
   // =====================================
@@ -178,8 +181,23 @@ export class ChatService {
   // =====================================
   getRoomMedia(roomId: string): Observable<any[]> {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : ''; // NAYA: userId nikala
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    return this.http.get<any[]>(`http://localhost:8080/api/messages/${roomId}/media`, { headers });
+    
+    // NAYA: URL mein ?userId= add kiya taaki backend filter kar sake
+    return this.http.get<any[]>(`http://localhost:8080/api/messages/${roomId}/media?userId=${userId}`, { headers });
+  }
+
+  // =====================================
+  // NAYA: Clear Chat History (One-Sided)
+  // =====================================
+  clearChatHistory(roomId: string): Observable<any> {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : ''; // NAYA
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    
+    // NAYA: URL mein ?userId= add kiya
+    return this.http.delete(`http://localhost:8080/api/messages/${roomId}/clear?userId=${userId}`, { headers, responseType: 'text' });
   }
 
   disconnect() {

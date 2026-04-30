@@ -182,9 +182,9 @@
               <div class="action-item">
                 <i class="bi bi-pin-angle"></i><span>Pin Chat</span>
               </div>
-              <div class="action-item danger">
-                <i class="bi bi-trash3"></i><span>Clear Chat</span>
-              </div>
+              <div class="action-item danger" (click)="openClearChatModal()">
+              <i class="bi bi-trash3"></i><span>Clear Chat</span>
+            </div>
             </div>
           </ng-container>
 
@@ -642,6 +642,26 @@
     </ng-container>
 
   </div>
+
+
+<div class="modal-overlay-danger" *ngIf="showClearChatModal">
+  <div class="danger-modal-content">
+    <div class="modal-icon-header">
+      <div class="icon-circle"><i class="bi bi-eraser-fill"></i></div>
+    </div>
+    <div class="modal-text-body">
+      <h3>Clear this chat?</h3>
+      <!-- NAYA: Ye line user ko safety ka ehsaas dilayegi ki sirf uska data delete ho raha hai -->
+      <p>Messages will only be removed from this device and your account. The other person will still see them.</p>
+    </div>
+    <div class="modal-actions-footer">
+      <button class="btn-cancel" (click)="closeClearChatModal()" [disabled]="isClearingChat">Cancel</button>
+      <button class="btn-delete" (click)="confirmClearChat()" [disabled]="isClearingChat">
+        {{ isClearingChat ? 'Clearing...' : 'Clear Chat' }}
+      </button>
+    </div>
+  </div>
+</div>
 
   <div class="modal-overlay-danger" *ngIf="showDeleteAccountModal">
     <div class="danger-modal-content">
