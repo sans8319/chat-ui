@@ -206,27 +206,56 @@
               <div class="tab" [class.active]="activeMediaTab === 'docs'" (click)="activeMediaTab = 'docs'">Docs</div>
             </div>
 
-            <!-- Tab Content Area (Abhi Placeholders hain) -->
+            <!-- Tab Content Area -->
             <div class="media-tab-content">
               
+              <!-- MEDIA TAB -->
               <div *ngIf="activeMediaTab === 'media'" class="tab-pane">
-                <div class="empty-state-msg">
+                <div class="empty-state-msg" *ngIf="roomMediaFiles.length === 0">
                   <i class="bi bi-images"></i>
                   <p>No media shared yet</p>
                 </div>
-              </div>
-
-              <div *ngIf="activeMediaTab === 'links'" class="tab-pane">
-                <div class="empty-state-msg">
-                  <i class="bi bi-link-45deg"></i>
-                  <p>No links shared yet</p>
+                <!-- NAYA: Image Grid -->
+                <div class="media-grid" *ngIf="roomMediaFiles.length > 0">
+                  <div class="grid-item" *ngFor="let media of roomMediaFiles" (click)="openMediaPreview(media.fileUrl, media.fileType, media.fileName)">
+                    <img [src]="'http://localhost:8080' + media.fileUrl" alt="Media item">
+                  </div>
                 </div>
               </div>
 
+              <!-- LINKS TAB -->
+              <div *ngIf="activeMediaTab === 'links'" class="tab-pane">
+                <div class="empty-state-msg" *ngIf="roomLinks.length === 0">
+                  <i class="bi bi-link-45deg"></i>
+                  <p>No links shared yet</p>
+                </div>
+                <!-- NAYA: Links List -->
+                <div class="links-list" *ngIf="roomLinks.length > 0">
+                   <a class="link-item" *ngFor="let link of roomLinks" [href]="link.url" target="_blank">
+                      <div class="link-icon"><i class="bi bi-link"></i></div>
+                      <div class="link-info">
+                         <span class="url-text">{{ link.url }}</span>
+                         <span class="url-meta">{{ link.timestamp | date:'shortDate' }}</span>
+                      </div>
+                   </a>
+                </div>
+              </div>
+
+              <!-- DOCS TAB -->
               <div *ngIf="activeMediaTab === 'docs'" class="tab-pane">
-                <div class="empty-state-msg">
+                <div class="empty-state-msg" *ngIf="roomDocs.length === 0">
                   <i class="bi bi-file-earmark-text"></i>
                   <p>No documents shared yet</p>
+                </div>
+                <!-- NAYA: Docs List -->
+                <div class="docs-list" *ngIf="roomDocs.length > 0">
+                   <a class="doc-item" *ngFor="let doc of roomDocs" [href]="'http://localhost:8080' + doc.fileUrl" download target="_blank">
+                     <div class="doc-icon"><i class="bi" [ngClass]="getFileIcon(doc.fileName, doc.fileType)"></i></div>
+                     <div class="doc-info">
+                        <span class="d-name">{{ doc.fileName }}</span>
+                        <span class="d-size">{{ formatBytes(doc.fileSize) }}</span>
+                     </div>
+                   </a>
                 </div>
               </div>
 

@@ -173,6 +173,15 @@ export class ChatService {
     return this.http.get<any[]>(`http://localhost:8080/api/messages/${roomId}`, { headers });
   }
 
+  // =====================================
+  // NAYA: Get only Media & Links for specific room
+  // =====================================
+  getRoomMedia(roomId: string): Observable<any[]> {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    return this.http.get<any[]>(`http://localhost:8080/api/messages/${roomId}/media`, { headers });
+  }
+
   disconnect() {
     if (this.stompClient && this.stompClient.connected) {
       this.stompClient.deactivate();

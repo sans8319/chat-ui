@@ -57,7 +57,11 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   activePanelState: 'main' | 'media' = 'main'; 
   activeMediaTab: 'media' | 'links' | 'docs' = 'media';
 
-  toggleProfilePanel() {
+  roomMediaFiles: any[] = [];
+  roomLinks: any[] = [];
+  roomDocs: any[] = [];
+
+toggleProfilePanel() {
     this.showProfilePanel = !this.showProfilePanel;
     if (!this.showProfilePanel) this.activePanelState = 'main'; // Band hone par reset
   }
@@ -67,13 +71,15 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
     setTimeout(() => this.activePanelState = 'main', 300); // Animation ke baad reset ho taaki agli baar main page khule
   }
 
-  // Naya function tab kholne ke liye
+  // Naya function tab kholne aur data fetch karne ke liye
   openMediaPanel(tab: 'media' | 'links' | 'docs') {
     this.activePanelState = 'media';
     this.activeMediaTab = tab;
+    if (this.currentRoomId) {
+       this.fetchRoomMedia(this.currentRoomId);
+    }
   }
 
-  // Naya function wapas peeche aane ke liye
   backToMainPanel() {
     this.activePanelState = 'main';
   }
@@ -724,5 +730,37 @@ async saveStatus() {
 
   closeMediaPreview() {
     this.selectedMediaForPreview = null;
+  }
+
+  fetchRoomMedia(roomId: string) {
+    this.chatService.getRoomMedia(roomId).subscribe(mediaItems => {
+       // Reset arrays
+       this.roomMediaFiles = [];
+       this.roomLinks = [];
+       this.roomDocs = [];
+
+       mediaItems.forEach(item => {
+          // 1. Photos aur Videos (Grid ke liye)
+          if (item.fileUrl && this.isImage(item.fileType)) {
+             this.roomMediaFiles.push(item);
+          } 
+          // 2. Documents (PDF, ZIP, etc)
+          else if (item.fileUrl && !this.isImage(item.fileType)) {
+             this.roomDocs.push(item);
+          }
+          // 3. Links (Content mein HTTP/HTTPS check karein)
+          else if (item.content && item.content.includes('http')) {
+             // Ek basic regex se url extract kar sakte hain
+             const urlRegex = /(https?:\/\/[^\s]+)/g;
+             const matches = item.content.match(urlRegex);
+             if (matches) {
+               matches.forEach((url: string) => {
+                 this.roomLinks.push({ url: url, timestamp: item.timestamp, senderName: item.senderUsername || item.senderName });
+               });
+             }
+          }
+       });
+       this.cdr.detectChanges();
+    });
   }
 }
