@@ -656,3 +656,33 @@
     }
   }
 }
+
+// sidebar.scss mein kahi bhi add karein (preferably top pe)
+
+.brand-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 5px; // Logo aur naam ke beech ka gap
+
+  .app-logo {
+    width: 35px;  // Logo ka size
+    height: 35px;
+    object-fit: contain;
+    border-radius: 4px;
+  }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+    color: #111b21;
+    line-height: 1; // Taaki text logo ke sath perfect center ho
+  }
+}
+
+// Profile header ki alignment match karne ke liye
+.profile-header-new {
+  .brand-wrapper h2 {
+    font-size: 24px; // Profile page pe thoda bada text
+  }
+}

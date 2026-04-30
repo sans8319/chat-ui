@@ -6,7 +6,10 @@
   <ng-container *ngIf="activeTab !== 'profile'">
     <div class="sidebar-header">
       <div class="header-top">
-        <h2>{{ activeTab === 'chats' ? 'TeamLink' : 'Groups' }}</h2>
+        <div class="brand-wrapper">
+          <img src="assets/logo.png" alt="TeamLink Logo" class="app-logo">
+          <h2>{{ activeTab === 'chats' ? 'TeamLink' : (activeTab === 'groups' ? 'Groups' : 'TeamLink') }}</h2>
+        </div>
         <div class="header-actions">
           <i class="bi bi-plus-lg action-icon" 
              *ngIf="activeTab === 'groups'" 
@@ -103,7 +106,10 @@
     <div class="profile-view-container">
       
       <div class="profile-header-new">
-        <h2>TeamLink</h2>
+        <div class="brand-wrapper">
+          <img src="assets/logo.png" alt="TeamLink Logo" class="app-logo">
+          <h2>TeamLink</h2>
+        </div>
         <i class="bi bi-three-dots-vertical"></i>
       </div>
       
