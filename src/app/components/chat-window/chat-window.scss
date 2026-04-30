@@ -1136,7 +1136,53 @@
   }
 }
 
+
 @keyframes slideInRight {
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
+}
+
+// =====================================
+// NAYA: MEDIA DRILL-DOWN UI STYLES
+// =====================================
+.drilldown-header {
+  justify-content: space-between !important;
+  align-items: center;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 15px !important;
+
+  .header-left {
+    display: flex; align-items: center; gap: 16px;
+    i { color: #64748b; font-size: 22px; cursor: pointer; transition: 0.2s; &:hover { color: #0f172a; transform: translateX(-3px); } }
+    .drilldown-title { font-size: 16px; font-weight: 600; color: #0f172a; margin-top: 2px; }
+  }
+}
+
+.media-tabs-nav {
+  display: flex;
+  padding: 0 10px;
+  border-bottom: 1px solid #f1f5f9;
+  
+  .tab {
+    flex: 1; text-align: center; padding: 14px 0; font-size: 14.5px; font-weight: 600;
+    color: #64748b; cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s;
+    
+    &:hover { color: #0f172a; background: #f8fafc; }
+    &.active { color: #6366f1; border-bottom-color: #6366f1; }
+  }
+}
+
+.media-tab-content {
+  flex: 1; overflow-y: auto; padding: 20px; background: #f8fafc;
+  
+  .tab-pane {
+    display: flex; flex-direction: column; height: 100%; animation: fadeIn 0.3s ease-out;
+  }
+
+  .empty-state-msg {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 200px; color: #94a3b8;
+    i { font-size: 32px; margin-bottom: 10px; opacity: 0.5; }
+    p { font-size: 14px; font-weight: 500; margin: 0; }
+  }
 }

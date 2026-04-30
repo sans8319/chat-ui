@@ -20,7 +20,7 @@
           <ng-container *ngIf="selectedUser">
             <header class="chat-header">
               <!-- NAYA: (click)="toggleProfilePanel()" lagaya hai yahan -->
-              <div class="user-info" (click)="toggleProfilePanel()" style="cursor: pointer;" title="Click for contact info">
+              <div class="user-info" (click)="toggleProfilePanel()" style="cursor: pointer;" title="Click for profile info">
                 <div class="avatar-sm header-avatar-wrapper" [ngClass]="parseProfilePicture(selectedUser.profilePicture).bg" style="overflow: hidden; display: flex; align-items: center; justify-content: center; background: #dfe5e7;">
                   <ng-container *ngIf="parseProfilePicture(selectedUser.profilePicture) as avatar">
                     <img *ngIf="avatar.isImage" [src]="avatar.url" style="width: 100%; height: 100%; object-fit: cover;">
@@ -108,80 +108,132 @@
 
         <!-- NAYA RIGHT PROFILE PANEL -->
         <div class="right-profile-panel" *ngIf="showProfilePanel && selectedUser">
-          <div class="panel-header">
-            <i class="bi bi-x-lg" (click)="closeProfilePanel()"></i>
-          </div>
-
-          <div class="panel-profile-section">
-            <div class="large-avatar" [ngClass]="parseProfilePicture(selectedUser.profilePicture).bg">
-              <img *ngIf="parseProfilePicture(selectedUser.profilePicture).isImage" [src]="parseProfilePicture(selectedUser.profilePicture).url" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-              <i *ngIf="parseProfilePicture(selectedUser.profilePicture).isAvatar" [class]="parseProfilePicture(selectedUser.profilePicture).icon"></i>
-              <ng-container *ngIf="!parseProfilePicture(selectedUser.profilePicture).isImage && !parseProfilePicture(selectedUser.profilePicture).isAvatar">
-                <i *ngIf="selectedUser.isGroup" class="bi bi-people-fill"></i>
-                <span *ngIf="!selectedUser.isGroup">{{ selectedUser.username.charAt(0).toUpperCase() }}</span>
-              </ng-container>
-              <span class="status-dot" *ngIf="!selectedUser.isGroup" [style.background]="selectedUser.customStatusColor || (selectedUser.online ? '#22c55e' : '#94a3b8')"></span>
+          
+          <!-- STATE 1: MAIN PROFILE VIEW (Jo pehle tha) -->
+          <ng-container *ngIf="activePanelState === 'main'">
+            <div class="panel-header">
+              <i class="bi bi-x-lg" (click)="closeProfilePanel()"></i>
             </div>
-            <h2>{{ selectedUser.username }}</h2>
-            <p class="designation" *ngIf="!selectedUser.isGroup">{{ selectedUser.designation || 'TeamLink User' }}</p>
-            <p class="status-text" *ngIf="!selectedUser.isGroup" [style.color]="selectedUser.customStatusColor || (selectedUser.online ? '#22c55e' : '#94a3b8')">
-              {{ selectedUser.customStatusText || selectedUser.statusState || (selectedUser.online ? 'Online' : 'Offline') }}
-            </p>
-          </div>
 
-          <div class="panel-divider"></div>
+            <div class="panel-profile-section">
+              <div class="large-avatar" [ngClass]="parseProfilePicture(selectedUser.profilePicture).bg">
+                <img *ngIf="parseProfilePicture(selectedUser.profilePicture).isImage" [src]="parseProfilePicture(selectedUser.profilePicture).url" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                <i *ngIf="parseProfilePicture(selectedUser.profilePicture).isAvatar" [class]="parseProfilePicture(selectedUser.profilePicture).icon"></i>
+                <ng-container *ngIf="!parseProfilePicture(selectedUser.profilePicture).isImage && !parseProfilePicture(selectedUser.profilePicture).isAvatar">
+                  <i *ngIf="selectedUser.isGroup" class="bi bi-people-fill"></i>
+                  <span *ngIf="!selectedUser.isGroup">{{ selectedUser.username.charAt(0).toUpperCase() }}</span>
+                </ng-container>
+                <span class="status-dot" *ngIf="!selectedUser.isGroup" [style.background]="selectedUser.customStatusColor || (selectedUser.online ? '#22c55e' : '#94a3b8')"></span>
+              </div>
+              <h2>{{ selectedUser.username }}</h2>
+              <p class="designation" *ngIf="!selectedUser.isGroup">{{ selectedUser.designation || 'TeamLink User' }}</p>
+              <p class="status-text" *ngIf="!selectedUser.isGroup" [style.color]="selectedUser.customStatusColor || (selectedUser.online ? '#22c55e' : '#94a3b8')">
+                {{ selectedUser.customStatusText || selectedUser.statusState || (selectedUser.online ? 'Online' : 'Offline') }}
+              </p>
+            </div>
 
-          <div class="panel-info-section" *ngIf="!selectedUser.isGroup">
-            <div class="info-item" *ngIf="selectedUser.about">
-              <i class="bi bi-info-circle"></i>
-              <div class="info-text">
-                <label>About</label>
-                <span>{{ selectedUser.about }}</span>
+            <div class="panel-divider"></div>
+
+            <div class="panel-info-section" *ngIf="!selectedUser.isGroup">
+              <div class="info-item" *ngIf="selectedUser.about">
+                <i class="bi bi-info-circle"></i>
+                <div class="info-text">
+                  <label>About</label>
+                  <span>{{ selectedUser.about }}</span>
+                </div>
+              </div>
+              <div class="info-item" *ngIf="selectedUser.department">
+                <i class="bi bi-building"></i>
+                <div class="info-text">
+                  <label>Department</label>
+                  <span>{{ selectedUser.department }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <i class="bi bi-envelope"></i>
+                <div class="info-text">
+                  <label>Email</label>
+                  <span>{{ selectedUser.email || selectedUser.username + '@teamlink.com' }}</span>
+                </div>
               </div>
             </div>
-            <div class="info-item" *ngIf="selectedUser.department">
-              <i class="bi bi-building"></i>
-              <div class="info-text">
-                <label>Department</label>
-                <span>{{ selectedUser.department }}</span>
-              </div>
-            </div>
-            <div class="info-item">
-              <i class="bi bi-envelope"></i>
-              <div class="info-text">
-                <label>Email</label>
-                <span>{{ selectedUser.email || selectedUser.username + '@teamlink.com' }}</span>
-              </div>
-            </div>
-          </div>
 
-          <div class="panel-divider" *ngIf="!selectedUser.isGroup"></div>
+            <div class="panel-divider" *ngIf="!selectedUser.isGroup"></div>
 
-          <div class="panel-media-section">
-            <div class="media-title"><i class="bi bi-image"></i> Media, links, and docs</div>
-            <div class="media-cards">
-              <div class="media-card">
-                <i class="bi bi-image"></i><span class="card-label">Media</span>
-              </div>
-              <div class="media-card">
-                <i class="bi bi-link-45deg"></i><span class="card-label">Links</span>
-              </div>
-              <div class="media-card">
-                <i class="bi bi-file-earmark-text"></i><span class="card-label">Docs</span>
+            <div class="panel-media-section">
+              <div class="media-title"><i class="bi bi-image"></i> Media, links, and docs</div>
+              <div class="media-cards">
+                <!-- NAYA: Cards par click event lagaya gaya hai -->
+                <div class="media-card" (click)="openMediaPanel('media')">
+                  <i class="bi bi-image"></i><span class="card-label">Media</span>
+                </div>
+                <div class="media-card" (click)="openMediaPanel('links')">
+                  <i class="bi bi-link-45deg"></i><span class="card-label">Links</span>
+                </div>
+                <div class="media-card" (click)="openMediaPanel('docs')">
+                  <i class="bi bi-file-earmark-text"></i><span class="card-label">Docs</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="panel-divider"></div>
+            <div class="panel-divider"></div>
 
-          <div class="panel-actions-section">
-            <div class="action-item">
-              <i class="bi bi-pin-angle"></i><span>Pin Chat</span>
+            <div class="panel-actions-section">
+              <div class="action-item">
+                <i class="bi bi-pin-angle"></i><span>Pin Chat</span>
+              </div>
+              <div class="action-item danger">
+                <i class="bi bi-trash3"></i><span>Clear Chat</span>
+              </div>
             </div>
-            <div class="action-item danger">
-              <i class="bi bi-trash3"></i><span>Clear Chat</span>
+          </ng-container>
+
+          <!-- STATE 2: NAYA MEDIA DRILL-DOWN VIEW -->
+          <ng-container *ngIf="activePanelState === 'media'">
+            
+            <!-- Back Button wala Header -->
+            <div class="panel-header drilldown-header">
+              <div class="header-left">
+                <i class="bi bi-arrow-left" (click)="backToMainPanel()"></i>
+                <span class="drilldown-title">Profile info</span>
+              </div>
             </div>
-          </div>
+
+            <!-- 3 Tabs -->
+            <div class="media-tabs-nav">
+              <div class="tab" [class.active]="activeMediaTab === 'media'" (click)="activeMediaTab = 'media'">Media</div>
+              <div class="tab" [class.active]="activeMediaTab === 'links'" (click)="activeMediaTab = 'links'">Links</div>
+              <div class="tab" [class.active]="activeMediaTab === 'docs'" (click)="activeMediaTab = 'docs'">Docs</div>
+            </div>
+
+            <!-- Tab Content Area (Abhi Placeholders hain) -->
+            <div class="media-tab-content">
+              
+              <div *ngIf="activeMediaTab === 'media'" class="tab-pane">
+                <div class="empty-state-msg">
+                  <i class="bi bi-images"></i>
+                  <p>No media shared yet</p>
+                </div>
+              </div>
+
+              <div *ngIf="activeMediaTab === 'links'" class="tab-pane">
+                <div class="empty-state-msg">
+                  <i class="bi bi-link-45deg"></i>
+                  <p>No links shared yet</p>
+                </div>
+              </div>
+
+              <div *ngIf="activeMediaTab === 'docs'" class="tab-pane">
+                <div class="empty-state-msg">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <p>No documents shared yet</p>
+                </div>
+              </div>
+
+            </div>
+
+          </ng-container>
+
         </div>
 
       </div>

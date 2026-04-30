@@ -48,17 +48,34 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   isCountryDropdownOpen = false;
   countrySearchQuery = '';
 
-   // =====================================
-  // NAYA: Profile Panel State
+// =====================================
+  // NAYA: Profile Panel State & Media Drilldown
   // =====================================
   showProfilePanel: boolean = false;
+  
+  // Naye variables tabs ke liye
+  activePanelState: 'main' | 'media' = 'main'; 
+  activeMediaTab: 'media' | 'links' | 'docs' = 'media';
 
   toggleProfilePanel() {
     this.showProfilePanel = !this.showProfilePanel;
+    if (!this.showProfilePanel) this.activePanelState = 'main'; // Band hone par reset
   }
 
   closeProfilePanel() {
     this.showProfilePanel = false;
+    setTimeout(() => this.activePanelState = 'main', 300); // Animation ke baad reset ho taaki agli baar main page khule
+  }
+
+  // Naya function tab kholne ke liye
+  openMediaPanel(tab: 'media' | 'links' | 'docs') {
+    this.activePanelState = 'media';
+    this.activeMediaTab = tab;
+  }
+
+  // Naya function wapas peeche aane ke liye
+  backToMainPanel() {
+    this.activePanelState = 'main';
   }
 
 
