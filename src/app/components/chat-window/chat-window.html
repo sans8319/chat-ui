@@ -153,7 +153,10 @@
                 <i class="bi bi-envelope"></i>
                 <div class="info-text">
                   <label>Email</label>
-                  <span>{{ selectedUser.email || selectedUser.username + '@teamlink.com' }}</span>
+                  <!-- 🛑 NAYA FIX: Agar deleted hai toh message dikhao, warna asli email -->
+                  <span [style.color]="selectedUser.isDeleted ? '#64748b' : 'inherit'" [style.font-style]="selectedUser.isDeleted ? 'normal' : 'normal'">
+                    {{ selectedUser.isDeleted ? 'This account is no longer active.' : selectedUser.email }}
+                  </span>
                 </div>
               </div>
             </div>
