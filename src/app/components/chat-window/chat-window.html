@@ -157,6 +157,40 @@
                 </div>
               </div>
             </div>
+            <!-- NAYA: Group Description Section -->
+            <div class="panel-info-section" *ngIf="selectedUser.isGroup">
+              <div class="info-item">
+                <i class="bi bi-info-circle"></i>
+                <div class="info-text">
+                  <label>Group Description</label>
+                  <span>{{ selectedUser.description || 'No description provided.' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- NAYA: Group Members List Section -->
+            <div class="panel-divider" *ngIf="selectedUser.isGroup"></div>
+            <div class="panel-members-section" *ngIf="selectedUser.isGroup">
+              <div class="members-title">
+                <i class="bi bi-people"></i> {{ groupMembers.length }} Participants
+              </div>
+              <div class="members-list">
+                <div class="member-item" *ngFor="let member of groupMembers">
+                  <div class="member-avatar-sm" [ngClass]="parseProfilePicture(member.profilePicture).bg">
+                    <img *ngIf="parseProfilePicture(member.profilePicture).isImage" [src]="parseProfilePicture(member.profilePicture).url">
+                    <span *ngIf="!parseProfilePicture(member.profilePicture).isImage">{{ member.username.charAt(0).toUpperCase() }}</span>
+                  </div>
+                  <div class="member-info">
+                    <span class="m-name">
+                      {{ member.id === currentUserId ? 'You' : member.username }}
+                    </span>
+                    <span class="m-status" [style.color]="member.customStatusColor || (member.online ? '#22c55e' : '#94a3b8')">
+                      {{ member.customStatusText || member.statusState || (member.online ? 'Online' : 'Offline') }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <div class="panel-divider" *ngIf="!selectedUser.isGroup"></div>
 

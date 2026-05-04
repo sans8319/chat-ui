@@ -208,4 +208,10 @@ export class ChatService {
       console.log('🛑 Disconnected from WebSocket');
     }
   }
+
+  getGroupMembers(groupId: number): Observable<any[]> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+  return this.http.get<any[]>(`http://localhost:8080/api/groups/${groupId}/members`, { headers });
+  }
 }

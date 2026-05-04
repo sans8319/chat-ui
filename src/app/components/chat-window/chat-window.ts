@@ -60,10 +60,27 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   roomMediaFiles: any[] = [];
   roomLinks: any[] = [];
   roomDocs: any[] = [];
+  groupMembers: any[] = []; 
 
-toggleProfilePanel() {
+  toggleProfilePanel() {
     this.showProfilePanel = !this.showProfilePanel;
-    if (!this.showProfilePanel) this.activePanelState = 'main'; // Band hone par reset
+    if (!this.showProfilePanel) {
+      this.activePanelState = 'main';
+    } else if (this.selectedUser?.isGroup) {
+      const groupId = this.selectedUser.originalId || this.selectedUser.id;
+      
+      this.chatService.getGroupMembers(groupId).subscribe(members => {
+        // NAYA LOGIC: Sorting taaki 'You' sabse aakhir mein aaye
+        members.sort((a, b) => {
+          if (a.id === this.currentUserId) return 1; // Current user ko neeche bhejo
+          if (b.id === this.currentUserId) return -1; // Dusre ko upar rakho
+          return a.username.localeCompare(b.username); // Baaki sabko Alphabetically arrange kar do (Bonus feature!)
+        });
+        
+        this.groupMembers = members;
+        this.cdr.detectChanges();
+      });
+    }
   }
 
   closeProfilePanel() {
