@@ -188,6 +188,9 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
         this.roomLinks = [];
         this.roomDocs = [];
         
+        // 🛑 NAYA FIX: Sidebar ko turant batao ki is room ki chat clear ho chuki hai
+        this.chatService.notifyProfileUpdate({ type: 'CHAT_CLEARED', roomId: this.currentRoomId });
+
         this.showClearChatModal = false; // 3. Modal band karo
         this.isClearingChat = false;
         this.closeProfilePanel(); // 4. Right panel bhi band kardo
@@ -356,6 +359,8 @@ async saveStatus() {
 
     this.chatService.selectedUser$.subscribe(selection => {
       if (selection) {
+
+        this.closeProfilePanel();
         this.selectedUser = selection;
         this.messages = []; 
         

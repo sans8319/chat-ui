@@ -186,9 +186,12 @@
                     <img *ngIf="parseProfilePicture(member.profilePicture).isImage" [src]="parseProfilePicture(member.profilePicture).url">
                     <span *ngIf="!parseProfilePicture(member.profilePicture).isImage">{{ member.username.charAt(0).toUpperCase() }}</span>
                   </div>
+                  <!-- NAYA: Admin Tag ke sath Name block -->
                   <div class="member-info">
                     <span class="m-name">
                       {{ member.id === currentUserId ? 'You' : member.username }}
+                      <!-- 🛑 NAYA: Admin Badge sirf tab dikhega jab user Admin ho -->
+                      <span class="admin-badge" *ngIf="member.isAdmin">Admin</span>
                     </span>
                     <span class="m-status" [style.color]="member.customStatusColor || (member.online ? '#22c55e' : '#94a3b8')">
                       {{ member.customStatusText || member.statusState || (member.online ? 'Online' : 'Offline') }}

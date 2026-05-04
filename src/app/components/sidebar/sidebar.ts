@@ -140,7 +140,7 @@ export class SidebarComponent implements OnInit {
     });
 
     // --- NAYA: Profile sync ke liye listener ---
-    // --- NAYA FIX 2: Profile sync ke liye listener (Sidebar list update karega) ---
+    
     this.chatService.profileUpdate$.subscribe(updatedUser => {
       if (updatedUser) {
         
@@ -149,6 +149,27 @@ export class SidebarComponent implements OnInit {
           this.sortUsersByTime();
           this.sortGroupsByTime();
           this.cdr.detectChanges();
+          return; // Baaki code skip kar do
+        }
+
+        if (updatedUser.type === 'CHAT_CLEARED') {
+          const clearedRoomId = updatedUser.roomId;
+          if (clearedRoomId) {
+            if (clearedRoomId.startsWith('GROUP_')) {
+              // Group ke liye
+              const gIndex = this.groups.findIndex(g => String(g.id) === String(clearedRoomId));
+              if (gIndex !== -1) {
+                this.groups[gIndex].lastMessage = 'Chat cleared 🧹'; // UI pe dikhega
+              }
+            } else {
+              // 1-on-1 Chat ke liye
+              const uIndex = this.users.findIndex(u => String(u.roomId) === String(clearedRoomId));
+              if (uIndex !== -1) {
+                this.users[uIndex].lastMessage = ''; // Khali karne pe HTML ka default "Click to start chatting..." aa jayega
+              }
+            }
+            this.cdr.detectChanges();
+          }
           return; // Baaki code skip kar do
         }
 
