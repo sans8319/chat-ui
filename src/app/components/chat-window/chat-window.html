@@ -171,8 +171,14 @@
             <!-- NAYA: Group Members List Section -->
             <div class="panel-divider" *ngIf="selectedUser.isGroup"></div>
             <div class="panel-members-section" *ngIf="selectedUser.isGroup">
-              <div class="members-title">
-                <i class="bi bi-people"></i> {{ groupMembers.length }} Participants
+              
+              <div class="members-title" style="justify-content: space-between; align-items: center; display: flex; width: 100%;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <i class="bi bi-people"></i> {{ groupMembers.length }} Participants
+                </div>
+                <button class="add-member-badge-btn" (click)="openAddMemberModal()">
+                  <i class="bi bi-person-plus"></i> Add
+                </button>
               </div>
               <div class="members-list">
                 <div class="member-item" *ngFor="let member of groupMembers">
@@ -722,5 +728,64 @@
     <img *ngIf="isImage(selectedMediaForPreview.type)" [src]="'http://localhost:8080' + selectedMediaForPreview.url" class="full-preview-media">
     <video *ngIf="selectedMediaForPreview.type && selectedMediaForPreview.type.startsWith('video/')" [src]="'http://localhost:8080' + selectedMediaForPreview.url" controls autoplay class="full-preview-media"></video>
     <div class="preview-footer"><span>{{ selectedMediaForPreview.name }}</span></div>
+  </div>
+</div>
+
+<!-- ===================================== -->
+<!-- NAYA: ADD MEMBER PREMIUM MODAL UI -->
+<!-- ===================================== -->
+<div class="modal-overlay-premium" *ngIf="showAddMemberModal">
+  <div class="premium-add-modal">
+    <div class="modal-header-premium">
+      <h3>Add Members</h3>
+      <i class="bi bi-x-lg close-btn" (click)="closeAddMemberModal()"></i>
+    </div>
+    
+    <div class="modal-body-premium">
+      <div class="search-box-premium">
+        <i class="bi bi-search"></i>
+        <input type="text" [(ngModel)]="addMemberSearchQuery" placeholder="Search contacts...">
+      </div>
+
+      <div class="user-list-premium">
+        <div class="user-item-row" *ngFor="let u of filteredUsersForAdd" 
+             [class.disabled-row]="u.alreadyInGroup" 
+             (click)="toggleUserForAdd(u)">
+          
+          <div class="avatar-sm" [ngClass]="parseProfilePicture(u.profilePicture).bg" style="display: flex; justify-content: center; align-items: center; border-radius: 50%; width: 40px; height: 40px; background:#e2e8f0;">
+             <img *ngIf="parseProfilePicture(u.profilePicture).isImage" [src]="parseProfilePicture(u.profilePicture).url" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+             <span *ngIf="!parseProfilePicture(u.profilePicture).isImage" style="font-weight: 600;">{{ u.username.charAt(0).toUpperCase() }}</span>
+          </div>
+
+          <div class="user-details-row">
+            <span class="user-name">{{ u.username }}</span>
+            <span class="already-in-text" *ngIf="u.alreadyInGroup">Already in group</span>
+          </div>
+
+          <!-- Selection Checkbox Area -->
+          <div class="check-area" *ngIf="!u.alreadyInGroup">
+            <i class="bi bi-check-circle-fill checked-icon" *ngIf="selectedUsersToAdd.includes(u)"></i>
+            <i class="bi bi-circle empty-circle" *ngIf="!selectedUsersToAdd.includes(u)"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- SELECTED USERS PILLS SECTION (Niche ki side) -->
+      <div class="selected-pills-container" *ngIf="selectedUsersToAdd.length > 0">
+        <div class="pill-chip" *ngFor="let su of selectedUsersToAdd">
+          <div class="chip-avatar">{{ su.username.charAt(0).toUpperCase() }}</div>
+          <span class="chip-name">{{ su.username }}</span>
+          <i class="bi bi-x-circle-fill chip-close" (click)="removeSelectedUserForAdd(su.id); $event.stopPropagation()"></i>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-footer-premium">
+      <button class="btn-cancel" (click)="closeAddMemberModal()">Cancel</button>
+      <button class="btn-add-submit" [disabled]="selectedUsersToAdd.length === 0 || isAddingMembers" (click)="submitAddMembers()">
+        {{ isAddingMembers ? 'Adding...' : 'Add Members' }}
+      </button>
+    </div>
   </div>
 </div>

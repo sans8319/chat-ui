@@ -27,6 +27,8 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   private roomSubscription: Subscription | null = null; 
   selectedMediaForPreview: { url: string, type: string, name: string } | null = null;
 
+  lastClearedMessageId: { [roomId: string]: number } = {};
+
   currentTab: 'chats' | 'groups' | 'profile' = 'chats';
   profileData = {
     name: '',
@@ -124,9 +126,17 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   isCurrentPwdInvalid = false; // Current password galat hai ya nahi
   isCheckingPwd = false;       // API call ho rahi hai ya nahi
 
-  // =====================================
-  // NAYA: CLEAR CHAT STATE & LOGIC
-  // =====================================
+  showAddMemberModal = false;
+  addMemberSearchQuery = '';
+  allAppUsers: any[] = [];
+  selectedUsersToAdd: any[] = [];
+  isAddingMembers = false;
+  
+  selectedAvatarBg: string = '';
+  selectedAvatarIcon: string = '';
+  selectedAvatarImage: string | null = null; 
+  selectedFile: File | null = null;
+
   showClearChatModal = false;
   isClearingChat = false;
 
@@ -142,6 +152,11 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
     if (!this.currentRoomId) return;
     
     this.isClearingChat = true;
+
+    if (this.messages.length > 0) {
+      const maxId = Math.max(...this.messages.map(m => m.id));
+      this.lastClearedMessageId[this.currentRoomId] = maxId;
+    }
     
     // API call karke messages clear karenge
     this.chatService.clearChatHistory(this.currentRoomId).subscribe({
@@ -263,10 +278,7 @@ async saveStatus() {
         });
     }
 
-  selectedAvatarBg: string = '';
-  selectedAvatarIcon: string = '';
-  selectedAvatarImage: string | null = null; 
-  selectedFile: File | null = null;
+
 
   constructor(
     private chatService: ChatService,
@@ -661,6 +673,12 @@ async saveStatus() {
            msg.timestamp = new Date(msg.timestamp[0], msg.timestamp[1] - 1, msg.timestamp[2], msg.timestamp[3], msg.timestamp[4]).toISOString();
         }
         this.ngZone.run(() => {
+
+          const lastClearedId = this.lastClearedMessageId[this.currentRoomId!];
+          if (lastClearedId && msg.id <= lastClearedId) {
+             return; // Screen par mat dikhao
+          }
+          
           const exists = this.messages.some(m => m.id === msg.id);
           if (!exists) {
             this.messages.push({
@@ -818,4 +836,83 @@ async saveStatus() {
        this.cdr.detectChanges();
     });
   }
+
+  get filteredUsersForAdd() {
+    const query = this.addMemberSearchQuery.toLowerCase();
+    return this.allAppUsers.filter(u => u.username.toLowerCase().includes(query)).map(u => {
+      return {
+        ...u,
+        alreadyInGroup: this.groupMembers.some(gm => gm.id === u.id) // Check karta hai group me already hai ya nahi
+      };
+    });
+  }
+
+  openAddMemberModal() {
+    this.showAddMemberModal = true;
+    this.addMemberSearchQuery = '';
+    this.selectedUsersToAdd = [];
+    
+    // Database se saare users fetch karo
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    this.http.get<any[]>('http://localhost:8080/api/users', { headers }).subscribe(users => {
+       this.allAppUsers = users.filter(u => !u.username.includes('_DELETED_'));
+       this.cdr.detectChanges();
+    });
+  }
+
+  closeAddMemberModal() {
+    this.showAddMemberModal = false;
+  }
+
+  toggleUserForAdd(user: any) {
+    if (user.alreadyInGroup) return; // Agar already hai to select nahi hone dega
+    
+    const index = this.selectedUsersToAdd.findIndex(u => u.id === user.id);
+    if (index > -1) {
+      this.selectedUsersToAdd.splice(index, 1);
+    } else {
+      this.selectedUsersToAdd.push(user);
+    }
+  }
+
+  removeSelectedUserForAdd(userId: number) {
+    this.selectedUsersToAdd = this.selectedUsersToAdd.filter(u => u.id !== userId);
+  }
+
+  submitAddMembers() {
+    if (this.selectedUsersToAdd.length === 0 || !this.selectedUser?.isGroup) return;
+    
+    this.isAddingMembers = true;
+    const groupId = this.selectedUser.originalId || this.selectedUser.id;
+    const userIds = this.selectedUsersToAdd.map(u => u.id);
+    
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+    this.http.post(`http://localhost:8080/api/groups/${groupId}/members/add?addedById=${this.currentUserId}`, userIds, { headers })
+      .subscribe({
+         next: () => {
+           this.isAddingMembers = false;
+           this.closeAddMemberModal();
+           
+           // NAYA: Backend se members wapas refresh karo UI update hone ke liye
+           this.chatService.getGroupMembers(groupId).subscribe(members => {
+              members.sort((a, b) => {
+                if (a.id === this.currentUserId) return 1;
+                if (b.id === this.currentUserId) return -1;
+                return a.username.localeCompare(b.username);
+              });
+              this.groupMembers = members;
+              this.cdr.detectChanges();
+           });
+         },
+         error: () => {
+           alert("Failed to add members");
+           this.isAddingMembers = false;
+         }
+      });
+  }
+
+
 }
