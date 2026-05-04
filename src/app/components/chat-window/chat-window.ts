@@ -42,7 +42,8 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
     statusState: 'Online', // NAYA
     customStatusText: '' ,  // NAYA
     customStatusColor: '#22c55e',
-    countryCode: '+91'
+    countryCode: '+91',
+    pinnedRooms: '',
 
   };
 
@@ -101,6 +102,27 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
 
   backToMainPanel() {
     this.activePanelState = 'main';
+  }
+
+  // --- ADD THESE FUNCTIONS IN chat-window.ts ---
+  get isCurrentChatPinned(): boolean {
+    const pinnedStr = (this.profileData as any).pinnedRooms || (typeof window !== 'undefined' ? localStorage.getItem('pinnedRooms') : '') || '';
+    const roomId = this.selectedUser?.isGroup ? `GROUP_${this.selectedUser.originalId || this.selectedUser.id}` : this.currentRoomId;
+    return pinnedStr.includes(`,${roomId},`);
+  }
+
+  togglePin() {
+    if (!this.currentUserId || !this.currentRoomId) return;
+    const roomId = this.selectedUser?.isGroup ? `GROUP_${this.selectedUser.originalId || this.selectedUser.id}` : this.currentRoomId;
+    
+    this.chatService.togglePin(this.currentUserId, roomId).subscribe((res: any) => {
+      (this.profileData as any).pinnedRooms = res.pinnedRooms;
+      if (typeof window !== 'undefined') localStorage.setItem('pinnedRooms', res.pinnedRooms);
+      
+      // Sidebar ko notify karo taaki wo chats ko upar-neeche sort kar sake
+      this.chatService.notifyProfileUpdate({ type: 'PIN_UPDATED' });
+      this.cdr.detectChanges();
+    });
   }
 
 
@@ -397,9 +419,14 @@ async saveStatus() {
             statusState: user.statusState || 'Online', // NAYA
             customStatusText: user.customStatusText || '' ,// NAYA
             customStatusColor: user.customStatusColor || '#22c55e' , // NAYA
-            countryCode: user.countryCode || '+91' // NAYA
+            countryCode: user.countryCode || '+91' ,
+            pinnedRooms: user.pinnedRooms || ''
 
           };
+
+          if (isPlatformBrowser(this.platformId)) {
+             localStorage.setItem('pinnedRooms', user.pinnedRooms || '');
+          }
           
           this.profileData.customStatusColor = user.customStatusColor || '#22c55e';
           this.selectedStatusColor = this.profileData.customStatusColor;
@@ -678,7 +705,7 @@ async saveStatus() {
           if (lastClearedId && msg.id <= lastClearedId) {
              return; // Screen par mat dikhao
           }
-          
+
           const exists = this.messages.some(m => m.id === msg.id);
           if (!exists) {
             this.messages.push({

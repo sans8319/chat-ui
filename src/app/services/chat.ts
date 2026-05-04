@@ -214,4 +214,10 @@ export class ChatService {
   const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
   return this.http.get<any[]>(`http://localhost:8080/api/groups/${groupId}/members`, { headers });
   }
+  // --- ADD THIS AT THE END OF chat.service.ts ---
+  togglePin(userId: number, roomId: string): Observable<any> {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    return this.http.post(`http://localhost:8080/api/users/${userId}/toggle-pin/${roomId}`, {}, { headers });
+  }
 }

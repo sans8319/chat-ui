@@ -219,8 +219,13 @@
             <div class="panel-divider"></div>
 
             <div class="panel-actions-section">
-              <div class="action-item">
-                <i class="bi bi-pin-angle"></i><span>Pin Chat</span>
+              <div class="action-item" (click)="togglePin()">
+                <!-- Agar pinned hai toh solid purpal icon aur 'Unpin' dikhega -->
+                <i class="bi bi-pin-angle-fill" *ngIf="isCurrentChatPinned" style="color: #6366f1;"></i>
+                <i class="bi bi-pin-angle" *ngIf="!isCurrentChatPinned"></i>
+                <span [style.color]="isCurrentChatPinned ? '#6366f1' : '#475569'" style="font-weight: 600;">
+                  {{ isCurrentChatPinned ? 'Unpin Chat' : 'Pin Chat' }}
+                </span>
               </div>
               <div class="action-item danger" (click)="openClearChatModal()">
               <i class="bi bi-trash3"></i><span>Clear Chat</span>

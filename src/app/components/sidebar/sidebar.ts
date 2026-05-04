@@ -140,10 +140,20 @@ export class SidebarComponent implements OnInit {
     });
 
     // --- NAYA: Profile sync ke liye listener ---
+    // --- NAYA FIX 2: Profile sync ke liye listener (Sidebar list update karega) ---
     this.chatService.profileUpdate$.subscribe(updatedUser => {
       if (updatedUser) {
+        
+        // 🛑 NAYA MAGIC: Agar pin ka signal hai, toh turant list ko dobara sort kar do!
+        if (updatedUser.type === 'PIN_UPDATED') {
+          this.sortUsersByTime();
+          this.sortGroupsByTime();
+          this.cdr.detectChanges();
+          return; // Baaki code skip kar do
+        }
+
         this.loggedInUsername = updatedUser.username;
-        this.loggedInDesignation = updatedUser.designation || 'Employee'; // Designation update hogi
+        this.loggedInDesignation = updatedUser.designation || 'Employee'; 
         this.loggedInProfilePicture = updatedUser.profilePicture || '';
         this.loggedInStatusColor = updatedUser.customStatusColor || this.getStatusColor(updatedUser.statusState || 'Online');
         this.cdr.detectChanges();
@@ -156,6 +166,15 @@ export class SidebarComponent implements OnInit {
       this.http.get<any>(`http://localhost:8080/api/users/${this.currentUserId}`, { headers })
         .subscribe(user => {
           if (user) {
+            
+            // 🛑 NAYA FIX 3A: Login hote hi backend wali pin list local storage mein dalo
+            if (isPlatformBrowser(this.platformId)) {
+               localStorage.setItem('pinnedRooms', user.pinnedRooms || '');
+            }
+            // Aur safe side ke liye shuruwat me hi ek baar sorting chala do
+            this.sortUsersByTime();
+            this.sortGroupsByTime();
+
             this.loggedInDesignation = user.designation || 'Online';
             this.loggedInProfilePicture = user.profilePicture || '';
             this.loggedInStatusColor = user.customStatusColor || this.getStatusColor(user.statusState || 'Online');
@@ -278,7 +297,7 @@ export class SidebarComponent implements OnInit {
         const updatedGroup = { ...this.groups[groupIndex] };
         const remainingGroups = this.groups.filter(g => g.id !== String(msg.roomId));
         this.groups = [updatedGroup, ...remainingGroups];
-
+        this.sortGroupsByTime();
         this.cdr.detectChanges();
       } else {
         setTimeout(() => { this.loadGroups(); }, 800);
@@ -309,15 +328,30 @@ export class SidebarComponent implements OnInit {
       const updatedUser = { ...this.users[userIndex] };
       const remainingUsers = this.users.filter(u => Number(u.id) !== partnerId);
       this.users = [updatedUser, ...remainingUsers];
-
+      this.sortUsersByTime();
       this.cdr.detectChanges();
     } else {
       setTimeout(() => { this.loadUsers(); }, 800);
     }
   }
 
+  // --- NAYA SORTING LOGIC (GROUPS KE LIYE) ---
   sortGroupsByTime() {
+    const pinnedRooms = typeof window !== 'undefined' ? localStorage.getItem('pinnedRooms') || '' : '';
+
     this.groups.sort((a, b) => {
+      // Group ki ID pehle se hi 'GROUP_12' format me aati hai
+      const aRoomId = a.id; 
+      const bRoomId = b.id;
+
+      const isAPinned = aRoomId && pinnedRooms.includes(`,${aRoomId},`);
+      const isBPinned = bRoomId && pinnedRooms.includes(`,${bRoomId},`);
+
+      // Priority 1: Pinned group hamesha upar rahega
+      if (isAPinned && !isBPinned) return -1;
+      if (!isAPinned && isBPinned) return 1;
+
+      // Priority 2: Puran Time-based sorting
       const timeA = a.lastMessageTime ? new Date(a.lastMessageTime).getTime() : 0;
       const timeB = b.lastMessageTime ? new Date(b.lastMessageTime).getTime() : 0;
       return timeB - timeA; 
@@ -441,6 +475,7 @@ export class SidebarComponent implements OnInit {
     this.chatService.getOrCreateRoom(this.currentUserId, user.id).subscribe(room => {
       if (room && room.id) {
         const roomIdStr = room.id.toString();
+        user.roomId = roomIdStr;
         this.chatService.subscribeToRoom(roomIdStr);
         this.chatService.getChatHistory(roomIdStr).subscribe(history => {
           if (history && history.length > 0) {
@@ -461,8 +496,23 @@ export class SidebarComponent implements OnInit {
     });
   }
 
+  // --- NAYA SORTING LOGIC (1-ON-1 CHATS KE LIYE) ---
   sortUsersByTime() {
+    const pinnedRooms = typeof window !== 'undefined' ? localStorage.getItem('pinnedRooms') || '' : '';
+
     this.users.sort((a, b) => {
+      // User array me room ID nikalna
+      const aRoomId = a.roomId; 
+      const bRoomId = b.roomId;
+
+      const isAPinned = aRoomId && pinnedRooms.includes(`,${aRoomId},`);
+      const isBPinned = bRoomId && pinnedRooms.includes(`,${bRoomId},`);
+
+      // Priority 1: Agar A pinned hai, toh A hamesha upar rahega
+      if (isAPinned && !isBPinned) return -1;
+      if (!isAPinned && isBPinned) return 1;
+
+      // Priority 2: Puran Time-based sorting (Ye kabhi kharab nahi hoga)
       const timeA = a.lastMessageTime ? new Date(a.lastMessageTime).getTime() : 0;
       const timeB = b.lastMessageTime ? new Date(b.lastMessageTime).getTime() : 0;
       return timeB - timeA; 
@@ -534,6 +584,13 @@ export class SidebarComponent implements OnInit {
   selectSettingMenu(menuName: string) {
     this.activeSetting = menuName;
     this.chatService.setActiveSetting(menuName); // NAYA: Service ko batana
+  }
+
+  // HTML mein icon dikhane ke liye helper
+  isRoomPinned(item: any): boolean {
+    const pinnedRooms = typeof window !== 'undefined' ? localStorage.getItem('pinnedRooms') || '' : '';
+    const roomId = item.isGroup ? item.id : item.roomId;
+    return roomId && pinnedRooms.includes(`,${roomId},`);
   }
 
   

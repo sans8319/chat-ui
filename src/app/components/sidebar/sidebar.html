@@ -48,10 +48,12 @@
           <div class="user-details">
             <div class="name-row">
               <span class="username">
-              {{ user.username }}
-              <i *ngIf="user.isDeleted" class="bi bi-ban" style="color: #ef4444; font-size: 13px; margin-left: 5px; -webkit-text-stroke: 0.6px;" title="Deleted Account"></i>
-            </span>
-              <span class="time" *ngIf="user.lastMessageTime">{{ user.lastMessageTime | date:'shortTime' }}</span>
+                {{ user.username }}
+                <!-- NAYA FIX: Pin icon ab naam ke baad aur margin-left ke sath aayega -->
+                <i *ngIf="isRoomPinned(user)" class="bi bi-pin-angle-fill" style="color: #6366f1; font-size: 13px; margin-left: 8px;"></i>
+                <i *ngIf="user.isDeleted" class="bi bi-ban" style="color: #ef4444; font-size: 13px; margin-left: 5px; -webkit-text-stroke: 0.6px;" title="Deleted Account"></i>
+              </span>
+              <span class="time" *ngIf="user.lastMessageTime">{{ user.lastMessageTime | date:'dd MMM, h:mm a' }}</span>
             </div>
             <div class="msg-row">
               <span class="last-msg text-truncate">{{ user.lastMessage || 'Click to start chatting... 🚀' }}</span>
@@ -81,8 +83,12 @@
 
           <div class="user-details">
             <div class="name-row">
-              <span class="username">{{ group.username }}</span>
-              <span class="time" *ngIf="group.lastMessageTime">{{ group.lastMessageTime | date:'shortTime' }}</span>
+              <span class="username">
+                {{ group.username }}
+                <!-- NAYA FIX: Pin icon naam ke baad -->
+                <i *ngIf="isRoomPinned(group)" class="bi bi-pin-angle-fill" style="color: #6366f1; font-size: 13px; margin-left: 8px;"></i>
+              </span>
+              <span class="time" *ngIf="group.lastMessageTime">{{ group.lastMessageTime | date:'dd MMM, h:mm a' }}</span>
             </div>
             <div class="msg-row">
               <span class="last-msg text-truncate">{{ group.lastMessage }}</span>
