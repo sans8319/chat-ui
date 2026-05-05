@@ -802,12 +802,21 @@
   </div>
 </div>
 
-<!-- 🛑 NAYA: Right Click Context Menu (Make Admin) -->
 <div class="custom-context-menu" 
      *ngIf="contextMenu.show" 
      [style.left.px]="contextMenu.x" 
-     [style.top.px]="contextMenu.y"
-     (click)="makeAdmin()">
-  <i class="bi bi-shield-check" style="color: #6366f1; font-size: 16px;"></i> 
-  <span>Make Group Admin</span>
+     [style.top.px]="contextMenu.y">
+  
+  <!-- Make Admin Option -->
+  <div class="menu-item" *ngIf="!contextMenu.isRemoving" (click)="makeAdmin()">
+    <i class="bi bi-shield-check" style="color: #6366f1;"></i> 
+    <span>Make Group Admin</span>
+  </div>
+
+  <!-- Dismiss Admin Option (Red color) -->
+  <div class="menu-item danger" *ngIf="contextMenu.isRemoving" (click)="dismissAdmin()">
+    <i class="bi bi-shield-minus" style="color: #ef4444;"></i> 
+    <span style="color: #ef4444;">Dismiss as Admin</span>
+  </div>
+
 </div>

@@ -288,10 +288,10 @@ export class SidebarComponent implements OnInit {
   }
 
   updateSidebarUI(msg: any) {
-    if (msg && msg.type === 'ADMIN_PROMOTED') {
+    if (msg && (msg.type === 'ADMIN_PROMOTED' || msg.type === 'ADMIN_DISMISSED')) {
       return; 
     }
-    
+
     if (msg.roomId && String(msg.roomId).startsWith('GROUP_')) {
       const groupIndex = this.groups.findIndex(g => g.id === String(msg.roomId));
       

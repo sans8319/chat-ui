@@ -50,7 +50,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   allCountryCodes = COUNTRY_CODES;
   isCountryDropdownOpen = false;
   countrySearchQuery = '';
-  contextMenu = { show: false, x: 0, y: 0, member: null as any };
+  contextMenu = { show: false, x: 0, y: 0, member: null as any, isRemoving: false };
 
   showProfilePanel: boolean = false;
   
@@ -708,16 +708,18 @@ async saveStatus() {
     this.roomSubscription = this.chatService.getMessages().subscribe(msg => {
       if (msg && String(msg.roomId) === String(this.currentRoomId)) {
 
-        // 🛑 NAYA MAGIC: Realtime Admin Badge Update (Bina refresh kiye dusre users ke panel me update hoga)
-        if (msg.type === 'ADMIN_PROMOTED') {
+        if (msg.type === 'ADMIN_PROMOTED' || msg.type === 'ADMIN_DISMISSED') {
            this.ngZone.run(() => {
              const member = this.groupMembers.find(m => m.id === Number(msg.userId));
-             if (member) member.isAdmin = true; // Turant Badge laga do!
+             if (member) {
+                
+                member.isAdmin = (msg.type === 'ADMIN_PROMOTED'); 
+             }
              this.cdr.detectChanges();
            });
-           return; // Isko chat message ki tarah aage mat badhne do
+           return; 
         }
-        
+
         if (msg.senderName === 'System' || msg.content === 'You were added to this group.' || msg.content === '###GROUP_CREATED###') {
             msg.isSystem = true; 
             msg.content = Number(msg.senderId) === Number(this.currentUserId) ? "You created this group." : "You were added to this group.";
@@ -968,16 +970,19 @@ async saveStatus() {
   }
 
   onMemberRightClick(event: MouseEvent, member: any) {
-    event.preventDefault(); // Browser ka default right-click menu band karega
+    event.preventDefault(); 
+    if (!this.isCurrentUserAdmin) return; 
     
-    // Sirf Admin hi right click kar sakta hai, aur doosra banda pehle se admin nahi hona chahiye
-    if (!this.isCurrentUserAdmin || member.isAdmin) return; 
+   
+    if (member.isCreator) return; 
+    if (member.id === this.currentUserId) return;
 
     this.contextMenu = {
       show: true,
       x: event.clientX,
       y: event.clientY,
-      member: member
+      member: member,
+      isRemoving: member.isAdmin 
     };
   }
 
@@ -999,6 +1004,21 @@ async saveStatus() {
       .subscribe({
          next: () => { console.log('Admin request sent'); },
          error: () => { alert('Failed to make admin'); }
+      });
+  }
+
+  dismissAdmin() {
+    if (!this.contextMenu.member) return;
+    const memberId = this.contextMenu.member.id;
+    const groupId = this.selectedUser.originalId || this.selectedUser.id;
+    this.closeContextMenu(); 
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+    this.http.post(`http://localhost:8080/api/groups/${groupId}/dismiss-admin/${memberId}`, {}, { headers })
+      .subscribe({
+         error: () => { alert('Failed to dismiss admin'); }
       });
   }
 
