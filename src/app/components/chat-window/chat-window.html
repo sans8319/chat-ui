@@ -855,3 +855,74 @@
   </div>
 
 </div>
+
+<!-- ===================================== -->
+<!-- NAYA: FORWARD MESSAGE MODAL UI -->
+<!-- ===================================== -->
+<div class="modal-overlay-premium" *ngIf="showForwardModal">
+  <div class="premium-add-modal forward-modal">
+    <div class="modal-header-premium">
+      <h3>Forward Message</h3>
+      <i class="bi bi-x-lg close-btn" (click)="closeForwardModal()"></i>
+    </div>
+    
+    <div class="modal-body-premium">
+      <div class="search-box-premium">
+        <i class="bi bi-search"></i>
+        <input type="text" [(ngModel)]="forwardSearchQuery" placeholder="Search users and groups...">
+      </div>
+
+      <div class="user-list-premium forward-list">
+        
+        <!-- Empty State -->
+        <div class="no-results forward-empty" *ngIf="filteredContactsForForward.length === 0">
+          <i class="bi bi-search empty-icon"></i>
+          No contacts found.
+        </div>
+
+        <!-- Contact Rows -->
+        <div class="user-item-row forward-row" *ngFor="let c of filteredContactsForForward" (click)="toggleForwardSelection(c)">
+          
+          <div class="avatar-sm forward-avatar" [ngClass]="parseProfilePicture(c.profilePicture).bg">
+             <img *ngIf="parseProfilePicture(c.profilePicture).isImage" [src]="parseProfilePicture(c.profilePicture).url" class="avatar-img">
+             <span *ngIf="!parseProfilePicture(c.profilePicture).isImage" class="avatar-initial">{{ c.username.charAt(0).toUpperCase() }}</span>
+             
+             <!-- 🛑 NAYA MAGIC: Group Icon Indicator -->
+             <div *ngIf="c.isGroup" class="group-indicator">
+                <i class="bi bi-people-fill"></i>
+             </div>
+          </div>
+
+          <div class="user-details-row">
+            <span class="user-name forward-name">{{ c.username }}</span>
+            <span class="already-in-text group-tag" *ngIf="c.isGroup">Group</span>
+            <span class="already-in-text user-tag" *ngIf="!c.isGroup">{{ c.designation || 'User' }}</span>
+          </div>
+
+          <!-- Selection Checkbox Area -->
+          <div class="check-area">
+            <i class="bi bi-check-circle-fill checked-icon forward-check" *ngIf="isForwardSelected(c)"></i>
+            <i class="bi bi-circle empty-circle forward-uncheck" *ngIf="!isForwardSelected(c)"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- SELECTED USERS PILLS SECTION -->
+      <div class="selected-pills-container" *ngIf="selectedContactsForForward.length > 0">
+        <div class="pill-chip" *ngFor="let sc of selectedContactsForForward">
+          <div class="chip-avatar forward-chip-avatar">{{ sc.username.charAt(0).toUpperCase() }}</div>
+          <span class="chip-name">{{ sc.username }}</span>
+          <i class="bi bi-x-circle-fill chip-close" (click)="removeSelectedForward(sc.contactId); $event.stopPropagation()"></i>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-footer-premium">
+      <button class="btn-cancel" (click)="closeForwardModal()">Cancel</button>
+      <button class="btn-add-submit btn-forward" [disabled]="selectedContactsForForward.length === 0 || isForwarding" (click)="submitForward()">
+        <i class="bi bi-send-fill send-icon"></i> {{ isForwarding ? 'Sending...' : 'Send Forward' }}
+      </button>
+    </div>
+  </div>
+</div>

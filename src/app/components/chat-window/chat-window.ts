@@ -60,6 +60,14 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   activePanelState: 'main' | 'media' = 'main'; 
   activeMediaTab: 'media' | 'links' | 'docs' = 'media';
 
+
+  showForwardModal: boolean = false;
+  forwardSearchQuery: string = '';
+  allContactsForForward: any[] = [];
+  selectedContactsForForward: any[] = [];
+  msgToForward: any = null;
+  isForwarding: boolean = false;
+
   roomMediaFiles: any[] = [];
   roomLinks: any[] = [];
   roomDocs: any[] = [];
@@ -1073,10 +1081,15 @@ async saveStatus() {
          console.log('Message Copied');
          break;
        case 'download':
-         window.open('http://localhost:8080' + msg.fileUrl, '_blank');
-         break;
+        this.downloadFile(msg.fileUrl, msg.fileName);
+        this.activeMessageDropdown = null;
+        break;
        case 'reply':
        case 'forward':
+          this.msgToForward = msg;
+          this.activeMessageDropdown = null; // Dropdown chupao
+          this.openForwardModal(); // Naya modal open karo
+          break;
        case 'pin':
        case 'delete':
          if (confirm('Delete this message for everyone?')) {
@@ -1087,6 +1100,163 @@ async saveStatus() {
          }
          break;
     }
+  }
+
+  // ==========================================
+  // NAYA: FORWARD MESSAGE LOGIC
+  // ==========================================
+  openForwardModal() {
+    this.showForwardModal = true;
+    this.forwardSearchQuery = '';
+    this.selectedContactsForForward = [];
+    this.allContactsForForward = [];
+    this.loadContactsForForward();
+  }
+
+  closeForwardModal() {
+    this.showForwardModal = false;
+    this.msgToForward = null;
+  }
+
+  loadContactsForForward() {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+    const headers = { 'Authorization': `Bearer ${token}` };
+
+    // 1. Users fetch karo
+    fetch('http://localhost:8080/api/users', { headers })
+      .then(res => res.json())
+      .then((users: any[]) => {
+        const activeUsers = users.filter(u => 
+          !u.username.includes('_DELETED_') && 
+          Number(u.id) !== Number(this.currentUserId) && 
+          // 1-on-1 chat filter logic
+          !(this.selectedUser && !this.selectedUser.isGroup && Number(u.id) === Number(this.selectedUser.id)) 
+        ).map(u => ({ ...u, isGroup: false, contactId: `USER_${u.id}` }));
+        
+        this.allContactsForForward = [...this.allContactsForForward, ...activeUsers];
+      });
+
+    // 2. Groups fetch karo 
+    fetch(`http://localhost:8080/api/groups/user/${this.currentUserId}`, { headers })
+      .then(res => res.json())
+      .then((groups: any[]) => {
+        const activeGroups = groups.filter(g => 
+          // Current group filter logic
+          !(this.selectedUser && this.selectedUser.isGroup && Number(g.id) === Number(this.selectedUser.id)) 
+        ).map(g => ({ 
+            ...g, 
+            isGroup: true, 
+            contactId: `GROUP_${g.id}`, 
+            username: g.username || g.name // 🛑 FIX: Agar username nahi hai toh 'name' property use karo
+        }));
+        
+        this.allContactsForForward = [...this.allContactsForForward, ...activeGroups];
+      });
+  }
+
+  get filteredContactsForForward() {
+    if (!this.forwardSearchQuery.trim()) return this.allContactsForForward;
+    return this.allContactsForForward.filter(c => 
+      c.username.toLowerCase().includes(this.forwardSearchQuery.toLowerCase())
+    );
+  }
+
+  isForwardSelected(contact: any) {
+    return this.selectedContactsForForward.some(c => c.contactId === contact.contactId);
+  }
+
+  toggleForwardSelection(contact: any) {
+    const index = this.selectedContactsForForward.findIndex(c => c.contactId === contact.contactId);
+    if (index > -1) {
+      this.selectedContactsForForward.splice(index, 1);
+    } else {
+      this.selectedContactsForForward.push(contact);
+    }
+  }
+
+  removeSelectedForward(contactId: string) {
+    this.selectedContactsForForward = this.selectedContactsForForward.filter(c => c.contactId !== contactId);
+  }
+
+  async submitForward() {
+    if (this.selectedContactsForForward.length === 0 || !this.msgToForward) return;
+    this.isForwarding = true;
+
+    for (const contact of this.selectedContactsForForward) {
+      let targetRoomId = '';
+      
+      if (contact.isGroup) {
+        targetRoomId = `GROUP_${contact.id}`;
+      } else {
+        try {
+          // 1-on-1 chat ke liye room ID nikalna zaroori hai
+          const room: any = await this.chatService.getOrCreateRoom(this.currentUserId!, contact.id).toPromise();
+          targetRoomId = room.id.toString();
+        } catch(e) {
+          console.error("Room fetch error", e);
+          continue; 
+        }
+      }
+
+      // Backend ko as-it-is payload bhejo
+      const payload: any = {
+        content: this.msgToForward.content,
+        sender: { id: Number(this.currentUserId) }, // 🛑 NAYA FIX: Sender object format me bheja
+        senderId: this.currentUserId,
+        roomId: targetRoomId,
+        fileUrl: this.msgToForward.fileUrl,
+        fileName: this.msgToForward.fileName,
+        fileType: this.msgToForward.fileType,
+        fileSize: this.msgToForward.fileSize
+      };
+
+      // 🛑 NAYA FIX: 1-on-1 ke liye chatRoom object zaroori hai backend ke liye
+      if (!targetRoomId.startsWith('GROUP_')) {
+          payload.chatRoom = { id: Number(targetRoomId) };
+      }
+
+      // 🛑 Yahan 2 arguments bhej diye! (Fix ho gaya)
+      this.chatService.sendMessage(targetRoomId, payload);
+    }
+
+    this.isForwarding = false;
+    this.closeForwardModal();
+  }
+
+  // ==========================================
+  // NAYA: FILE DOWNLOAD LOGIC
+  // ==========================================
+  // ==========================================
+  // UPDATED: POWERFUL DOWNLOAD LOGIC (Blob Based)
+  // ==========================================
+  downloadFile(fileUrl: string, fileName: string) {
+    if (!fileUrl) return;
+
+    const fullUrl = `http://localhost:8080${fileUrl}`;
+
+    // 🛑 NAYA: Browser ko bypass karke file fetch karna
+    fetch(fullUrl)
+      .then(response => response.blob()) // File ko blob (binary data) mein badlo
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        // Isse browser hamesha "Save As" dikhayega
+        link.download = fileName || 'downloaded-file';
+        
+        document.body.appendChild(link);
+        link.click();
+        
+        // Memory saaf karo
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      })
+      .catch(err => {
+        console.error("Download failed:", err);
+        // Fallback: Agar upar wala fail ho toh purana tarika
+        window.open(fullUrl, '_blank');
+      });
   }
 
 
