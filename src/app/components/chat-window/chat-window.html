@@ -179,7 +179,8 @@
                 <div style="display: flex; align-items: center; gap: 10px;">
                   <i class="bi bi-people"></i> {{ groupMembers.length }} Participants
                 </div>
-                <button class="add-member-badge-btn" (click)="openAddMemberModal()">
+       
+                <button class="add-member-badge-btn" *ngIf="isCurrentUserAdmin" (click)="openAddMemberModal()">
                   <i class="bi bi-person-plus"></i> Add
                 </button>
               </div>

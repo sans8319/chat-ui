@@ -104,11 +104,22 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
     this.activePanelState = 'main';
   }
 
-  // --- ADD THESE FUNCTIONS IN chat-window.ts ---
+
   get isCurrentChatPinned(): boolean {
     const pinnedStr = (this.profileData as any).pinnedRooms || (typeof window !== 'undefined' ? localStorage.getItem('pinnedRooms') : '') || '';
     const roomId = this.selectedUser?.isGroup ? `GROUP_${this.selectedUser.originalId || this.selectedUser.id}` : this.currentRoomId;
     return pinnedStr.includes(`,${roomId},`);
+  }
+
+
+  get isCurrentUserAdmin(): boolean {
+    if (!this.selectedUser?.isGroup || !this.groupMembers || !this.currentUserId) return false;
+    
+    
+    const currentUserMember = this.groupMembers.find(m => m.id === this.currentUserId);
+    
+    
+    return currentUserMember?.isAdmin || false;
   }
 
   togglePin() {
