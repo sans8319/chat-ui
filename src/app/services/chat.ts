@@ -3,6 +3,7 @@ import { Client, Message } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -31,6 +32,13 @@ export class ChatService {
 
   private activeSettingSource = new BehaviorSubject<string>('profile');
   activeSetting$ = this.activeSettingSource.asObservable();
+
+  private closeProfilePanelSource = new Subject<void>();
+  closeProfilePanel$ = this.closeProfilePanelSource.asObservable();
+
+  triggerCloseProfilePanel() {
+    this.closeProfilePanelSource.next();
+  }
 
   // --- NAYA: Profile Update Sync ke liye ---
   private profileUpdateSource = new BehaviorSubject<any>(null);
@@ -219,5 +227,13 @@ export class ChatService {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
     return this.http.post(`http://localhost:8080/api/users/${userId}/toggle-pin/${roomId}`, {}, { headers });
+  }
+
+  // 🛑 NAYA: Delete message API call
+  softDeleteMessage(messageId: number, roomId: string) {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    
+    return this.http.put(`http://localhost:8080/api/messages/${messageId}/soft-delete?roomId=${roomId}`, {}, { headers });
   }
 }

@@ -52,6 +52,8 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   countrySearchQuery = '';
   contextMenu = { show: false, x: 0, y: 0, member: null as any, isRemoving: false };
 
+  activeMessageDropdown: number | null = null;
+
   showProfilePanel: boolean = false;
   
   // Naye variables tabs ke liye
@@ -259,6 +261,9 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
     }
 
     this.closeContextMenu();
+    if (!target.closest('.msg-dropdown-container')) {
+      this.activeMessageDropdown = null;
+    }
 
   }
 
@@ -413,6 +418,16 @@ async saveStatus() {
         this.selectedUser = null;
       }
       this.cdr.detectChanges();
+    });
+
+    // NAYA: Jab bhi input component signal bheje, toh profile panel band kar do
+    this.chatService.closeProfilePanel$.subscribe(() => {
+      if (this.showProfilePanel) {
+        this.showProfilePanel = false;
+        // Agar media preview wala state open tha, toh usko bhi reset kar do
+        this.activePanelState = 'main'; 
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -719,6 +734,26 @@ async saveStatus() {
            });
            return; 
         }
+        if (msg.type === 'MESSAGE_DELETED') {
+           this.ngZone.run(() => {
+             // 1. Chat bubble update karo
+             const targetMsg = this.messages.find(m => m.id === Number(msg.messageId));
+             if (targetMsg) {
+                targetMsg.isDeleted = true;
+                targetMsg.content = 'This message is deleted';
+                targetMsg.fileUrl = null;
+                targetMsg.fileName = null;
+             }
+
+             // 2. Right Profile Panel se turant files/links/docs gayab karo
+             this.roomMediaFiles = this.roomMediaFiles.filter(f => f.id !== Number(msg.messageId));
+             this.roomDocs = this.roomDocs.filter(f => f.id !== Number(msg.messageId));
+             this.roomLinks = this.roomLinks.filter(l => l.id !== Number(msg.messageId));
+
+             this.cdr.detectChanges();
+           });
+           return; 
+        }
 
         if (msg.senderName === 'System' || msg.content === 'You were added to this group.' || msg.content === '###GROUP_CREATED###') {
             msg.isSystem = true; 
@@ -1020,6 +1055,38 @@ async saveStatus() {
       .subscribe({
          error: () => { alert('Failed to dismiss admin'); }
       });
+  }
+
+  // 🛑 NAYA: Message Dropdown Methods
+  toggleMessageDropdown(msgId: number, event: MouseEvent) {
+    event.stopPropagation(); // Bubble click ko aage jaane se rokega
+    this.activeMessageDropdown = this.activeMessageDropdown === msgId ? null : msgId;
+  }
+
+  // Temporary function frontend actions ke liye (Backend baad me judega)
+  msgAction(action: string, msg: any) {
+    this.activeMessageDropdown = null; // Menu band kardo
+    
+    switch(action) {
+       case 'copy':
+         navigator.clipboard.writeText(msg.content);
+         console.log('Message Copied');
+         break;
+       case 'download':
+         window.open('http://localhost:8080' + msg.fileUrl, '_blank');
+         break;
+       case 'reply':
+       case 'forward':
+       case 'pin':
+       case 'delete':
+         if (confirm('Delete this message for everyone?')) {
+           this.chatService.softDeleteMessage(msg.id, this.currentRoomId!).subscribe({
+             next: () => console.log('Message delete request sent'),
+             error: () => alert('Failed to delete message')
+           });
+         }
+         break;
+    }
   }
 
 

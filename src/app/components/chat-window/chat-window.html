@@ -58,8 +58,37 @@
                 </div>
                 <div class="message-wrapper" *ngIf="!msg.isSystem" [ngClass]="msg.senderId === currentUserId ? 'sent' : 'received'">
                   <div class="bubble" [class.has-media]="msg.fileUrl">
+                    <div class="msg-dropdown-container" *ngIf="!msg.isDeleted">
+                      <div class="msg-dropdown-btn" 
+                          [class.active-btn]="activeMessageDropdown === msg.id" 
+                          (click)="toggleMessageDropdown(msg.id, $event)">
+                        <i class="bi bi-chevron-down"></i>
+                      </div>
+                      
+                      <div class="msg-dropdown-menu" *ngIf="activeMessageDropdown === msg.id" (click)="$event.stopPropagation()">
+                        <!-- Common Options -->
+                        <div class="menu-item" (click)="msgAction('reply', msg)"><i class="bi bi-reply"></i> Reply</div>
+                        <div class="menu-item" (click)="msgAction('forward', msg)"><i class="bi bi-forward"></i> Forward</div>
+                        
+                        <!-- Sirf Text/Link Messages ke liye -->
+                        <ng-container *ngIf="!msg.fileUrl">
+                          <div class="menu-item" (click)="msgAction('copy', msg)"><i class="bi bi-copy"></i> Copy</div>
+                          <div class="menu-item" (click)="msgAction('pin', msg)"><i class="bi bi-pin-angle"></i> Pin</div>
+                        </ng-container>
+                        
+                        <!-- Sirf Media Messages ke liye -->
+                        <ng-container *ngIf="msg.fileUrl">
+                          <div class="menu-item" (click)="msgAction('download', msg)"><i class="bi bi-download"></i> Download</div>
+                        </ng-container>
+
+                        <div class="menu-separator"></div>
+                        
+                        <!-- Common Option: Delete (Danger color) -->
+                        <div class="menu-item danger" (click)="msgAction('delete', msg)"><i class="bi bi-trash3"></i> Delete</div>
+                      </div>
+                    </div>
                     <div class="sender-name" *ngIf="selectedUser.isGroup && msg.senderId !== currentUserId">{{ msg.senderName || 'Member' }}</div>
-                    <div class="media-attachment" *ngIf="msg.fileUrl">
+                    <div class="media-attachment" *ngIf="msg.fileUrl && !msg.isDeleted">
                       <div class="image-wrapper" *ngIf="isImage(msg.fileType)">
                         <img [src]="'http://localhost:8080' + msg.fileUrl" 
                             (click)="openMediaPreview(msg.fileUrl, msg.fileType, msg.fileName)"
@@ -74,7 +103,13 @@
                         <div class="download-circle"><i class="bi bi-download"></i></div>
                       </a>
                     </div>
-                    <div class="message-content" *ngIf="msg.content" [innerHTML]="msg.content | linkify"></div>
+                    <!-- Agar message SAFE hai, toh purana text/link dikhao -->
+                    <div class="message-content" *ngIf="msg.content && !msg.isDeleted" [innerHTML]="msg.content | linkify"></div>
+
+                    <!-- 🛑 NAYA: Agar delete ho gaya hai, toh ye Italic UI dikhao -->
+                    <div class="message-content" *ngIf="msg.isDeleted" style="font-style: italic; color: rgba(100, 116, 139, 0.9); font-size: 13.5px; user-select: none;">
+                      <i class="bi bi-ban"></i> This message is deleted
+                    </div>
                     <div class="message-meta">
                       <span class="timestamp">{{ msg.timestamp | date:'shortTime' }}</span>
                       <div class="status-ticks" *ngIf="msg.senderId === currentUserId && !selectedUser.isGroup">

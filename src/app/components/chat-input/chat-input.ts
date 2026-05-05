@@ -226,6 +226,7 @@ export class ChatInputComponent {
       this.messageText = ''; 
       this.selectedFiles = [];
       this.isUploading = false;
+      this.chatService.triggerCloseProfilePanel();
 
     } catch (error) {
       console.error("File upload failed", error);

@@ -10,7 +10,6 @@ import { Router } from '@angular/router';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './sidebar.html',
-  
   styleUrl: './sidebar.scss'
 })
 export class SidebarComponent implements OnInit {
@@ -49,7 +48,6 @@ export class SidebarComponent implements OnInit {
 
   get filteredGroups() {
     if (!this.searchQuery.trim()) return this.groups;
-    // Group ke naam ke liye check kar rahe hain (username ya name jo bhi backend se aaye)
     return this.groups.filter(g => 
       (g.username || g.name || '').toLowerCase().includes(this.searchQuery.toLowerCase())
     );
@@ -63,7 +61,6 @@ export class SidebarComponent implements OnInit {
     return colors[statusName] || '#22c55e';
   }
 
-  // NAYA: Media check karke label return karne ke liye helper
   private getMediaLabel(m: any): string {
     if (m.fileUrl) {
       const type = m.fileType || '';
@@ -77,8 +74,7 @@ export class SidebarComponent implements OnInit {
       if (name.endsWith('.zip') || name.endsWith('.rar')) return '📦 Archive File';
       return '📁 Attached File';
     }
-    // Agar text message hai toh wo return karo, agar dono nahi hai toh fallback string
-    return m.content || 'Tap to chat...'; 
+    return m.content || 'Click to start chatting... 🚀'; 
   }
 
   constructor(
@@ -90,13 +86,8 @@ export class SidebarComponent implements OnInit {
   ) {}
 
   get filteredUsersForGroup() {
-    // NAYA: Sabse pehle un users ko filter kar lo jo deleted NAHI hain
     const activeUsers = this.users.filter(u => !u.isDeleted);
-
-    // Agar search khali hai, toh sirf active users dikhayein
     if (!this.memberSearchQuery.trim()) return activeUsers;
-
-    // Agar kuch search kiya hai, toh sirf active users mein se hi search karein
     return activeUsers.filter(u => 
       u.username.toLowerCase().includes(this.memberSearchQuery.toLowerCase())
     );
@@ -132,45 +123,41 @@ export class SidebarComponent implements OnInit {
         if (notif.type === 'NEW_GROUP') {
           setTimeout(() => { this.loadGroups(); }, 800);
         }
-        // NAYA: 'PROFILE_UPDATED' event ko bhi sunega aur list naye colors ke sath refresh kar dega
         if (notif.type === 'NEW_USER' || notif.type === 'PROFILE_UPDATED') {
           setTimeout(() => { this.loadUsers(); }, 800);
         }
       }
     });
-
-    // --- NAYA: Profile sync ke liye listener ---
     
     this.chatService.profileUpdate$.subscribe(updatedUser => {
       if (updatedUser) {
         
-        // 🛑 NAYA MAGIC: Agar pin ka signal hai, toh turant list ko dobara sort kar do!
         if (updatedUser.type === 'PIN_UPDATED') {
           this.sortUsersByTime();
           this.sortGroupsByTime();
           this.cdr.detectChanges();
-          return; // Baaki code skip kar do
+          return; 
         }
 
         if (updatedUser.type === 'CHAT_CLEARED') {
           const clearedRoomId = updatedUser.roomId;
           if (clearedRoomId) {
             if (clearedRoomId.startsWith('GROUP_')) {
-              // Group ke liye
+              // 🛑 NAYA FIX: Group clear hone par wapas fetch karo taaki System Message dikhe
               const gIndex = this.groups.findIndex(g => String(g.id) === String(clearedRoomId));
               if (gIndex !== -1) {
-                this.groups[gIndex].lastMessage = 'Chat cleared 🧹'; // UI pe dikhega
+                this.syncGroupStatus(this.groups[gIndex]); 
               }
             } else {
-              // 1-on-1 Chat ke liye
+              // 🛑 NAYA FIX: 1-on-1 clear hone par direct text dikhao
               const uIndex = this.users.findIndex(u => String(u.roomId) === String(clearedRoomId));
               if (uIndex !== -1) {
-                this.users[uIndex].lastMessage = ''; // Khali karne pe HTML ka default "Click to start chatting..." aa jayega
+                this.users[uIndex].lastMessage = 'Click to start chatting... 🚀'; 
               }
             }
             this.cdr.detectChanges();
           }
-          return; // Baaki code skip kar do
+          return; 
         }
 
         this.loggedInUsername = updatedUser.username;
@@ -187,12 +174,9 @@ export class SidebarComponent implements OnInit {
       this.http.get<any>(`http://localhost:8080/api/users/${this.currentUserId}`, { headers })
         .subscribe(user => {
           if (user) {
-            
-            // 🛑 NAYA FIX 3A: Login hote hi backend wali pin list local storage mein dalo
             if (isPlatformBrowser(this.platformId)) {
                localStorage.setItem('pinnedRooms', user.pinnedRooms || '');
             }
-            // Aur safe side ke liye shuruwat me hi ek baar sorting chala do
             this.sortUsersByTime();
             this.sortGroupsByTime();
 
@@ -247,7 +231,7 @@ export class SidebarComponent implements OnInit {
               ? 'You created this group.' 
               : 'You were added to this group.';
         } else {
-          group.lastMessage = this.getMediaLabel(lastMsg); // NAYA FIX
+          group.lastMessage = this.getMediaLabel(lastMsg); 
         }
         
         let validTime = lastMsg.timestamp;
@@ -280,7 +264,8 @@ export class SidebarComponent implements OnInit {
         group.unreadCount = String(this.activeUserId) === String(group.id) ? 0 : unread;
 
       } else {
-        group.lastMessage = 'Tap to start chatting...';
+        // 🛑 NAYA FIX: DB Drop hone par Loading na ruke
+        group.lastMessage = 'Click to start chatting... 🚀';
       }
       this.sortGroupsByTime();
       this.cdr.detectChanges();
@@ -289,6 +274,22 @@ export class SidebarComponent implements OnInit {
 
   updateSidebarUI(msg: any) {
     if (msg && (msg.type === 'ADMIN_PROMOTED' || msg.type === 'ADMIN_DISMISSED')) {
+      return; 
+    }
+
+    // 🛑 NAYA MAGIC FIX: Message Delete hone par sidebar real-time me update hoga!
+    if (msg && msg.type === 'MESSAGE_DELETED') {
+      if (msg.roomId && String(msg.roomId).startsWith('GROUP_')) {
+        const groupIndex = this.groups.findIndex(g => g.id === String(msg.roomId));
+        if (groupIndex !== -1) {
+          this.syncGroupStatus(this.groups[groupIndex]); // Group ka last message refresh karo
+        }
+      } else {
+        const uIndex = this.users.findIndex(u => String(u.roomId) === String(msg.roomId));
+        if (uIndex !== -1) {
+          this.syncUserStatus(this.users[uIndex]); // 1-on-1 chat ka last message refresh karo
+        }
+      }
       return; 
     }
 
@@ -316,7 +317,7 @@ export class SidebarComponent implements OnInit {
               ? 'You created this group.' 
               : 'You were added to this group.';
         } else {
-          this.groups[groupIndex].lastMessage = this.getMediaLabel(msg); // NAYA FIX
+          this.groups[groupIndex].lastMessage = this.getMediaLabel(msg); 
         }
 
         const updatedGroup = { ...this.groups[groupIndex] };
@@ -360,23 +361,19 @@ export class SidebarComponent implements OnInit {
     }
   }
 
-  // --- NAYA SORTING LOGIC (GROUPS KE LIYE) ---
   sortGroupsByTime() {
     const pinnedRooms = typeof window !== 'undefined' ? localStorage.getItem('pinnedRooms') || '' : '';
 
     this.groups.sort((a, b) => {
-      // Group ki ID pehle se hi 'GROUP_12' format me aati hai
       const aRoomId = a.id; 
       const bRoomId = b.id;
 
       const isAPinned = aRoomId && pinnedRooms.includes(`,${aRoomId},`);
       const isBPinned = bRoomId && pinnedRooms.includes(`,${bRoomId},`);
 
-      // Priority 1: Pinned group hamesha upar rahega
       if (isAPinned && !isBPinned) return -1;
       if (!isAPinned && isBPinned) return 1;
 
-      // Priority 2: Puran Time-based sorting
       const timeA = a.lastMessageTime ? new Date(a.lastMessageTime).getTime() : 0;
       const timeB = b.lastMessageTime ? new Date(b.lastMessageTime).getTime() : 0;
       return timeB - timeA; 
@@ -479,7 +476,6 @@ export class SidebarComponent implements OnInit {
     this.http.get<any[]>('http://localhost:8080/api/users', { headers }).subscribe({
       next: (data) => {
         this.users = data.filter(user => !user.username.startsWith(loggedInUser)).map(user => {
-          // NAYA: Deleted user detect karein aur naam clean karein
           if (user.username && user.username.includes('_DELETED_')) {
             user.isDeleted = true;
             user.username = user.username.split('_DELETED_')[0];
@@ -513,6 +509,9 @@ export class SidebarComponent implements OnInit {
             user.lastMessageTime = validTime;
             const unread = history.filter((m: any) => Number(m.senderId) !== Number(this.currentUserId) && !m.seen).length;
             user.unreadCount = unread;
+          } else {
+            // 🛑 NAYA FIX: Empty array milne par Loading hataye
+            user.lastMessage = 'Click to start chatting... 🚀';
           }
           this.sortUsersByTime();
           this.cdr.detectChanges();
@@ -521,23 +520,19 @@ export class SidebarComponent implements OnInit {
     });
   }
 
-  // --- NAYA SORTING LOGIC (1-ON-1 CHATS KE LIYE) ---
   sortUsersByTime() {
     const pinnedRooms = typeof window !== 'undefined' ? localStorage.getItem('pinnedRooms') || '' : '';
 
     this.users.sort((a, b) => {
-      // User array me room ID nikalna
       const aRoomId = a.roomId; 
       const bRoomId = b.roomId;
 
       const isAPinned = aRoomId && pinnedRooms.includes(`,${aRoomId},`);
       const isBPinned = bRoomId && pinnedRooms.includes(`,${bRoomId},`);
 
-      // Priority 1: Agar A pinned hai, toh A hamesha upar rahega
       if (isAPinned && !isBPinned) return -1;
       if (!isAPinned && isBPinned) return 1;
 
-      // Priority 2: Puran Time-based sorting (Ye kabhi kharab nahi hoga)
       const timeA = a.lastMessageTime ? new Date(a.lastMessageTime).getTime() : 0;
       const timeB = b.lastMessageTime ? new Date(b.lastMessageTime).getTime() : 0;
       return timeB - timeA; 
@@ -595,28 +590,20 @@ export class SidebarComponent implements OnInit {
 
   logout() {
     if (confirm("Are you sure you want to logout?")) {
-      // 1. Chat server se connection close karein
       this.chatService.disconnect();
-      
-      // 2. Saara local data aur tokens delete karein
       localStorage.clear();
-      
-      // 3. User ko smoothly Login page par bhej dein
       this.router.navigate(['/login']); 
     }
   }
 
   selectSettingMenu(menuName: string) {
     this.activeSetting = menuName;
-    this.chatService.setActiveSetting(menuName); // NAYA: Service ko batana
+    this.chatService.setActiveSetting(menuName); 
   }
 
-  // HTML mein icon dikhane ke liye helper
   isRoomPinned(item: any): boolean {
     const pinnedRooms = typeof window !== 'undefined' ? localStorage.getItem('pinnedRooms') || '' : '';
     const roomId = item.isGroup ? item.id : item.roomId;
     return roomId && pinnedRooms.includes(`,${roomId},`);
   }
-
-  
 }
