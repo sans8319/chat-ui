@@ -50,10 +50,8 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   allCountryCodes = COUNTRY_CODES;
   isCountryDropdownOpen = false;
   countrySearchQuery = '';
+  contextMenu = { show: false, x: 0, y: 0, member: null as any };
 
-// =====================================
-  // NAYA: Profile Panel State & Media Drilldown
-  // =====================================
   showProfilePanel: boolean = false;
   
   // Naye variables tabs ke liye
@@ -259,6 +257,9 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
     if (!target.closest('.custom-dropdown-container')) {
       this.isCountryDropdownOpen = false;
     }
+
+    this.closeContextMenu();
+
   }
 
   onPhoneInput(value: string) {
@@ -593,9 +594,7 @@ async saveStatus() {
       });
   }
 
-  // =====================================
-  // DELETE ACCOUNT LOGIC
-  // =====================================
+
   openDeleteAccountModal() {
     this.showDeleteAccountModal = true;
   }
@@ -708,6 +707,17 @@ async saveStatus() {
     if (this.roomSubscription) this.roomSubscription.unsubscribe();
     this.roomSubscription = this.chatService.getMessages().subscribe(msg => {
       if (msg && String(msg.roomId) === String(this.currentRoomId)) {
+
+        // 🛑 NAYA MAGIC: Realtime Admin Badge Update (Bina refresh kiye dusre users ke panel me update hoga)
+        if (msg.type === 'ADMIN_PROMOTED') {
+           this.ngZone.run(() => {
+             const member = this.groupMembers.find(m => m.id === Number(msg.userId));
+             if (member) member.isAdmin = true; // Turant Badge laga do!
+             this.cdr.detectChanges();
+           });
+           return; // Isko chat message ki tarah aage mat badhne do
+        }
+        
         if (msg.senderName === 'System' || msg.content === 'You were added to this group.' || msg.content === '###GROUP_CREATED###') {
             msg.isSystem = true; 
             msg.content = Number(msg.senderId) === Number(this.currentUserId) ? "You created this group." : "You were added to this group.";
@@ -954,6 +964,41 @@ async saveStatus() {
            alert("Failed to add members");
            this.isAddingMembers = false;
          }
+      });
+  }
+
+  onMemberRightClick(event: MouseEvent, member: any) {
+    event.preventDefault(); // Browser ka default right-click menu band karega
+    
+    // Sirf Admin hi right click kar sakta hai, aur doosra banda pehle se admin nahi hona chahiye
+    if (!this.isCurrentUserAdmin || member.isAdmin) return; 
+
+    this.contextMenu = {
+      show: true,
+      x: event.clientX,
+      y: event.clientY,
+      member: member
+    };
+  }
+
+  closeContextMenu() {
+    this.contextMenu.show = false;
+  }
+
+  makeAdmin() {
+    if (!this.contextMenu.member) return;
+    const memberId = this.contextMenu.member.id;
+    const groupId = this.selectedUser.originalId || this.selectedUser.id;
+    this.closeContextMenu(); // Menu turant band kardo
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+    // Backend ko signal bhejo admin banane ke liye
+    this.http.post(`http://localhost:8080/api/groups/${groupId}/make-admin/${memberId}`, {}, { headers })
+      .subscribe({
+         next: () => { console.log('Admin request sent'); },
+         error: () => { alert('Failed to make admin'); }
       });
   }
 

@@ -185,7 +185,7 @@
                 </button>
               </div>
               <div class="members-list">
-                <div class="member-item" *ngFor="let member of groupMembers">
+                <div class="member-item" *ngFor="let member of groupMembers" (contextmenu)="onMemberRightClick($event, member)">
                   <div class="member-avatar-sm" [ngClass]="parseProfilePicture(member.profilePicture).bg">
                     <img *ngIf="parseProfilePicture(member.profilePicture).isImage" [src]="parseProfilePicture(member.profilePicture).url">
                     <span *ngIf="!parseProfilePicture(member.profilePicture).isImage">{{ member.username.charAt(0).toUpperCase() }}</span>
@@ -800,4 +800,14 @@
       </button>
     </div>
   </div>
+</div>
+
+<!-- 🛑 NAYA: Right Click Context Menu (Make Admin) -->
+<div class="custom-context-menu" 
+     *ngIf="contextMenu.show" 
+     [style.left.px]="contextMenu.x" 
+     [style.top.px]="contextMenu.y"
+     (click)="makeAdmin()">
+  <i class="bi bi-shield-check" style="color: #6366f1; font-size: 16px;"></i> 
+  <span>Make Group Admin</span>
 </div>

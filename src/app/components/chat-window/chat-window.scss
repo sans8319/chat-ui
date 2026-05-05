@@ -1396,3 +1396,13 @@
   }
 }
 @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.custom-context-menu {
+  position: fixed; background: white; border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 8px;
+  padding: 12px 18px; display: flex; align-items: center; gap: 10px;
+  font-size: 14px; font-weight: 600; color: #0f172a; cursor: pointer;
+  z-index: 10000; transition: background 0.2s;
+  
+  &:hover { background: #f8fafc; color: #6366f1; }
+}
