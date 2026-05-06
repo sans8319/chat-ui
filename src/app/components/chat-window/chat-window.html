@@ -58,6 +58,17 @@
                 </div>
                 <div class="message-wrapper" *ngIf="!msg.isSystem" [ngClass]="msg.senderId === currentUserId ? 'sent' : 'received'">
                   <div class="bubble" [class.has-media]="msg.fileUrl">
+                    <!-- NAYA: CHAT BUBBLE KE ANDAR REPLY PREVIEW -->
+                    <div class="replied-msg-block" *ngIf="msg.replyTo">
+                      <div class="reply-left-border"></div>
+                      <div class="reply-content-box">
+                        <span class="reply-name">{{ msg.replyTo.senderName === profileData.name ? 'You' : (msg.replyTo.senderName || 'User') }}</span>
+                        <span class="reply-text">
+                          <i class="bi bi-image" *ngIf="msg.replyTo.fileUrl"></i>
+                          {{ msg.replyTo.content || 'Photo/Media' }}
+                        </span>
+                      </div>
+                    </div>
                     <div class="msg-dropdown-container" *ngIf="!msg.isDeleted">
                       <div class="msg-dropdown-btn" 
                           [class.active-btn]="activeMessageDropdown === msg.id" 

@@ -12,6 +12,7 @@ import { ChatService } from '../../services/chat';
   styleUrl: './chat-input.scss'
 })
 export class ChatInputComponent {
+  readonly String = String;
   @Input() roomId: string | null = null; 
   messageText: string = '';
 
@@ -26,15 +27,29 @@ export class ChatInputComponent {
   showAttachmentMenu = false;
   @ViewChild('fileInput') fileInput!: ElementRef;
 
+  replyToMessage: any = null;
+  currentUserIdStr: string | null = null;
+
   constructor(
     private chatService: ChatService,
     private http: HttpClient,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
-  // =====================================
-  // NAYA: ATTACHMENT MENU LOGIC
-  // =====================================
+  ngOnInit() {
+    this.currentUserIdStr = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+    
+    // Service se reply message suno
+    this.chatService.replyMessage$.subscribe(msg => {
+      this.replyToMessage = msg;
+    });
+  }
+
+  cancelReply() {
+    this.chatService.clearReplyMessage();
+  }
+
+  
   toggleAttachmentMenu() {
     this.showAttachmentMenu = !this.showAttachmentMenu;
   }
@@ -213,7 +228,16 @@ export class ChatInputComponent {
         const messagePayload: any = {
           content: this.messageText.trim(),
           sender: { id: Number(currentUserId) },
-          roomId: validRoomId
+          roomId: validRoomId,
+
+          replyTo: this.replyToMessage ? {
+             id: this.replyToMessage.id,
+             senderName: this.replyToMessage.senderName || this.replyToMessage.senderUsername || 'User',
+             senderId: this.replyToMessage.senderId,
+             content: this.replyToMessage.content,
+             fileUrl: this.replyToMessage.fileUrl,
+             fileType: this.replyToMessage.fileType
+          } : null
         };
 
         if (!validRoomId.startsWith('GROUP_')) {
@@ -227,6 +251,7 @@ export class ChatInputComponent {
       this.selectedFiles = [];
       this.isUploading = false;
       this.chatService.triggerCloseProfilePanel();
+      this.chatService.clearReplyMessage();
 
     } catch (error) {
       console.error("File upload failed", error);

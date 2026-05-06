@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Client, Message } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Subject } from 'rxjs';
+
 
 @Injectable({
   providedIn: 'root'
@@ -35,6 +35,9 @@ export class ChatService {
 
   private closeProfilePanelSource = new Subject<void>();
   closeProfilePanel$ = this.closeProfilePanelSource.asObservable();
+
+  private replyMessageSource = new BehaviorSubject<any>(null);
+  replyMessage$ = this.replyMessageSource.asObservable();
 
   triggerCloseProfilePanel() {
     this.closeProfilePanelSource.next();
@@ -235,5 +238,13 @@ export class ChatService {
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
     
     return this.http.put(`http://localhost:8080/api/messages/${messageId}/soft-delete?roomId=${roomId}`, {}, { headers });
+  }
+
+  setReplyMessage(msg: any) {
+    this.replyMessageSource.next(msg);
+  }
+
+  clearReplyMessage() {
+    this.replyMessageSource.next(null);
   }
 }

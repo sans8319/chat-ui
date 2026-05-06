@@ -32,6 +32,26 @@
   </div>
 
   <div class="input-container">
+    
+    <!-- 🛑 NAYA FIX: Reply Preview ko input-wrapper se bahar nikal diya -->
+    <div class="reply-preview-container" *ngIf="replyToMessage" style="margin-bottom: 8px;">
+      <div class="reply-left-border"></div>
+      <div class="reply-content-box">
+        <div class="reply-header">
+          <span class="reply-name">{{ String(replyToMessage.senderId) === currentUserIdStr ? 'You' : (replyToMessage.senderName || replyToMessage.senderUsername || 'User') }}</span>
+          <i class="bi bi-x close-reply" (click)="cancelReply()"></i>
+        </div>
+        <div class="reply-text">
+          <i class="bi bi-image" *ngIf="replyToMessage.fileUrl"></i>
+          {{ replyToMessage.isDeleted ? 'This message is deleted' : (replyToMessage.content || 'Photo/Media') }}
+        </div>
+      </div>
+      <div class="reply-image-preview" *ngIf="replyToMessage.fileUrl && replyToMessage.fileType?.startsWith('image/')">
+        <img [src]="'http://localhost:8080' + replyToMessage.fileUrl" alt="preview">
+      </div>
+    </div>
+
+    <!-- MAIN INPUT FIELD AREA -->
     <div class="input-wrapper">
       
       <div class="attachment-container">
@@ -51,7 +71,7 @@
         </div>
       </div>
       <input type="file" #fileInput multiple style="display: none" (change)="onFileSelected($event)">
-
+      
       <textarea 
         [(ngModel)]="messageText" 
         (keydown)="onKeyDown($event)"

@@ -18,6 +18,7 @@ import { LinkifyPipe } from '../../pipes/linkify-pipe';
   styleUrl: './chat-window.scss'
 })
 export class ChatWindowComponent implements OnInit, OnDestroy {
+  readonly String = String;
   messages: any[] = [];
   currentUserId: number | null = null;
   selectedUser: any = null; 
@@ -1085,6 +1086,10 @@ async saveStatus() {
         this.activeMessageDropdown = null;
         break;
        case 'reply':
+        // NAYA: Service ko message bhej do taaki input box usko catch kar le
+        this.chatService.setReplyMessage(msg);
+        this.activeMessageDropdown = null;
+        break;
        case 'forward':
           this.msgToForward = msg;
           this.activeMessageDropdown = null; // Dropdown chupao
