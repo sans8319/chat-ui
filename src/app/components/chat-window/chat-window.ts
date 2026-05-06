@@ -74,6 +74,12 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   roomDocs: any[] = [];
   groupMembers: any[] = []; 
 
+  isChatSearchActive: boolean = false;
+  chatSearchQuery: string = '';
+  searchMatches: number[] = [];
+  currentMatchIndex: number = -1;
+  hasSearched: boolean = false;
+
   toggleProfilePanel() {
     this.showProfilePanel = !this.showProfilePanel;
     if (!this.showProfilePanel) {
@@ -1291,6 +1297,80 @@ async saveStatus() {
       setTimeout(() => {
         targetElement.classList.remove('highlight-msg');
       }, 1500);
+    }
+  }
+
+  toggleChatSearch() {
+    this.isChatSearchActive = true;
+    setTimeout(() => {
+      const input = document.querySelector('.search-input-box input') as HTMLInputElement;
+      if (input) input.focus();
+    }, 100);
+  }
+
+  closeChatSearch() {
+    this.isChatSearchActive = false;
+    this.chatSearchQuery = '';
+    this.searchMatches = [];
+    this.currentMatchIndex = -1;
+    this.hasSearched = false;
+  }
+
+  onSearchTyping() {
+    // Agar input khaali kar diya toh clear kar do
+    if (!this.chatSearchQuery.trim()) {
+       this.searchMatches = [];
+       this.currentMatchIndex = -1;
+       this.hasSearched = false;
+    }
+  }
+
+  executeChatSearch() {
+    if (!this.chatSearchQuery.trim()) return;
+    
+    // Case-insensitive aur exact spacing (substring) match
+    const query = this.chatSearchQuery.toLowerCase();
+    
+    // Array me unhi messages ko dhoondho jo deleted nahi hain
+    this.searchMatches = this.messages
+      .filter(m => !m.isSystem && !m.isDeleted && m.content && m.content.toLowerCase().includes(query))
+      .map(m => m.id);
+
+    this.hasSearched = true;
+
+    if (this.searchMatches.length > 0) {
+      // By default sabse recent message par focus karo (array me sabse aakhiri)
+      this.currentMatchIndex = this.searchMatches.length - 1;
+      this.scrollToCurrentMatch();
+    } else {
+      this.currentMatchIndex = -1;
+    }
+  }
+
+  navigateChatSearch(direction: 'up' | 'down') {
+    if (this.searchMatches.length === 0) return;
+
+    if (direction === 'up') {
+      // 'up' matlab purane messages (array me peeche jana)
+      this.currentMatchIndex--;
+      if (this.currentMatchIndex < 0) {
+        this.currentMatchIndex = this.searchMatches.length - 1; // Cycle loop
+      }
+    } else {
+      // 'down' matlab naye messages (array me aage jana)
+      this.currentMatchIndex++;
+      if (this.currentMatchIndex >= this.searchMatches.length) {
+        this.currentMatchIndex = 0; // Cycle loop
+      }
+    }
+    this.scrollToCurrentMatch();
+  }
+
+  scrollToCurrentMatch() {
+    const msgId = this.searchMatches[this.currentMatchIndex];
+    if (msgId) {
+      // Aapka purana scroll & highlight function reuse kar rahe hain!
+      this.scrollToMessage(msgId);
     }
   }
 

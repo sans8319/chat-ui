@@ -46,7 +46,37 @@
                 </div>
               </div>
               <div class="header-actions">
-                <i class="bi bi-search"></i>
+                <!-- 🛑 NAYA: Expanding Search Box -->
+                <div class="chat-search-wrapper" [class.active]="isChatSearchActive">
+                  
+                  <!-- Normal Search Icon -->
+                  <i class="bi bi-search search-trigger" (click)="toggleChatSearch()" *ngIf="!isChatSearchActive" title="Search in chat"></i>
+                  
+                  <!-- Expanded Search Input Box -->
+                  <div class="search-input-box" *ngIf="isChatSearchActive">
+                    <i class="bi bi-search inner-icon" (click)="executeChatSearch()"></i>
+                    <input type="text" 
+                           [(ngModel)]="chatSearchQuery" 
+                           (keyup.enter)="executeChatSearch()"
+                           (ngModelChange)="onSearchTyping()"
+                           placeholder="Search in chat...">
+                    
+                    <!-- Up/Down Controls (Agar matches mile toh) -->
+                    <div class="search-nav" *ngIf="searchMatches.length > 0">
+                      <span class="match-count">{{ currentMatchIndex + 1 }} of {{ searchMatches.length }}</span>
+                      <i class="bi bi-chevron-up nav-btn" (click)="navigateChatSearch('up')" title="Older"></i>
+                      <i class="bi bi-chevron-down nav-btn" (click)="navigateChatSearch('down')" title="Newer"></i>
+                    </div>
+                    
+                    <!-- No Match Message -->
+                    <div class="search-nav" *ngIf="chatSearchQuery && searchMatches.length === 0 && hasSearched">
+                      <span class="match-count no-match">0 / 0</span>
+                    </div>
+
+                    <i class="bi bi-x-lg close-search" (click)="closeChatSearch()"></i>
+                  </div>
+                </div>
+
                 <i class="bi bi-three-dots-vertical"></i>
               </div>
             </header>

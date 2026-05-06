@@ -1865,3 +1865,103 @@
     transform: scale(1.05);
   }
 }
+
+
+// =====================================
+// 🛑 NAYA: EXPANDING CHAT SEARCH UI
+// =====================================
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  
+  .chat-search-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; // Right to left animation ke liye
+    height: 38px;
+    
+    .search-trigger {
+      color: #64748b;
+      font-size: 20px;
+      cursor: pointer;
+      transition: 0.2s;
+      &:hover { color: #0f172a; transform: scale(1.1); }
+    }
+
+    .search-input-box {
+      display: flex;
+      align-items: center;
+      background: #f1f5f9;
+      border-radius: 20px; // Premium Pill Shape
+      padding: 6px 14px;
+      height: 100%;
+      box-sizing: border-box;
+      border: 1px solid #e2e8f0;
+      overflow: hidden;
+      
+      // Right se Left expand hone ka makkhan animation
+      animation: expandSearchLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+      .inner-icon {
+        color: #94a3b8;
+        font-size: 14px;
+        margin-right: 10px;
+        cursor: pointer;
+        &:hover { color: #6366f1; }
+      }
+
+      input {
+        flex: 1;
+        width: 150px; // Base width
+        border: none;
+        background: transparent;
+        outline: none;
+        font-size: 14px;
+        color: #0f172a;
+        &::placeholder { color: #94a3b8; }
+      }
+
+      .search-nav {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-right: 10px;
+        border-right: 1px solid #cbd5e1;
+        padding-right: 12px;
+
+        .match-count {
+          font-size: 12px;
+          color: #64748b;
+          font-weight: 600;
+          min-width: 35px;
+          text-align: center;
+          &.no-match { color: #ef4444; }
+        }
+
+        .nav-btn {
+          color: #64748b;
+          font-size: 14px;
+          cursor: pointer;
+          transition: 0.2s;
+          padding: 2px 4px;
+          border-radius: 4px;
+          &:hover { color: #6366f1; background: #e0e7ff; transform: scale(1.1); }
+        }
+      }
+
+      .close-search {
+        color: #64748b;
+        font-size: 16px;
+        cursor: pointer;
+        transition: 0.2s;
+        &:hover { color: #ef4444; transform: rotate(90deg); }
+      }
+    }
+  }
+}
+
+@keyframes expandSearchLeft {
+  from { width: 0px; opacity: 0; padding: 6px 0px; }
+  to { width: 330px; opacity: 1; padding: 6px 14px; }
+}
