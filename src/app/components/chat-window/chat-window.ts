@@ -764,6 +764,15 @@ async saveStatus() {
            return; 
         }
 
+        if (msg.type === 'MEMBER_REMOVED') {
+           this.ngZone.run(() => {
+             // Deleted user ko array se hata do
+             this.groupMembers = this.groupMembers.filter(m => m.id !== Number(msg.userId));
+             this.cdr.detectChanges(); // UI Update
+           });
+           return; 
+        }
+
         if (msg.senderName === 'System' || msg.content === 'You were added to this group.' || msg.content === '###GROUP_CREATED###') {
             msg.isSystem = true; 
             msg.content = Number(msg.senderId) === Number(this.currentUserId) ? "You created this group." : "You were added to this group.";
