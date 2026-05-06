@@ -30,6 +30,10 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
 
   lastClearedMessageId: { [roomId: string]: number } = {};
 
+  isGroupSettingsExpanded: boolean = false;
+  selectedGroupPermission: string = 'Everyone';
+  isApplyingSettings: boolean = false;
+
   currentTab: 'chats' | 'groups' | 'profile' = 'chats';
   profileData = {
     name: '',
@@ -85,6 +89,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
     if (!this.showProfilePanel) {
       this.activePanelState = 'main';
     } else if (this.selectedUser?.isGroup) {
+      this.selectedGroupPermission = this.selectedUser.permissions === 'Admins' ? 'Admins' : 'Everyone';
       const groupId = this.selectedUser.originalId || this.selectedUser.id;
       
       this.chatService.getGroupMembers(groupId).subscribe(members => {
@@ -401,6 +406,11 @@ async saveStatus() {
         } else if (selection.isGroup) {
           this.currentRoomId = selection.id; 
           this.chatService.subscribeToRoom(this.currentRoomId!); 
+
+          this.chatService.getGroupMembers(selection.id).subscribe(members => {
+            this.groupMembers = members;
+            this.cdr.detectChanges();
+          });
 
           this.chatService.getChatHistory(this.currentRoomId!).subscribe(history => {
             this.messages = history.map(msg => {
@@ -766,6 +776,17 @@ async saveStatus() {
              this.roomLinks = this.roomLinks.filter(l => l.id !== Number(msg.messageId));
 
              this.cdr.detectChanges();
+           });
+           return; 
+        }
+
+        if (msg.type === 'GROUP_SETTINGS_UPDATED') {
+           this.ngZone.run(() => {
+             if (this.selectedUser && this.selectedUser.isGroup && String(this.selectedUser.id) === String(msg.groupId)) {
+               this.selectedUser.permissions = msg.permissions;
+               this.selectedGroupPermission = msg.permissions; // Dropdown ko bhi live update karo
+               this.cdr.detectChanges(); // UI aur Input Box live hide/show hoga!
+             }
            });
            return; 
         }
@@ -1385,5 +1406,53 @@ async saveStatus() {
     }
   }
 
+
+  get canSendMessage(): boolean {
+    if (!this.selectedUser) return false;
+    
+    // 1-on-1 Chat: Sirf tabhi allow karo jab user delete na hua ho
+    if (!this.selectedUser.isGroup) {
+      return !this.selectedUser.isDeleted;
+    }
+    
+    // Group Chat: Permissions check karo
+    const perms = this.selectedUser.permissions || '';
+    if (perms.toLowerCase().includes('admin')) {
+      return this.isCurrentUserAdmin;
+    }
+    
+    return true; // Everyone can send
+  }
+
+  get showAdminRestrictedFooter(): boolean {
+    if (!this.selectedUser || !this.selectedUser.isGroup) return false;
+    
+    const perms = this.selectedUser.permissions || '';
+    if (perms.toLowerCase().includes('admin') && !this.isCurrentUserAdmin) {
+      return true;
+    }
+    return false;
+  }
+
+  applyGroupSettings() {
+    if (!this.selectedUser?.isGroup || !this.currentUserId) return;
+    this.isApplyingSettings = true;
+    
+    const groupId = this.selectedUser.originalId || this.selectedUser.id;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+    this.http.put(`http://localhost:8080/api/groups/${groupId}/permissions`, { permissions: this.selectedGroupPermission }, { headers })
+      .subscribe({
+        next: () => {
+          this.isApplyingSettings = false;
+          this.isGroupSettingsExpanded = false; // Setting apply hote hi panel band kar do
+        },
+        error: () => {
+          this.isApplyingSettings = false;
+          alert('Failed to update group settings');
+        }
+      });
+  }
 
 }

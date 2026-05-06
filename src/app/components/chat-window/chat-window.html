@@ -167,14 +167,19 @@
               <span class="badge" *ngIf="newMessagesCount > 0">{{ newMessagesCount }}</span>↓
             </button>
 
-            <!-- NORMAL INPUT AREA (Agar group hai ya user delete nahi hua hai) -->
-            <div class="input-area" *ngIf="selectedUser.isGroup || !selectedUser.isDeleted">
+            <!-- 🛑 NORMAL INPUT AREA (DM non-deleted, OR Group 'Everyone', OR Group 'Admin Only' jiska ye Admin hai) -->
+            <div class="input-area" *ngIf="canSendMessage">
               <app-chat-input [roomId]="currentRoomId"></app-chat-input>
             </div>
 
-            <!-- NAYA: DELETED USER FOOTER (Jab user delete ho chuka ho) -->
+            <!-- DELETED USER FOOTER (Jab 1-on-1 user delete ho chuka ho) -->
             <div class="deleted-user-footer" *ngIf="!selectedUser.isGroup && selectedUser.isDeleted">
               <i class="bi bi-ban"></i> You cannot reply to this conversation because the user's account has been deleted.
+            </div>
+
+            <!-- 🛑 NAYA: RESTRICTED GROUP FOOTER (Jab Admins Only ho aur current user admin na ho) -->
+            <div class="restricted-group-footer" *ngIf="showAdminRestrictedFooter">
+              <i class="bi bi-shield-lock-fill"></i> Only admins can send messages in this group.
             </div>
           </ng-container>
 
@@ -306,6 +311,39 @@
             </div>
 
             <div class="panel-divider"></div>
+
+            <ng-container *ngIf="selectedUser.isGroup && isCurrentUserAdmin">
+              <div class="panel-settings-section">
+                
+                <!-- Header / Toggle -->
+                <div class="settings-header" (click)="isGroupSettingsExpanded = !isGroupSettingsExpanded">
+                  <div class="s-title"><i class="bi bi-gear-fill"></i> Group Settings</div>
+                  <i class="bi" [ngClass]="isGroupSettingsExpanded ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                </div>
+                
+                <!-- Expanding Body -->
+                <div class="settings-body" *ngIf="isGroupSettingsExpanded">
+                  <div class="setting-row">
+                    <label>Who can send messages?</label>
+                    <div class="custom-select-wrapper">
+                      <select [(ngModel)]="selectedGroupPermission" class="premium-select">
+                        <option value="Everyone">Everyone</option>
+                        <option value="Admins">Only Admins</option>
+                      </select>
+                      <i class="bi bi-chevron-down select-arrow"></i>
+                    </div>
+                  </div>
+                  
+                  <div class="setting-action-row">
+                    <button class="btn-apply-settings" (click)="applyGroupSettings()" [disabled]="isApplyingSettings || selectedGroupPermission === selectedUser.permissions">
+                      {{ isApplyingSettings ? 'Applying...' : 'Apply Settings' }}
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+              <div class="panel-divider"></div>
+            </ng-container>
 
             <div class="panel-actions-section">
               <div class="action-item" (click)="togglePin()">
