@@ -1328,18 +1328,29 @@ async saveStatus() {
   executeChatSearch() {
     if (!this.chatSearchQuery.trim()) return;
     
-    // Case-insensitive aur exact spacing (substring) match
     const query = this.chatSearchQuery.toLowerCase();
     
-    // Array me unhi messages ko dhoondho jo deleted nahi hain
+    // 🛑 NAYA LOGIC: Ab ye text aur document/file ka naam DONO mein search karega
     this.searchMatches = this.messages
-      .filter(m => !m.isSystem && !m.isDeleted && m.content && m.content.toLowerCase().includes(query))
+      .filter(m => {
+        // System ya deleted messages ko ignore karo
+        if (m.isSystem || m.isDeleted) return false;
+        
+        // Text me check karo (agar text hai toh)
+        const contentMatch = m.content ? m.content.toLowerCase().includes(query) : false;
+        
+        // File Name me check karo (agar file hai toh)
+        const fileNameMatch = m.fileName ? m.fileName.toLowerCase().includes(query) : false;
+        
+        // Agar dono mein se kisi me bhi match mil gaya, toh usko list me daal lo!
+        return contentMatch || fileNameMatch;
+      })
       .map(m => m.id);
 
     this.hasSearched = true;
 
     if (this.searchMatches.length > 0) {
-      // By default sabse recent message par focus karo (array me sabse aakhiri)
+      // By default sabse recent message par focus karo
       this.currentMatchIndex = this.searchMatches.length - 1;
       this.scrollToCurrentMatch();
     } else {
