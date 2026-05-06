@@ -1769,3 +1769,25 @@
     animation: highlight-pulse-sent 1.5s ease-out forwards;
   }
 }
+
+// =====================================
+// NAYA: DELETED USER CHAT FOOTER
+// =====================================
+.deleted-user-footer {
+  padding: 20px 24px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  color: #64748b;
+  font-size: 14.5px;
+  font-weight: 500;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  i {
+    font-size: 18px;
+    color: #ef4444; /* Red color ban icon ke liye */
+  }
+}

@@ -137,8 +137,14 @@
               <span class="badge" *ngIf="newMessagesCount > 0">{{ newMessagesCount }}</span>↓
             </button>
 
-            <div class="input-area">
+            <!-- NORMAL INPUT AREA (Agar group hai ya user delete nahi hua hai) -->
+            <div class="input-area" *ngIf="selectedUser.isGroup || !selectedUser.isDeleted">
               <app-chat-input [roomId]="currentRoomId"></app-chat-input>
+            </div>
+
+            <!-- NAYA: DELETED USER FOOTER (Jab user delete ho chuka ho) -->
+            <div class="deleted-user-footer" *ngIf="!selectedUser.isGroup && selectedUser.isDeleted">
+              <i class="bi bi-ban"></i> You cannot reply to this conversation because the user's account has been deleted.
             </div>
           </ng-container>
 
