@@ -1265,4 +1265,25 @@ async saveStatus() {
   }
 
 
+  scrollToMessage(msgId: number) {
+    if (!msgId) return;
+    
+    // HTML element ko ID se dhoondho
+    const targetElement = document.getElementById('msg-' + msgId);
+    
+    if (targetElement) {
+      // Smooth scroll karke element ko screen ke beech me lao
+      targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Premium feel: Highlight animation lagao
+      targetElement.classList.add('highlight-msg');
+      
+      // 1.5 second baad highlight hata do
+      setTimeout(() => {
+        targetElement.classList.remove('highlight-msg');
+      }, 1500);
+    }
+  }
+
+
 }

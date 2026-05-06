@@ -1723,3 +1723,49 @@
   margin: 4px 0 8px 0;
   border-radius: 6px;
 }
+
+// =====================================
+// 🛑 FIX: RECEIVED BUBBLE REPLY COLORS
+// =====================================
+.received .bubble .replied-msg-block {
+  background: rgba(255, 255, 255, 0.15); /* Light transparent background */
+  
+  .reply-left-border {
+    background: #ffffff; /* Purple ki jagah White border */
+  }
+
+  .reply-name {
+    color: #ffffff; /* Bright white name */
+    font-weight: 700;
+  }
+
+  .reply-text {
+    color: rgba(255, 255, 255, 0.9); /* Easy to read white text */
+  }
+
+  .close-reply {
+    color: rgba(255, 255, 255, 0.7);
+  }
+}
+
+// =====================================
+// NAYA: CLICK TO SCROLL HIGHLIGHT ANIMATION
+// =====================================
+@keyframes highlight-pulse-received {
+  0% { background: #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); transform: scale(1.02); }
+  100% { background: #5a97e2; box-shadow: none; transform: scale(1); }
+}
+
+@keyframes highlight-pulse-sent {
+  0% { background: #e0e7ff; box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); transform: scale(1.02); }
+  100% { background: white; box-shadow: none; transform: scale(1); }
+}
+
+.message-wrapper.highlight-msg {
+  &.received .bubble {
+    animation: highlight-pulse-received 1.5s ease-out forwards;
+  }
+  &.sent .bubble {
+    animation: highlight-pulse-sent 1.5s ease-out forwards;
+  }
+}
