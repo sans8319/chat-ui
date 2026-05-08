@@ -247,4 +247,13 @@ export class ChatService {
   clearReplyMessage() {
     this.replyMessageSource.next(null);
   }
+  
+  // 🛑 NAYA: Pin/Unpin message API call
+  toggleMessagePin(messageId: number, roomId: string) {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    
+    return this.http.put(`http://localhost:8080/api/messages/${messageId}/pin?roomId=${roomId}`, {}, { headers });
+  }
+
 }

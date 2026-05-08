@@ -114,6 +114,12 @@ export class SidebarComponent implements OnInit {
 
     this.chatService.sidebarUpdate$.subscribe(msg => {
       if (msg) {
+        // 🛑 MAGIC FIX: Ignore background signals (jaise pin, unpin, settings update)
+        // Agar message mein 'type' hai, toh sidebar ko lagne do ki koi naya chat nahi aaya hai
+        if (msg.type) {
+          return; 
+        }
+        
         this.updateSidebarUI(msg);
       }
     });

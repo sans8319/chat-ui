@@ -283,7 +283,8 @@
       }
 
       .message-meta {
-        position: absolute; bottom: 4px; right: 8px; display: flex; align-items: center; gap: 4px;
+        position: absolute; bottom: 4px; right: 8px; 
+        display: flex; align-items: center; justify-content: flex-end; gap: 5px; /* 🛑 Yahan align aur gap theek kiya hai */
         
         .timestamp { font-size: 11px; font-weight: 500; }
 
@@ -2104,4 +2105,129 @@
 @keyframes slideDownFade {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+
+// =====================================
+// 🛑 NAYA: PINNED MESSAGES PREMIUM UI
+// =====================================
+.pinned-messages-wrapper {
+  position: absolute;
+  top: 75px; // Header ke thoda neeche sticky rahega
+  right: 24px;
+  z-index: 15;
+  display: flex;
+  justify-content: flex-end;
+
+  .pin-collapsed {
+    width: 40px;
+    height: 40px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 18px;
+    cursor: pointer;
+    border: 1px solid #e2e8f0;
+    transition: 0.2s;
+    &:hover { background: #f8fafc; color: #6366f1; transform: scale(1.05); }
+  }
+
+  .pin-expanded {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    transform-origin: right center;
+    animation: expandPinLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    min-width: 250px;
+    max-width: 400px;
+    transition: background 0.2s;
+    &:hover { background: #f8fafc; }
+
+    .pin-indicator {
+      width: 4px;
+      height: 36px;
+      background: #6366f1;
+      border-radius: 4px;
+      margin-right: 12px;
+    }
+
+    .pin-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      
+      .pin-title { font-size: 12px; font-weight: 700; color: #6366f1; }
+      .pin-text { font-size: 13px; color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; i { margin-right: 4px;} }
+    }
+
+    .pin-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 12px;
+      padding-left: 12px;
+      border-left: 1px solid #e2e8f0;
+
+      .pin-count { font-size: 12px; font-weight: 600; color: #64748b; }
+      
+      .arrows {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        
+        i {
+          font-size: 10px;
+          color: #94a3b8;
+          cursor: pointer;
+          padding: 2px;
+          background: #f1f5f9;
+          border-radius: 4px;
+          &:hover:not(.disabled) { background: #e0e7ff; color: #6366f1; }
+          &.disabled { opacity: 0.4; cursor: not-allowed; }
+        }
+      }
+    }
+
+    .close-pin {
+      color: #94a3b8;
+      font-size: 16px;
+      padding: 4px;
+      cursor: pointer;
+      transition: 0.2s;
+      &:hover { color: #ef4444; }
+    }
+  }
+}
+
+@keyframes expandPinLeft {
+  from { opacity: 0; transform: scaleX(0.5); }
+  to { opacity: 1; transform: scaleX(1); }
+}
+
+/* 🛑 NAYA: Pin Alignment & Colors */
+.msg-pinned-badge {
+  font-size: 12px;
+  margin: 0 !important; /* Purana margin hata diya */
+  display: flex;
+  align-items: center;
+}
+
+/* Sent Bubble (Light) mein Pin Purple dikhega */
+.sent .msg-pinned-badge {
+  color: #64748b;
+}
+
+/* Received Bubble (Blue/Dark) mein Pin White dikhega */
+.received .msg-pinned-badge {
+  color: rgba(255, 255, 255, 0.9);
 }

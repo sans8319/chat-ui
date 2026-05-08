@@ -84,6 +84,9 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   currentMatchIndex: number = -1;
   hasSearched: boolean = false;
 
+  isPinnedExpanded: boolean = false;
+  currentPinnedIndex: number = 0;
+
   toggleProfilePanel() {
     this.showProfilePanel = !this.showProfilePanel;
     if (!this.showProfilePanel) {
@@ -400,6 +403,8 @@ async saveStatus() {
         this.closeProfilePanel();
         this.selectedUser = selection;
         this.messages = []; 
+        this.isPinnedExpanded = false; 
+        this.currentPinnedIndex = 0;
         
         if (this.currentUserId && !selection.isGroup) {
           this.loadRoomAndHistory(this.currentUserId, selection.id);
@@ -428,6 +433,8 @@ async saveStatus() {
               // =====================================
               return {
                  ...msg,
+                 isPinned: msg.isPinned === true || msg.pinned === true || false,   // 🛑 MAGIC FIX: JSON naam ki problem solve
+                 isDeleted: msg.isDeleted === true || msg.deleted === true || false, // Deleted ko bhi safe kiya
                  fileUrl: msg.fileUrl || null,
                  fileName: msg.fileName || null,
                  fileType: msg.fileType || null,
@@ -730,7 +737,15 @@ async saveStatus() {
             if (Array.isArray(msg.timestamp)) {
                msg.timestamp = new Date(msg.timestamp[0], msg.timestamp[1] - 1, msg.timestamp[2], msg.timestamp[3], msg.timestamp[4]).toISOString();
             }
-            return msg;
+            return {
+               ...msg,
+               isPinned: msg.isPinned === true || msg.pinned === true || false,   
+               isDeleted: msg.isDeleted === true || msg.deleted === true || false, 
+               fileUrl: msg.fileUrl || null,
+               fileName: msg.fileName || null,
+               fileType: msg.fileType || null,
+               fileSize: msg.fileSize || null
+            };
           });
           this.markMessagesAsSeen();
           setTimeout(() => this.scrollToBottom(), 100);
@@ -768,6 +783,11 @@ async saveStatus() {
                 targetMsg.content = 'This message is deleted';
                 targetMsg.fileUrl = null;
                 targetMsg.fileName = null;
+                targetMsg.isPinned = false;
+             }
+
+             if (this.pinnedMessages.length === 0) {
+               this.isPinnedExpanded = false;
              }
 
              // 2. Right Profile Panel se turant files/links/docs gayab karo
@@ -775,6 +795,18 @@ async saveStatus() {
              this.roomDocs = this.roomDocs.filter(f => f.id !== Number(msg.messageId));
              this.roomLinks = this.roomLinks.filter(l => l.id !== Number(msg.messageId));
 
+             this.cdr.detectChanges();
+           });
+           return; 
+        }
+
+        if (msg.type === 'MESSAGE_PINNED') {
+           this.ngZone.run(() => {
+             const targetMsg = this.messages.find(m => m.id === Number(msg.messageId));
+             if (targetMsg) targetMsg.isPinned = msg.isPinned;
+             
+             // Agar last pinned msg unpin hua hai toh box band kardo
+             if (this.pinnedMessages.length === 0) this.isPinnedExpanded = false;
              this.cdr.detectChanges();
            });
            return; 
@@ -1132,6 +1164,10 @@ async saveStatus() {
           this.openForwardModal(); // Naya modal open karo
           break;
        case 'pin':
+         this.chatService.toggleMessagePin(msg.id, this.currentRoomId!).subscribe({
+           error: () => alert('Failed to pin/unpin message')
+         });
+         break;
        case 'delete':
          if (confirm('Delete this message for everyone?')) {
            this.chatService.softDeleteMessage(msg.id, this.currentRoomId!).subscribe({
@@ -1453,6 +1489,33 @@ async saveStatus() {
           alert('Failed to update group settings');
         }
       });
+  }
+
+  get pinnedMessages() {
+    return this.messages.filter(m => m.isPinned && !m.isDeleted);
+  }
+
+  togglePinnedView() {
+    this.isPinnedExpanded = !this.isPinnedExpanded;
+    if (this.isPinnedExpanded && this.pinnedMessages.length > 0) {
+      this.currentPinnedIndex = this.pinnedMessages.length - 1; // Khulte hi sabse latest pinned msg dikhe
+    }
+  }
+
+  navigatePinned(direction: 'up' | 'down', event: MouseEvent) {
+    event.stopPropagation();
+    if (direction === 'up' && this.currentPinnedIndex > 0) {
+      this.currentPinnedIndex--;
+    } else if (direction === 'down' && this.currentPinnedIndex < this.pinnedMessages.length - 1) {
+      this.currentPinnedIndex++;
+    }
+  }
+
+  scrollToPinned(event: MouseEvent) {
+    event.stopPropagation();
+    if (this.pinnedMessages.length > 0) {
+      this.scrollToMessage(this.pinnedMessages[this.currentPinnedIndex].id);
+    }
   }
 
 }

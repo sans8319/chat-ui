@@ -81,6 +81,37 @@
               </div>
             </header>
 
+            <div class="pinned-messages-wrapper" *ngIf="pinnedMessages.length > 0">
+              <div class="pin-collapsed" (click)="togglePinnedView()" *ngIf="!isPinnedExpanded" title="View Pinned Messages">
+                <i class="bi bi-pin-angle-fill"></i>
+              </div>
+              
+              <div class="pin-expanded" (click)="scrollToPinned($event)" *ngIf="isPinnedExpanded">
+                 <div class="pin-indicator"></div>
+                 <div class="pin-content">
+                    <span class="pin-title">Pinned Message</span>
+                    <span class="pin-text">
+                    <i class="bi" 
+                      [ngClass]="pinnedMessages[currentPinnedIndex].fileType && pinnedMessages[currentPinnedIndex].fileType.includes('image') ? 'bi-image' : 'bi-file-earmark-text'" 
+                      *ngIf="pinnedMessages[currentPinnedIndex].fileUrl">
+                    </i> 
+                    
+                    {{ pinnedMessages[currentPinnedIndex].content || pinnedMessages[currentPinnedIndex].fileName || 'Media/File' }}
+                  </span>
+                 </div>
+                 
+                 <div class="pin-controls" *ngIf="pinnedMessages.length > 1" (click)="$event.stopPropagation()">
+                    <span class="pin-count">{{ currentPinnedIndex + 1 }}/{{ pinnedMessages.length }}</span>
+                    <div class="arrows">
+                       <i class="bi bi-chevron-up" (click)="navigatePinned('up', $event)" [class.disabled]="currentPinnedIndex === 0"></i>
+                       <i class="bi bi-chevron-down" (click)="navigatePinned('down', $event)" [class.disabled]="currentPinnedIndex === pinnedMessages.length - 1"></i>
+                    </div>
+                 </div>
+                 
+                 <i class="bi bi-x-lg close-pin" (click)="togglePinnedView(); $event.stopPropagation()"></i>
+              </div>
+            </div>
+
             <div class="messages-container" (scroll)="onScroll($event)">
               <ng-container *ngFor="let msg of messages">
                 <div class="system-message-container" *ngIf="msg.isSystem">
@@ -107,26 +138,27 @@
                       </div>
                       
                       <div class="msg-dropdown-menu" *ngIf="activeMessageDropdown === msg.id" (click)="$event.stopPropagation()">
-                        <!-- Common Options -->
-                        <div class="menu-item" (click)="msgAction('reply', msg)"><i class="bi bi-reply"></i> Reply</div>
-                        <div class="menu-item" (click)="msgAction('forward', msg)"><i class="bi bi-forward"></i> Forward</div>
-                        
-                        <!-- Sirf Text/Link Messages ke liye -->
-                        <ng-container *ngIf="!msg.fileUrl">
-                          <div class="menu-item" (click)="msgAction('copy', msg)"><i class="bi bi-copy"></i> Copy</div>
-                          <div class="menu-item" (click)="msgAction('pin', msg)"><i class="bi bi-pin-angle"></i> Pin</div>
-                        </ng-container>
-                        
-                        <!-- Sirf Media Messages ke liye -->
-                        <ng-container *ngIf="msg.fileUrl">
-                          <div class="menu-item" (click)="msgAction('download', msg)"><i class="bi bi-download"></i> Download</div>
-                        </ng-container>
-
-                        <div class="menu-separator"></div>
-                        
-                        <!-- Common Option: Delete (Danger color) -->
-                        <div class="menu-item danger" (click)="msgAction('delete', msg)"><i class="bi bi-trash3"></i> Delete</div>
+                      <div class="menu-item" (click)="msgAction('reply', msg)"><i class="bi bi-reply"></i> Reply</div>
+                      
+                      <div class="menu-item" (click)="msgAction('pin', msg)">
+                        <i class="bi" [ngClass]="msg.isPinned ? 'bi-pin-angle-fill' : 'bi-pin-angle'"></i> 
+                        {{ msg.isPinned ? 'Unpin' : 'Pin' }}
                       </div>
+                      
+                      <div class="menu-item" (click)="msgAction('forward', msg)"><i class="bi bi-forward"></i> Forward</div>
+                      
+                      <ng-container *ngIf="!msg.fileUrl">
+                        <div class="menu-item" (click)="msgAction('copy', msg)"><i class="bi bi-copy"></i> Copy</div>
+                      </ng-container>
+                      
+                      <ng-container *ngIf="msg.fileUrl">
+                        <div class="menu-item" (click)="msgAction('download', msg)"><i class="bi bi-download"></i> Download</div>
+                      </ng-container>
+
+                      <div class="menu-separator"></div>
+                      
+                      <div class="menu-item danger" (click)="msgAction('delete', msg)"><i class="bi bi-trash3"></i> Delete</div>
+                    </div>
                     </div>
                     <div class="sender-name" *ngIf="selectedUser.isGroup && msg.senderId !== currentUserId">{{ msg.senderName || 'Member' }}</div>
                     <div class="media-attachment" *ngIf="msg.fileUrl && !msg.isDeleted">
@@ -152,6 +184,7 @@
                       <i class="bi bi-ban"></i> This message is deleted
                     </div>
                     <div class="message-meta">
+                      <i class="bi bi-pin-angle-fill msg-pinned-badge" *ngIf="msg.isPinned"></i>
                       <span class="timestamp">{{ msg.timestamp | date:'shortTime' }}</span>
                       <div class="status-ticks" *ngIf="msg.senderId === currentUserId && !selectedUser.isGroup">
                         <svg *ngIf="msg.delivered" [class.seen]="msg.seen" class="tick-icon" viewBox="0 0 24 24"><path d="M18 7l-1.41-1.41-6.59 6.59 1.41 1.41L18 7zm4.24-4.24l-1.41-1.41L10 12.17 5.17 7.34 3.76 8.76 10 15l12.24-12.24z"/></svg>
