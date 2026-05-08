@@ -2231,3 +2231,26 @@
 .received .msg-pinned-badge {
   color: rgba(255, 255, 255, 0.9);
 }
+
+.btn-delete-group-trigger {
+  width: 100%;
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: 0.2s;
+
+  &:hover {
+    background: #e11d48;
+    color: white;
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2);
+  }
+}

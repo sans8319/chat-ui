@@ -18,6 +18,7 @@ export class ChatService {
 
   private sidebarUpdateSource = new BehaviorSubject<any>(null);
   sidebarUpdate$ = this.sidebarUpdateSource.asObservable();
+  
 
   private activeRooms = new Set<string>();
   private pendingRooms = new Set<string>(); 
@@ -25,6 +26,11 @@ export class ChatService {
   // Background Notifications (New User/Group ke liye)
   private notificationSource = new BehaviorSubject<any>(null);
   notificationUpdate$ = this.notificationSource.asObservable();
+
+  // 🛑 NAYA FIX: Safely notification bhejne ke liye naya function
+  triggerNotification(notif: any) {
+    this.notificationSource.next(notif);
+  }
 
   // Tab Switching (Chats vs Groups)
   private activeTabSource = new BehaviorSubject<'chats' | 'groups' | 'profile'>('chats');
@@ -255,5 +261,12 @@ export class ChatService {
     
     return this.http.put(`http://localhost:8080/api/messages/${messageId}/pin?roomId=${roomId}`, {}, { headers });
   }
+   
+  deleteGroup(groupId: number) {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    return this.http.delete(`http://localhost:8080/api/groups/${groupId}`, { headers });
+  }
+
 
 }

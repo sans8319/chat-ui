@@ -132,6 +132,12 @@ export class SidebarComponent implements OnInit {
         if (notif.type === 'NEW_USER' || notif.type === 'PROFILE_UPDATED') {
           setTimeout(() => { this.loadUsers(); }, 800);
         }
+        if (notif.type === 'GROUP_DELETED') {
+           const deletedId = String(notif.groupId).replace('GROUP_', '');
+           this.groups = this.groups.filter(g => String(g.id).replace('GROUP_', '') !== deletedId);
+           this.cdr.detectChanges();
+           return;
+        }
       }
     });
     

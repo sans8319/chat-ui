@@ -87,13 +87,17 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   isPinnedExpanded: boolean = false;
   currentPinnedIndex: number = 0;
 
+  showDeleteGroupModal: boolean = false;
+  isDeletingGroup: boolean = false;
+
   toggleProfilePanel() {
     this.showProfilePanel = !this.showProfilePanel;
     if (!this.showProfilePanel) {
       this.activePanelState = 'main';
     } else if (this.selectedUser?.isGroup) {
-      this.selectedGroupPermission = this.selectedUser.permissions === 'Admins' ? 'Admins' : 'Everyone';
-      const groupId = this.selectedUser.originalId || this.selectedUser.id;
+      // 🛑 NAYA FIX: .toLowerCase() lagane se ab kabhi chhote-bade letters ka mismatch nahi hoga
+      this.selectedGroupPermission = (this.selectedUser.permissions || '').toLowerCase() === 'admins' ? 'admins' : 'everyone';
+      const groupId = Number(String(this.selectedUser.id).replace('GROUP_', ''));
       
       this.chatService.getGroupMembers(groupId).subscribe(members => {
         // NAYA LOGIC: Sorting taaki 'You' sabse aakhir mein aaye
@@ -130,7 +134,8 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
 
   get isCurrentChatPinned(): boolean {
     const pinnedStr = (this.profileData as any).pinnedRooms || (typeof window !== 'undefined' ? localStorage.getItem('pinnedRooms') : '') || '';
-    const roomId = this.selectedUser?.isGroup ? `GROUP_${this.selectedUser.originalId || this.selectedUser.id}` : this.currentRoomId;
+    const actualId = String(this.selectedUser?.id || '').replace('GROUP_', '');
+const roomId = this.selectedUser?.isGroup ? `GROUP_${actualId}` : this.currentRoomId;
     return pinnedStr.includes(`,${roomId},`);
   }
 
@@ -147,7 +152,8 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
 
   togglePin() {
     if (!this.currentUserId || !this.currentRoomId) return;
-    const roomId = this.selectedUser?.isGroup ? `GROUP_${this.selectedUser.originalId || this.selectedUser.id}` : this.currentRoomId;
+    const actualId = String(this.selectedUser?.id || '').replace('GROUP_', '');
+    const roomId = this.selectedUser?.isGroup ? `GROUP_${actualId}` : this.currentRoomId;
     
     this.chatService.togglePin(this.currentUserId, roomId).subscribe((res: any) => {
       (this.profileData as any).pinnedRooms = res.pinnedRooms;
@@ -412,7 +418,16 @@ async saveStatus() {
           this.currentRoomId = selection.id; 
           this.chatService.subscribeToRoom(this.currentRoomId!); 
 
-          this.chatService.getGroupMembers(selection.id).subscribe(members => {
+          // 🛑 MAGIC FIX: 'GROUP_12' ki jagah asli '12' ID bhejo API call me
+          const actualGroupId = Number(String(selection.id).replace('GROUP_', ''));
+          
+          this.chatService.getGroupMembers(actualGroupId).subscribe(members => {
+            // Thoda premium touch: 'You' ko list mein sabse neeche sort kar do
+            members.sort((a, b) => {
+              if (a.id === this.currentUserId) return 1;
+              if (b.id === this.currentUserId) return -1;
+              return a.username.localeCompare(b.username);
+            });
             this.groupMembers = members;
             this.cdr.detectChanges();
           });
@@ -814,10 +829,13 @@ async saveStatus() {
 
         if (msg.type === 'GROUP_SETTINGS_UPDATED') {
            this.ngZone.run(() => {
-             if (this.selectedUser && this.selectedUser.isGroup && String(this.selectedUser.id) === String(msg.groupId)) {
+             // 🛑 MAGIC FIX: originalId (12) ko use karo, 'GROUP_12' ko nahi
+             const currentId = String(this.selectedUser?.id || '').replace('GROUP_', '');
+              const incomingId = String(msg.groupId).replace('GROUP_', '');
+              if (this.selectedUser && this.selectedUser.isGroup && currentId === incomingId) {
                this.selectedUser.permissions = msg.permissions;
-               this.selectedGroupPermission = msg.permissions; // Dropdown ko bhi live update karo
-               this.cdr.detectChanges(); // UI aur Input Box live hide/show hoga!
+               this.selectedGroupPermission = msg.permissions; // Dropdown live update hoga
+               this.cdr.detectChanges(); 
              }
            });
            return; 
@@ -830,6 +848,23 @@ async saveStatus() {
              this.cdr.detectChanges(); // UI Update
            });
            return; 
+        }
+
+        if (msg.type === 'GROUP_DELETED') {
+          this.ngZone.run(() => {
+            // 🛑 MAGIC FIX: Same ID mismatch problem fixed
+            const currentId = String(this.selectedUser?.id || '').replace('GROUP_', '');
+            const incomingId = String(msg.groupId).replace('GROUP_', '');
+            if (this.selectedUser && this.selectedUser.isGroup && currentId === incomingId) {
+              this.selectedUser = null; // Chat window turant band
+              this.currentRoomId = null;
+              this.showProfilePanel = false;
+            }
+            
+            this.chatService.triggerNotification({ type: 'GROUP_DELETED', groupId: msg.groupId });
+            this.cdr.detectChanges();
+          });
+          return;
         }
 
         if (msg.senderName === 'System' || msg.content === 'You were added to this group.' || msg.content === '###GROUP_CREATED###') {
@@ -1051,7 +1086,9 @@ async saveStatus() {
     if (this.selectedUsersToAdd.length === 0 || !this.selectedUser?.isGroup) return;
     
     this.isAddingMembers = true;
-    const groupId = this.selectedUser.originalId || this.selectedUser.id;
+    
+    // 🛑 MAGIC FIX: Yahan groupId perfectly set ho jayega
+    const groupId = Number(String(this.selectedUser.id).replace('GROUP_', ''));
     const userIds = this.selectedUsersToAdd.map(u => u.id);
     
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
@@ -1063,7 +1100,6 @@ async saveStatus() {
            this.isAddingMembers = false;
            this.closeAddMemberModal();
            
-           // NAYA: Backend se members wapas refresh karo UI update hone ke liye
            this.chatService.getGroupMembers(groupId).subscribe(members => {
               members.sort((a, b) => {
                 if (a.id === this.currentUserId) return 1;
@@ -1105,7 +1141,7 @@ async saveStatus() {
   makeAdmin() {
     if (!this.contextMenu.member) return;
     const memberId = this.contextMenu.member.id;
-    const groupId = this.selectedUser.originalId || this.selectedUser.id;
+    const groupId = Number(String(this.selectedUser.id).replace('GROUP_', ''));
     this.closeContextMenu(); // Menu turant band kardo
 
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
@@ -1122,7 +1158,7 @@ async saveStatus() {
   dismissAdmin() {
     if (!this.contextMenu.member) return;
     const memberId = this.contextMenu.member.id;
-    const groupId = this.selectedUser.originalId || this.selectedUser.id;
+    const groupId = Number(String(this.selectedUser.id).replace('GROUP_', ''));
     this.closeContextMenu(); 
 
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
@@ -1474,7 +1510,7 @@ async saveStatus() {
     if (!this.selectedUser?.isGroup || !this.currentUserId) return;
     this.isApplyingSettings = true;
     
-    const groupId = this.selectedUser.originalId || this.selectedUser.id;
+    const groupId = Number(String(this.selectedUser.id).replace('GROUP_', ''));
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
@@ -1516,6 +1552,34 @@ async saveStatus() {
     if (this.pinnedMessages.length > 0) {
       this.scrollToMessage(this.pinnedMessages[this.currentPinnedIndex].id);
     }
+  }
+
+  openDeleteGroupModal() { this.showDeleteGroupModal = true; }
+  closeDeleteGroupModal() { this.showDeleteGroupModal = false; }
+
+  confirmDeleteGroup() {
+    if (!this.selectedUser?.isGroup) return;
+    this.isDeletingGroup = true;
+    const groupId = Number(String(this.selectedUser.id).replace('GROUP_', ''));
+
+    this.chatService.deleteGroup(groupId).subscribe({
+      next: () => {
+        this.isDeletingGroup = false;
+        this.closeDeleteGroupModal();
+        
+        // 🛑 NAYA FIX: Admin ki screen par turant chat band karo aur sidebar ko signal bhejo
+        this.selectedUser = null;
+        this.currentRoomId = null;
+        this.showProfilePanel = false; 
+        
+        this.chatService.triggerNotification({ type: 'GROUP_DELETED', groupId: groupId });
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.isDeletingGroup = false;
+        alert("Failed to delete group");
+      }
+    });
   }
 
 }
