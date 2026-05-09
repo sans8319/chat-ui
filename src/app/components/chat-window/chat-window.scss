@@ -527,9 +527,13 @@
   .status-grid-2col {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 80px; // NAYA: Gap 60px se 40px kiya
+    gap: 80px; 
 
-    @media (max-width: 1000px) { grid-template-columns: 1fr; gap: 30px; }
+    // 🛑 NAYA FIX: Breakpoint 1000px se 1199px kar diya hai
+    @media (max-width: 1199px) { 
+      grid-template-columns: 1fr; 
+      gap: 30px; 
+    }
   }
 
   .section-block {
@@ -2256,3 +2260,39 @@
     box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2);
   }
 }
+
+
+// ==========================================
+// 🛑 NAYA: SMART RESPONSIVE OVERLAY LOGIC
+// ==========================================
+
+// Jab screen ki width 1150px se kam hogi (aapka 30% wala scenario)
+@media (max-width: 1150px) {
+  
+  .chat-layout-wrapper {
+    // Isse dabba poori width manage karega
+    position: relative; 
+  }
+
+  // 1. Jab Profile Panel khule, Chat Area ko poora hide kardo
+  .chat-main-area.panel-open {
+    display: none !important; // Chat gayab
+  }
+
+  // 2. Profile Panel ab bachi hui poori width le lega
+  .right-profile-panel {
+    width: 100% !important;   // Poora cover karega
+    min-width: 0 !important;  // Cutting issue solve
+    flex: 1;
+    border-left: none;        // Side border ki zaroorat nahi jab full width ho
+  }
+
+  // 3. Agar Nav Rail ya Sidebar bohot bade lag rahe hon toh unhe bhi thoda adjust kar sakte hain (Optional)
+  .sidebar-column {
+    width: 300px;             // Choti screen pe thoda patla sidebar
+    min-width: 300px;
+  }
+}
+
+// Jab screen 70% se zyada (yaani 1151px+) hogi, toh display: flex apne aap 
+// dono ko side-by-side dikha dega (jaisa pehle tha).
