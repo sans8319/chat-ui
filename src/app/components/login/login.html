@@ -1,36 +1,108 @@
 <div class="auth-wrapper">
-  <div class="auth-card">
-    <div class="brand">
-      <div class="logo">S</div>
-      <h1>ChatService</h1>
-    </div>
+  <div class="split-card">
     
-    <div class="header-text">
-      <h2>Welcome Back</h2>
-      <p>Enter your details to access your account</p>
+    <div class="brand-panel">
+      
+      <div class="wave-container">
+        <div class="wave wave-1"></div>
+        <div class="wave wave-2"></div>
+        <div class="wave wave-3"></div>
+      </div>
+
+      <div class="particle p-cyan"></div>
+      <div class="particle p-magenta"></div>
+      <div class="particle p-orange"></div>
+      <div class="particle p-small-1"></div>
+      <div class="particle p-small-2"></div>
+
+      <div class="orbit-line orbit-1"></div>
+      <div class="orbit-line orbit-2"></div>
+
+      <div class="brand-top-text">
+        <h2>Welcome to TeamLink</h2>
+      </div>
+
+      <div class="glowing-center-wrapper">
+        <div class="glow-ring ring-outer"></div>
+        <div class="glow-ring ring-inner"></div>
+        <div class="glow-ring ring-core"></div>
+        <div class="logo-core">
+          <img src="assets/logo.png" alt="TeamLink Logo" class="brand-logo-img">
+        </div>
+      </div>
+
+      <div class="brand-text-content">
+        <p>Stay connected, collaborate seamlessly<br>and achieve more together.</p>
+      </div>
+        
+        <div class="slider-dots-container">
+        <div class="slider-dots">
+          <span class="dot active"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+      </div>
+     
+      
     </div>
 
-    <form (submit)="onLogin()" class="auth-form">
-      <div class="input-group">
-        <label>Username</label>
-        <input type="text" [(ngModel)]="loginData.username" name="username" placeholder="Enter username" required>
+    <div class="form-panel">
+      <div class="form-header">
+        <div class="top-logo">
+          <img src="assets/logo.png" alt="Logo">
+          <span>TeamLink</span>
+        </div>
+        <h2>Welcome Back</h2>
+        <p>Enter your details to access your account</p>
       </div>
 
-      <div class="input-group">
-        <label>Password</label>
-        <input type="password" [(ngModel)]="loginData.password" name="password" placeholder="••••••••" required>
+      <form (submit)="onLogin()" class="auth-form">
+        
+        <div class="input-group">
+          <label>Username</label>
+          <div class="input-wrapper">
+            <i class="bi bi-person input-icon"></i>
+            <input type="text" [(ngModel)]="loginData.username" name="username" placeholder="Enter username" required>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>Password</label>
+          <div class="input-wrapper">
+            <i class="bi bi-lock input-icon"></i>
+            <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="loginData.password" name="password" placeholder="Enter password" required>
+            <i class="bi pwd-toggle-icon" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'" (click)="togglePassword()"></i>
+          </div>
+        </div>
+
+        <div class="form-options">
+          <label class="remember-me">
+            <input type="checkbox">
+            <span>Remember me</span>
+          </label>
+          <a href="#" class="forgot-pwd" (click)="$event.preventDefault()">Forgot password?</a>
+        </div>
+
+        <div *ngIf="errorMessage" class="error-msg">
+          <i class="bi bi-exclamation-circle"></i> {{ errorMessage }}
+        </div>
+
+        <button type="submit" [disabled]="isLoading" class="primary-btn">
+          <span *ngIf="!isLoading"><i class="bi bi-box-arrow-in-right"></i> Sign In</span>
+          <div *ngIf="isLoading" class="loader"></div>
+        </button>
+      </form>
+
+      <div class="divider-box">
+        <span class="line"></span>
+        <span class="text">or</span>
+        <span class="line"></span>
       </div>
 
-      <div *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</div>
+      <div class="auth-footer">
+        <p>Don't have an account? <a routerLink="/signup">Sign Up</a></p>
+      </div>
+    </div>
 
-      <button type="submit" [disabled]="isLoading" class="primary-btn">
-        <span *ngIf="!isLoading">Sign In</span>
-        <div *ngIf="isLoading" class="loader"></div>
-      </button>
-    </form>
-
-    <div class="auth-footer">
-     <p>Don't have an account? <a routerLink="/signup">Sign Up</a></p>
-   </div>
   </div>
 </div>

@@ -1,41 +1,110 @@
 <div class="auth-wrapper">
-  <div class="auth-card">
-    <div class="brand">
-      <div class="logo">S</div>
-      <h1>ChatService</h1>
-    </div>
+  <div class="split-card">
     
-    <div class="header-text">
-      <h2>Create Account</h2>
-      <p>Join our community and start chatting</p>
+    <div class="brand-panel">
+      
+      <div class="wave-container">
+        <div class="wave wave-1"></div>
+        <div class="wave wave-2"></div>
+        <div class="wave wave-3"></div>
+      </div>
+
+      <div class="particle p-cyan"></div>
+      <div class="particle p-magenta"></div>
+      <div class="particle p-orange"></div>
+      <div class="particle p-small-1"></div>
+      <div class="particle p-small-2"></div>
+
+      <div class="orbit-line orbit-1"></div>
+      <div class="orbit-line orbit-2"></div>
+
+      <div class="brand-top-text">
+        <h2>Welcome to TeamLink</h2>
+      </div>
+
+      <div class="glowing-center-wrapper">
+        <div class="glow-ring ring-outer"></div>
+        <div class="glow-ring ring-inner"></div>
+        <div class="glow-ring ring-core"></div>
+        <div class="logo-core">
+          <img src="assets/logo.png" alt="TeamLink Logo" class="brand-logo-img">
+        </div>
+      </div>
+
+      <div class="brand-text-content">
+        <p>Stay connected, collaborate seamlessly<br>and achieve more together.</p>
+      </div>
+      
+      <div class="slider-dots-container">
+        <div class="slider-dots">
+          <span class="dot active"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+      </div>
+      
     </div>
 
-    <form (submit)="onSignup()" class="auth-form">
-      <div class="input-group">
-        <label>Username</label>
-        <input type="text" [(ngModel)]="signupData.username" name="username" placeholder="Choose a username" required>
+    <div class="form-panel">
+      <div class="form-header">
+        <div class="top-logo">
+          <img src="assets/logo.png" alt="Logo">
+          <span>TeamLink</span>
+        </div>
+        <h2>Create Account</h2>
+        <p>Join our community and start chatting</p>
       </div>
 
-      <div class="input-group">
-        <label>Email Address</label>
-        <input type="email" [(ngModel)]="signupData.email" name="email" placeholder="name@company.com" required>
+      <form (submit)="onSignup()" class="auth-form">
+        
+        <div class="input-group">
+          <label>Username</label>
+          <div class="input-wrapper">
+            <i class="bi bi-person input-icon"></i>
+            <input type="text" [(ngModel)]="signupData.username" name="username" placeholder="Choose a username" required>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>Email Address</label>
+          <div class="input-wrapper">
+            <i class="bi bi-envelope input-icon"></i>
+            <input type="email" [(ngModel)]="signupData.email" name="email" placeholder="name@company.com" required>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>Password</label>
+          <div class="input-wrapper">
+            <i class="bi bi-lock input-icon"></i>
+            <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="signupData.password" name="password" placeholder="Min. 8 characters" required>
+            <i class="bi pwd-toggle-icon" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'" (click)="togglePassword()"></i>
+          </div>
+        </div>
+
+        <div *ngIf="successMessage" class="success-msg">
+          <i class="bi bi-check-circle"></i> {{ successMessage }}
+        </div>
+        <div *ngIf="errorMessage" class="error-msg">
+          <i class="bi bi-exclamation-circle"></i> {{ errorMessage }}
+        </div>
+
+        <button type="submit" [disabled]="isLoading" class="primary-btn">
+          <span *ngIf="!isLoading"><i class="bi bi-person-plus"></i> Create Account</span>
+          <div *ngIf="isLoading" class="loader"></div>
+        </button>
+      </form>
+
+      <div class="divider-box">
+        <span class="line"></span>
+        <span class="text">or</span>
+        <span class="line"></span>
       </div>
 
-      <div class="input-group">
-        <label>Password</label>
-        <input type="password" [(ngModel)]="signupData.password" name="password" placeholder="Min. 8 characters" required>
+      <div class="auth-footer">
+        <p>Already have an account? <a routerLink="/login">Sign In</a></p>
       </div>
+    </div>
 
-      <div *ngIf="successMessage" class="success-msg">{{ successMessage }}</div>
-
-      <button type="submit" [disabled]="isLoading" class="primary-btn">
-        <span *ngIf="!isLoading">Create Account</span>
-        <div *ngIf="isLoading" class="loader"></div>
-      </button>
-    </form>
-
-    <div class="auth-footer">
-  <p>Already have an account? <a routerLink="/login">Sign In</a></p>
-</div>
   </div>
 </div>

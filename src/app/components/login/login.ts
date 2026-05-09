@@ -15,6 +15,10 @@ export class LoginComponent {
   loginData = { username: '', password: '' };
   isLoading = false;
   errorMessage = '';
+  showPassword = false;
+  togglePassword() {
+    this.showPassword = !this.showPassword;
+  }
 
   constructor(private http: HttpClient, private router: Router) {}
 
