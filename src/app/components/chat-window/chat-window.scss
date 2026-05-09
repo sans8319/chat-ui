@@ -439,6 +439,13 @@
     align-items: center; 
     gap: 35px; 
 
+    // 🛑 NAYA FIX: 897px se choti screen par sab kuch circle ke neeche shift hoga
+    @media (max-width: 897px) {
+      flex-direction: column;
+      text-align: center;
+      gap: 20px;
+    }
+
     .big-avatar-wrapper {
       position: relative;
       flex-shrink: 0;
@@ -459,12 +466,20 @@
 
     .avatar-info-group {
       display: flex; flex-direction: column; gap: 16px; 
+      
+      // 🛑 NAYA FIX: Text aur icons ko center align karne ke liye
+      @media (max-width: 897px) {
+        align-items: center;
+      }
+
       .avatar-text {
         h4 { margin: 0 0 6px 0; font-size: 16px; color: #111b21; font-weight: 700; }
         p { margin: 0; font-size: 13.5px; color: #667781; }
       }
       .preset-avatars-row {
-        display: flex; gap: 12px; flex-wrap: wrap;
+        // 🛑 NAYA FIX: justify-content: center add kiya taaki icons hamesha horizontal aur beech mein rahein
+        display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+        
         .preset-img, .preset-icon {
           width: 48px; height: 48px; border-radius: 50%; display: flex;
           align-items: center; justify-content: center; font-size: 24px;

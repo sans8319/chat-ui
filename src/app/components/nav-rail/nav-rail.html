@@ -16,13 +16,14 @@
     </div>
 
     <div class="nav-button">
-      <div class="icon-wrapper"><i class="bi bi-circle-uppercase"></i></div>
-      <span class="nav-label">Status</span>
+      <div class="icon-wrapper">
+        <img src="/assets/poll.png" class="custom-nav-icon" alt="Poll">
+      </div>
+      <span class="nav-label">Polling</span>
     </div>
   </div>
   
   <div class="bottom-nav-items">
-    <div class="nav-button"><div class="icon-wrapper"><i class="bi bi-gear"></i></div></div>
     
     <div class="profile-section" [class.active]="activeTab === 'profile'" (click)="switchTab('profile')" style="cursor: pointer;">
       <div class="user-avatar-rail" title="Profile" 
