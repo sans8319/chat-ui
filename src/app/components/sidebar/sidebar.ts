@@ -252,11 +252,12 @@ export class SidebarComponent implements OnInit {
         }
         group.lastMessageTime = validTime;
 
-        let lastReadStr = localStorage.getItem(`group_last_read_${group.id}`);
+        // 🛑 MAGIC FIX: Ab read receipt har user ke hisaab se alag save hogi (currentUserId)
+        let lastReadStr = localStorage.getItem(`group_last_read_${this.currentUserId}_${group.id}`);
         if (!lastReadStr) {
             const latest = validTime ? new Date(validTime).getTime() : Date.now();
             lastReadStr = latest.toString();
-            localStorage.setItem(`group_last_read_${group.id}`, lastReadStr);
+            localStorage.setItem(`group_last_read_${this.currentUserId}_${group.id}`, lastReadStr);
         }
         const lastReadTime = Number(lastReadStr);
 
@@ -276,7 +277,6 @@ export class SidebarComponent implements OnInit {
         group.unreadCount = String(this.activeUserId) === String(group.id) ? 0 : unread;
 
       } else {
-        // 🛑 NAYA FIX: DB Drop hone par Loading na ruke
         group.lastMessage = 'Click to start chatting... 🚀';
       }
       this.sortGroupsByTime();
@@ -315,11 +315,13 @@ export class SidebarComponent implements OnInit {
         }
         this.groups[groupIndex].lastMessageTime = validTime || new Date().toISOString();
 
+        // Pura function mat hatai, sirf 'if' condition ke andar ye change karein
         if (Number(msg.senderId) !== Number(this.currentUserId) && String(this.activeUserId) !== String(msg.roomId)) {
           this.groups[groupIndex].unreadCount = (this.groups[groupIndex].unreadCount || 0) + 1;
         } else if (String(this.activeUserId) === String(msg.roomId)) {
           const msgTime = new Date(this.groups[groupIndex].lastMessageTime).getTime();
-          localStorage.setItem(`group_last_read_${msg.roomId}`, msgTime.toString());
+          // 🛑 MAGIC FIX: currentUserId add kiya
+          localStorage.setItem(`group_last_read_${this.currentUserId}_${msg.roomId}`, msgTime.toString());
         }
         
         const isSystemMsg = msg.senderName === 'System' || msg.content === 'You were added to this group.' || msg.content === '###GROUP_CREATED###';
@@ -557,7 +559,8 @@ export class SidebarComponent implements OnInit {
     
     if (user.isGroup || String(user.id).startsWith('GROUP_')) {
        const latestTime = user.lastMessageTime ? new Date(user.lastMessageTime).getTime() : Date.now();
-       localStorage.setItem(`group_last_read_${user.id}`, latestTime.toString());
+       // 🛑 MAGIC FIX: currentUserId add kiya
+       localStorage.setItem(`group_last_read_${this.currentUserId}_${user.id}`, latestTime.toString());
     }
 
     this.chatService.selectUser(user);
@@ -603,7 +606,15 @@ export class SidebarComponent implements OnInit {
   logout() {
     if (confirm("Are you sure you want to logout?")) {
       this.chatService.disconnect();
-      localStorage.clear();
+      
+      // 🛑 MAGIC FIX: .clear() hata diya taaki read receipts browser mein safe rahein!
+      // Sirf login ki details hatayenge
+      localStorage.removeItem('token');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('username');
+      localStorage.removeItem('profilePicture');
+      localStorage.removeItem('pinnedRooms');
+      
       this.router.navigate(['/login']); 
     }
   }
