@@ -221,7 +221,9 @@
           border-radius: 10px;
           text-decoration: none;
           gap: 12px;
-          width: 260px;
+          width: 100%;             // 🛑 NAYA FIX: Screen ke hisaab se shrink hoga
+          max-width: 260px;        // 🛑 NAYA FIX: Desktop par 260px se bada nahi hoga
+          box-sizing: border-box;  // 🛑 NAYA FIX: Padding ko width ke andar hi manage karega
           transition: 0.2s;
           position: relative;
           
