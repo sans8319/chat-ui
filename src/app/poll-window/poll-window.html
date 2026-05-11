@@ -30,7 +30,25 @@
         <div class="options-list">
           <div class="option-row" *ngFor="let opt of pollOptions; let i = index; trackBy: trackByIndex">
             <i class="bi bi-grid-3x2-gap-fill drag-handle"></i>
-            <input type="text" [(ngModel)]="pollOptions[i]" [placeholder]="'Option ' + (i + 1)">
+            
+            <div class="option-input-wrapper">
+              
+              <input *ngIf="!opt.file" type="text" [(ngModel)]="opt.text" [placeholder]="'Option ' + (i + 1)">
+
+              <div class="file-preview-pill" *ngIf="opt.file">
+                <i class="bi" [ngClass]="getFileIcon(opt.file.name)"></i>
+                <div class="file-info">
+                  <span class="f-name">{{ opt.file.name }}</span>
+                  <span class="f-size">{{ formatBytes(opt.file.size) }}</span>
+                </div>
+                <i class="bi bi-x-circle-fill remove-file-btn" (click)="removeFile(i)" title="Remove File"></i>
+              </div>
+
+              <i class="bi bi-paperclip attach-trigger" *ngIf="!opt.file" (click)="fileInput.click()" title="Attach File (Max 500MB)"></i>
+              <input type="file" #fileInput style="display: none" (change)="onFileSelected($event, i)">
+
+            </div>
+
             <i class="bi bi-trash3-fill delete-icon" (click)="removeOption(i)"></i>
           </div>
         </div>
@@ -66,6 +84,44 @@
           </div>
         </div>
       </div>
+      <div class="form-group">
+        <label>Poll Expiration <span class="req">*</span></label>
+        
+        <div class="premium-custom-calendar" (click)="$event.stopPropagation()">
+          <div class="cal-trigger" (click)="showCalendar = !showCalendar" [class.open]="showCalendar">
+            <i class="bi bi-calendar-event"></i>
+            <span [style.color]="selectedExpiryDate ? '#1e293b' : '#94a3b8'">
+              {{ formattedExpiryDate || 'Select Expiry Date' }}
+            </span>
+            <i class="bi bi-chevron-down down-icon"></i>
+          </div>
+
+          <div class="cal-popup" *ngIf="showCalendar">
+            <div class="cal-header">
+              <i class="bi bi-chevron-left" (click)="prevMonth()"></i>
+              <span>{{ getMonthName() }} {{ currentYear }}</span>
+              <i class="bi bi-chevron-right" (click)="nextMonth()"></i>
+            </div>
+            
+            <div class="cal-grid">
+              <div class="weekday" *ngFor="let w of weekDays">{{ w }}</div>
+              
+              <div class="day" *ngFor="let day of calendarDays"
+                   [class.past]="day.isPast"
+                   [class.other-month]="!day.isCurrentMonth"
+                   [class.selected]="day.fullDate === selectedExpiryDate"
+                   (click)="!day.isPast && selectDate(day.fullDate)">
+                {{ day.date }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="helper-text" style="font-size: 12px; color: #64748b; margin-top: 8px;">
+          <i class="bi bi-info-circle"></i> 
+          This poll will automatically expire at 11:59 PM on the selected date.
+        </div>
+      </div>
 
       <div class="form-group">
         <label>Targeted Audience <span class="req">*</span></label>
@@ -84,23 +140,95 @@
             <div class="card-info">
               <h4><i class="bi bi-building"></i> Department</h4>
               <p>Select specific departments to show this poll.</p>
-              <select *ngIf="selectedAudience === 'department'" class="nested-select" (click)="$event.stopPropagation()">
-                <option>Select Department</option>
-                <option>Engineering</option>
-                <option>HR</option>
-              </select>
+              
+              <div class="custom-dropdown" *ngIf="selectedAudience === 'department'" (click)="$event.stopPropagation()">
+                
+                <div class="dropdown-trigger" (click)="isDeptDropdownOpen = !isDeptDropdownOpen" [class.open]="isDeptDropdownOpen">
+                  <span>{{ selectedDepartment || 'Select Department' }}</span>
+                  <i class="bi bi-chevron-down"></i>
+                </div>
+
+                <div class="dropdown-menu-custom" *ngIf="isDeptDropdownOpen">
+                  <div class="no-data" *ngIf="departments.length === 0">
+                    <i class="bi bi-exclamation-circle"></i> No departments available
+                  </div>
+
+                  <div class="dropdown-item" 
+                       *ngFor="let dept of departments" 
+                       (click)="selectedDepartment = dept; isDeptDropdownOpen = false"
+                       [class.selected]="selectedDepartment === dept">
+                    <i class="bi bi-building"></i>
+                    {{ dept }}
+                    <i class="bi bi-check2 active-check" *ngIf="selectedDepartment === dept"></i>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
 
           <div class="select-card list-mode" [class.active]="selectedAudience === 'specific'" (click)="selectedAudience = 'specific'">
-            <i class="bi" [ngClass]="selectedAudience === 'specific' ? 'bi-record-circle-fill' : 'bi-circle'"></i>
-            <div class="card-info">
-              <h4><i class="bi bi-person-badge"></i> Specific Employees</h4>
-              <p>Select specific employees who can see and vote on this poll.</p>
-              <select *ngIf="selectedAudience === 'specific'" class="nested-select" (click)="$event.stopPropagation()">
-                <option>Select Employees</option>
-              </select>
-            </div>
+             <i class="bi" [ngClass]="selectedAudience === 'specific' ? 'bi-record-circle-fill' : 'bi-circle'"></i>
+                <div class="card-info">
+                <h4><i class="bi bi-person-badge"></i> Specific Employees</h4>
+                <p>Select specific employees who can see and vote on this poll.</p>
+                
+                <div class="custom-dropdown" *ngIf="selectedAudience === 'specific'" (click)="$event.stopPropagation()">
+                    
+                    <div class="dropdown-trigger" (click)="isUserDropdownOpen = !isUserDropdownOpen" [class.open]="isUserDropdownOpen">
+                    <span>{{ selectedSpecificUsers.length > 0 ? selectedSpecificUsers.length + ' Employees Selected' : 'Select Employees' }}</span>
+                    <i class="bi bi-chevron-down"></i>
+                    </div>
+
+                    <div class="dropdown-menu-custom user-menu" *ngIf="isUserDropdownOpen">
+                    
+                    <div class="search-sticky">
+                        <i class="bi bi-search"></i>
+                        <input type="text" [(ngModel)]="userSearchQuery" placeholder="Search employees..." (click)="$event.stopPropagation()">
+                    </div>
+
+                    <div class="no-data" *ngIf="filteredUsers.length === 0">
+                        <i class="bi bi-search"></i> No employees found
+                    </div>
+
+                    <div class="options-list-scroll">
+                        <div class="dropdown-item user-item" 
+                            *ngFor="let u of filteredUsers" 
+                            (click)="toggleUserSelection(u); $event.stopPropagation()">
+                        
+                        <div class="avatar-sm" [ngClass]="parseProfilePicture(u.profilePicture).bg">
+                            <img *ngIf="parseProfilePicture(u.profilePicture).isImage" [src]="parseProfilePicture(u.profilePicture).url">
+                            <span *ngIf="!parseProfilePicture(u.profilePicture).isImage && !parseProfilePicture(u.profilePicture).isAvatar">{{ u.username.charAt(0).toUpperCase() }}</span>
+                            <i *ngIf="parseProfilePicture(u.profilePicture).isAvatar" [class]="parseProfilePicture(u.profilePicture).icon"></i>
+                            <span class="status-dot" [style.background]="u.customStatusColor || (u.online ? '#22c55e' : '#94a3b8')"></span>
+                        </div>
+                        
+                        <div class="user-info-col">
+                            <span class="u-name">{{ u.username }}</span>
+                            <span class="u-status" [style.color]="u.customStatusColor || (u.online ? '#22c55e' : '#94a3b8')">
+                            {{ u.customStatusText || u.statusState || (u.online ? 'Online' : 'Offline') }}
+                            </span>
+                        </div>
+
+                        <i class="bi" [ngClass]="selectedSpecificUsers.includes(u) ? 'bi-check-circle-fill active-check' : 'bi-circle empty-check'"></i>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+                    <div class="selected-pills-container" *ngIf="selectedAudience === 'specific' && selectedSpecificUsers.length > 0">
+                        <div class="pill-chip" *ngFor="let su of selectedSpecificUsers">
+                        <div class="chip-avatar" [ngClass]="parseProfilePicture(su.profilePicture).bg">
+                            <img *ngIf="parseProfilePicture(su.profilePicture).isImage" [src]="parseProfilePicture(su.profilePicture).url">
+                            <span *ngIf="!parseProfilePicture(su.profilePicture).isImage && !parseProfilePicture(su.profilePicture).isAvatar">{{ su.username.charAt(0).toUpperCase() }}</span>
+                            <i *ngIf="parseProfilePicture(su.profilePicture).isAvatar" [class]="parseProfilePicture(su.profilePicture).icon"></i>
+                        </div>
+                        <span class="chip-name">{{ su.username }}</span>
+                        <i class="bi bi-x-circle-fill chip-close" (click)="removeSpecificUser(su.id); $event.stopPropagation()"></i>
+                        </div>
+                    </div>
+
+                </div>
           </div>
 
         </div>
@@ -128,7 +256,11 @@
 
       <div class="action-footer">
         <button class="btn-cancel">Cancel Poll</button>
-        <button class="btn-create"><i class="bi bi-plus-circle"></i> Create Poll</button>
+        
+        <button class="btn-create" (click)="createPoll()" [disabled]="isCreating">
+          <i class="bi" [ngClass]="isCreating ? 'bi-hourglass-split' : 'bi-plus-circle'"></i> 
+          {{ isCreating ? 'Creating...' : 'Create Poll' }}
+        </button>
       </div>
 
     </div>

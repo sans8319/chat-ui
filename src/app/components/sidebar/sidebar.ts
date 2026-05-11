@@ -129,7 +129,7 @@ export class SidebarComponent implements OnInit {
         if (notif.type === 'NEW_GROUP') {
           setTimeout(() => { this.loadGroups(); }, 800);
         }
-        if (notif.type === 'NEW_USER' || notif.type === 'PROFILE_UPDATED') {
+        if (notif.type === 'NEW_USER' || notif.type === 'PROFILE_UPDATED' || notif.type === 'USER_DELETED') {
           setTimeout(() => { this.loadUsers(); }, 800);
         }
         if (notif.type === 'GROUP_DELETED') {

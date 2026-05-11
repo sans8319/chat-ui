@@ -269,5 +269,11 @@ export class ChatService {
     return this.http.delete(`http://localhost:8080/api/groups/${groupId}`, { headers });
   }
 
+  getDepartments(): Observable<string[]> {
+  const token = localStorage.getItem('token');
+  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+  return this.http.get<string[]>(`http://localhost:8080/api/users/departments`, { headers });
+}
+
 
 }

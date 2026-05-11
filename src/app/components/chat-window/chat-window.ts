@@ -36,6 +36,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   selectedGroupPermission: string = 'Everyone';
   isApplyingSettings: boolean = false;
   currentTab: string = 'chats';
+  
 
  
   profileData = {
@@ -377,9 +378,18 @@ async saveStatus() {
 
     this.chatService.activeTab$.subscribe(tab => {
       this.currentTab = tab;
+      
       if (tab === 'profile') {
         this.fetchUserProfile();
       }
+
+      // 🛑 NAYA FIX: Jaise hi Poll tab par click ho, open chat ko band kardo
+      if (tab === 'poll') {
+        this.selectedUser = null;      // Main chat ko hide karega
+        this.currentRoomId = null;     // Room ID clear karega
+        this.showProfilePanel = false; // Right side ki profile panel band karega
+      }
+
       this.cdr.detectChanges();
     });
 
@@ -398,6 +408,14 @@ async saveStatus() {
     });
     // NAYA: Jab koi dusra user status badle, toh header ko turant refresh karo
     this.chatService.notificationUpdate$.subscribe(notif => {
+      if (notif.type === 'USER_DELETED') {
+          // Check karo ki kya humne usi deleted user ki chat open kar rakhi hai
+          if (this.selectedUser && !this.selectedUser.isGroup && Number(this.selectedUser.id) === Number(notif.userId)) {
+            this.selectedUser.isDeleted = true;
+            this.selectedUser.username = this.selectedUser.username.split('_DELETED_')[0]; // Safe name update
+            this.cdr.detectChanges(); // UI refresh taaki input box gayab ho jaye
+          }
+        }
       if (notif && notif.type === 'PROFILE_UPDATED') {
         // Agar hum kisi se chat kar rahe hain aur wo group nahi hai, toh uska data re-fetch karo
         if (this.selectedUser && !this.selectedUser.isGroup) {
