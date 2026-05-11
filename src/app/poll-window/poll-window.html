@@ -1,0 +1,137 @@
+<div class="poll-window-container">
+  
+  <div class="poll-header-area">
+    <div class="h-icon"><i class="bi bi-bar-chart-fill"></i></div>
+    <div class="h-text">
+      <h2>Create Poll</h2>
+      <p>Create a new poll and get opinions from your team.</p>
+    </div>
+  </div>
+
+  <div class="poll-grid-2col">
+    
+    <div class="left-panel">
+      
+      <div class="form-group">
+        <label>Poll Question <span class="req">*</span></label>
+        <input type="text" [(ngModel)]="pollQuestion" placeholder="Enter poll question here..." maxlength="200">
+        <div class="char-count">{{ pollQuestion.length }}/200</div>
+      </div>
+
+      <div class="form-group">
+        <label>Poll Description <span class="opt">(Optional)</span></label>
+        <textarea [(ngModel)]="pollDescription" placeholder="Provide more details about this poll..." maxlength="500"></textarea>
+        <div class="char-count">{{ pollDescription.length }}/500</div>
+      </div>
+
+      <div class="form-group">
+        <label>Poll Options <span class="req">*</span></label>
+        
+        <div class="options-list">
+          <div class="option-row" *ngFor="let opt of pollOptions; let i = index; trackBy: trackByIndex">
+            <i class="bi bi-grid-3x2-gap-fill drag-handle"></i>
+            <input type="text" [(ngModel)]="pollOptions[i]" [placeholder]="'Option ' + (i + 1)">
+            <i class="bi bi-trash3-fill delete-icon" (click)="removeOption(i)"></i>
+          </div>
+        </div>
+
+        <button class="btn-add-option" (click)="addOption()">
+          <i class="bi bi-plus-lg"></i> Add Option
+        </button>
+        <div class="helper-text">
+          <i class="bi bi-info-circle"></i> You can add as many options as you want.
+        </div>
+      </div>
+
+    </div>
+
+    <div class="right-panel">
+      
+      <div class="form-group">
+        <label>Choose Poll Type</label>
+        <div class="selection-grid-2">
+          <div class="select-card" [class.active]="selectedType === 'single'" (click)="selectedType = 'single'">
+            <i class="bi" [ngClass]="selectedType === 'single' ? 'bi-record-circle-fill' : 'bi-circle'"></i>
+            <div class="card-info">
+              <h4>Single Choice</h4>
+              <p>Participants can select only one option</p>
+            </div>
+          </div>
+          <div class="select-card" [class.active]="selectedType === 'multiple'" (click)="selectedType = 'multiple'">
+            <i class="bi" [ngClass]="selectedType === 'multiple' ? 'bi-check-circle-fill' : 'bi-circle'"></i>
+            <div class="card-info">
+              <h4>Multiple Choice</h4>
+              <p>Participants can select multiple options</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Targeted Audience <span class="req">*</span></label>
+        <div class="selection-list">
+          
+          <div class="select-card list-mode" [class.active]="selectedAudience === 'all'" (click)="selectedAudience = 'all'">
+            <i class="bi" [ngClass]="selectedAudience === 'all' ? 'bi-record-circle-fill' : 'bi-circle'"></i>
+            <div class="card-info">
+              <h4><i class="bi bi-people"></i> All Employees</h4>
+              <p>This poll will be visible to all employees in the organization.</p>
+            </div>
+          </div>
+
+          <div class="select-card list-mode" [class.active]="selectedAudience === 'department'" (click)="selectedAudience = 'department'">
+            <i class="bi" [ngClass]="selectedAudience === 'department' ? 'bi-record-circle-fill' : 'bi-circle'"></i>
+            <div class="card-info">
+              <h4><i class="bi bi-building"></i> Department</h4>
+              <p>Select specific departments to show this poll.</p>
+              <select *ngIf="selectedAudience === 'department'" class="nested-select" (click)="$event.stopPropagation()">
+                <option>Select Department</option>
+                <option>Engineering</option>
+                <option>HR</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="select-card list-mode" [class.active]="selectedAudience === 'specific'" (click)="selectedAudience = 'specific'">
+            <i class="bi" [ngClass]="selectedAudience === 'specific' ? 'bi-record-circle-fill' : 'bi-circle'"></i>
+            <div class="card-info">
+              <h4><i class="bi bi-person-badge"></i> Specific Employees</h4>
+              <p>Select specific employees who can see and vote on this poll.</p>
+              <select *ngIf="selectedAudience === 'specific'" class="nested-select" (click)="$event.stopPropagation()">
+                <option>Select Employees</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Poll Visibility</label>
+        <div class="selection-grid-2">
+          <div class="select-card" [class.active]="selectedVisibility === 'anonymous'" (click)="selectedVisibility = 'anonymous'">
+            <i class="bi" [ngClass]="selectedVisibility === 'anonymous' ? 'bi-record-circle-fill' : 'bi-circle'"></i>
+            <div class="card-info">
+              <h4><i class="bi bi-mask"></i> Anonymous</h4>
+              <p>In this poll, you won't see who voted what.</p>
+            </div>
+          </div>
+          <div class="select-card" [class.active]="selectedVisibility === 'public'" (click)="selectedVisibility = 'public'">
+            <i class="bi" [ngClass]="selectedVisibility === 'public' ? 'bi-record-circle-fill' : 'bi-circle'"></i>
+            <div class="card-info">
+              <h4><i class="bi bi-person-check"></i> Public</h4>
+              <p>In this poll, you can see who voted what.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-footer">
+        <button class="btn-cancel">Cancel Poll</button>
+        <button class="btn-create"><i class="bi bi-plus-circle"></i> Create Poll</button>
+      </div>
+
+    </div>
+
+  </div>
+</div>

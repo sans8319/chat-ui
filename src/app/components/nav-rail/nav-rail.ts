@@ -12,9 +12,9 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 })
 export class NavRailComponent implements OnInit {
   userInitial: string = '';
-  activeTab: 'chats' | 'groups' | 'profile' = 'chats';
+  activeTab: string = 'chats'; // 🛑 NAYA: Type 'string' kiya
   loggedInProfilePicture: string = '';
-  loggedInStatusColor: string = '#22c55e'; // Default Green
+  loggedInStatusColor: string = '#22c55e'; 
   currentUserId: number | null = null;
 
   constructor(
@@ -42,8 +42,6 @@ export class NavRailComponent implements OnInit {
       
       this.loggedInProfilePicture = localStorage.getItem('profilePicture') || '';
       this.loggedInStatusColor = localStorage.getItem('statusColor') || '#22c55e';
-
-      // Storage khali ho toh DB se lao
       this.fetchUserInitialState();
     }
 
@@ -84,7 +82,7 @@ export class NavRailComponent implements OnInit {
       });
   }
 
-  switchTab(tab: 'chats' | 'groups' | 'profile') {
+  switchTab(tab: string) { // 🛑 NAYA: Type 'string' kiya
     this.chatService.setActiveTab(tab);
   }
 

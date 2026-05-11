@@ -33,7 +33,8 @@ export class ChatService {
   }
 
   // Tab Switching (Chats vs Groups)
-  private activeTabSource = new BehaviorSubject<'chats' | 'groups' | 'profile'>('chats');
+  // Tab Switching (Chats vs Groups)
+  private activeTabSource = new BehaviorSubject<string>('chats');
   activeTab$ = this.activeTabSource.asObservable();
 
   private activeSettingSource = new BehaviorSubject<string>('profile');
@@ -62,7 +63,7 @@ export class ChatService {
   }
   // ----------------------------------------
 
-  setActiveTab(tab: 'chats' | 'groups' | 'profile') {
+  setActiveTab(tab: string) {
     this.activeTabSource.next(tab);
     if (tab === 'profile') {
       this.selectedUserSource.next(null);

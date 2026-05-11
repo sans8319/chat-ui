@@ -1,0 +1,120 @@
+.poll-sidebar-container {
+  display: flex; flex-direction: column; height: 100vh;
+  background: #f8fafc; border-right: 1px solid #e2e8f0; font-family: 'Inter', sans-serif;
+
+  .poll-header {
+    padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;
+    .header-left {
+      display: flex; align-items: center; gap: 12px;
+      .logo { width: 30px; height: 30px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+      h2 { font-size: 22px; font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.5px; }
+    }
+    .menu-dot { font-size: 20px; color: #64748b; cursor: pointer; transition: 0.2s; &:hover { color: #0f172a; } }
+  }
+
+  .create-poll-card {
+    // 🛑 NAYA: Upar ki taraf 20px margin add kar di gayi hai (Pehle 0 thi)
+    margin: 20px 24px 24px; 
+    
+    padding: 14px 18px; border-radius: 16px;
+    background: #f5f3ff; border: 1px solid #e0e7ff;
+    display: flex; align-items: center; gap: 14px; cursor: pointer; transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.05);
+
+    &:hover { transform: translateY(-2px); background: #e0e7ff; box-shadow: 0 6px 16px rgba(99, 102, 241, 0.12); }
+    
+    &.active {
+      background: #e0e7ff; 
+      border-color: #6366f1;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+    }
+    
+    .icon-circle {
+      width: 40px; height: 40px; background: white; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      .poll-icon { width: 20px; height: 20px; filter: invert(36%) sepia(97%) saturate(2745%) hue-rotate(231deg) brightness(98%) contrast(92%); }
+    }
+    span { font-size: 15.5px; font-weight: 700; color: #4f46e5; }
+  }
+
+  .divider { height: 1px; background: #e2e8f0; margin: 0 24px 20px; }
+
+  .section-link {
+    margin: 0 24px 8px; padding: 10px 12px; border-radius: 10px;
+    display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s;
+    
+    &:hover { background: #f1f5f9; }
+    .sec-left { display: flex; align-items: center; gap: 8px; }
+    span { font-size: 12px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; }
+    .badge { background: #e2e8f0; color: #475569; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
+    i { color: #94a3b8; font-size: 14px; }
+  }
+
+  // 🛑 NAYA: POLLS FOR YOU Heading Styles (Black & slightly bigger text)
+  .section-heading {
+    margin: 10px 24px 8px; 
+    padding: 0 12px;
+    span { 
+      font-size: 13.5px; 
+      font-weight: 800; 
+      color: #000000; 
+      letter-spacing: 0.5px; 
+    }
+  }
+
+  .filter-tabs-wrapper {
+    margin: 16px 24px 20px; background: #e2e8f0; padding: 4px; border-radius: 12px; display: flex; gap: 4px;
+    
+    .tab {
+      flex: 1; text-align: center; padding: 8px 0; border-radius: 8px; font-size: 13.5px; font-weight: 600;
+      color: #64748b; cursor: pointer; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      &.active {
+        background: linear-gradient(to right, #6366f1, #4f46e5); color: white;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      }
+    }
+  }
+
+  .polls-list {
+    flex: 1; overflow-y: auto; padding: 0 24px; display: flex; flex-direction: column; gap: 12px;
+    &::-webkit-scrollbar { display: none; }
+    
+    .poll-card {
+      background: white; border: 1px solid #f1f5f9; border-radius: 16px; padding: 14px;
+      display: flex; align-items: center; gap: 14px; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      
+      &:hover { border-color: #e2e8f0; box-shadow: 0 6px 16px rgba(0,0,0,0.06); transform: translateY(-2px); }
+      
+      .poll-icon-box {
+        width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: white;
+        &.bg-purple { background: linear-gradient(135deg, #a78bfa, #8b5cf6); }
+        &.bg-green { background: linear-gradient(135deg, #34d399, #10b981); }
+        &.bg-orange { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+        &.bg-blue { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
+        &.bg-pink { background: linear-gradient(135deg, #f472b6, #ec4899); }
+      }
+
+      .poll-details {
+        flex: 1; display: flex; flex-direction: column; gap: 4px; overflow: hidden;
+        .p-title { font-size: 14.5px; font-weight: 700; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .p-expiry { font-size: 12px; color: #64748b; font-weight: 500; display: flex; align-items: center; gap: 4px; }
+      }
+
+      .poll-actions {
+        display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+        i { color: #94a3b8; font-size: 18px; transition: 0.2s; &:hover { color: #0f172a; } }
+        .status-tag { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; }
+        .active-tag { background: #dcfce7; color: #16a34a; }
+        .closed-tag { background: #fee2e2; color: #ef4444; }
+      }
+    }
+  }
+
+  .archive-footer {
+    padding: 20px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s;
+    &:hover { background: #f1f5f9; }
+    .f-left { display: flex; align-items: center; gap: 10px; color: #64748b; font-size: 14px; font-weight: 600; i { font-size: 18px; color: #94a3b8; } }
+    i { color: #94a3b8; }
+  }
+}

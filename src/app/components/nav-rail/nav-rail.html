@@ -15,7 +15,7 @@
       <span class="nav-label">Groups</span>
     </div>
 
-    <div class="nav-button">
+    <div class="nav-button" [class.active]="activeTab === 'poll'" (click)="switchTab('poll')">
       <div class="icon-wrapper">
         <img src="/assets/poll.png" class="custom-nav-icon" alt="Poll">
       </div>

@@ -9,11 +9,13 @@ import { NavRailComponent } from '../nav-rail/nav-rail';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { COUNTRY_CODES } from '../../utils/countries';
 import { LinkifyPipe } from '../../pipes/linkify-pipe';
+import { PollSidebarComponent } from '../../poll-sidebar/poll-sidebar';
+import { PollWindowComponent } from '../../poll-window/poll-window';
 
 @Component({
   selector: 'app-chat-window',
   standalone: true,
-  imports: [CommonModule, FormsModule, ChatInputComponent, SidebarComponent, NavRailComponent, LinkifyPipe], 
+  imports: [CommonModule, FormsModule, ChatInputComponent, SidebarComponent, NavRailComponent, LinkifyPipe, PollSidebarComponent, PollWindowComponent], 
   templateUrl: './chat-window.html',
   styleUrl: './chat-window.scss'
 })
@@ -33,8 +35,9 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   isGroupSettingsExpanded: boolean = false;
   selectedGroupPermission: string = 'Everyone';
   isApplyingSettings: boolean = false;
+  currentTab: string = 'chats';
 
-  currentTab: 'chats' | 'groups' | 'profile' = 'chats';
+ 
   profileData = {
     name: '',
     department: '',

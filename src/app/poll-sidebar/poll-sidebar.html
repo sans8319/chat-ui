@@ -1,1 +1,69 @@
-<p>poll-sidebar works!</p>
+<div class="poll-sidebar-container">
+  
+  <div class="poll-header">
+    <div class="header-left">
+      <img src="assets/logo.png" alt="Logo" class="logo">
+      <h2>Pollings</h2>
+    </div>
+    <i class="bi bi-three-dots-vertical menu-dot"></i>
+  </div>
+
+  <div class="create-poll-card active">
+    <div class="icon-circle">
+      <img src="assets/poll.png" alt="Poll" class="poll-icon">
+    </div>
+    <span>Create Poll</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section-link">
+    <div class="sec-left">
+      <span>YOUR CREATED POLLS</span>
+      <span class="badge">12</span>
+    </div>
+    <i class="bi bi-chevron-right"></i>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section-heading">
+    <span>POLLS FOR YOU</span>
+  </div>
+
+  <div class="filter-tabs-wrapper">
+    <div class="tab" [class.active]="activeFilter === 'all'" (click)="activeFilter = 'all'">All Polls</div>
+    <div class="tab" [class.active]="activeFilter === 'active'" (click)="activeFilter = 'active'">Active</div>
+  </div>
+
+  <div class="polls-list">
+    <div class="poll-card" *ngFor="let poll of filteredPolls">
+      <div class="poll-icon-box" [ngClass]="poll.bg">
+        <i class="bi" [ngClass]="poll.icon"></i>
+      </div>
+      
+      <div class="poll-details">
+        <div class="p-title">{{ poll.title }}</div>
+        <div class="p-expiry">
+          <i class="bi bi-clock"></i> {{ poll.expiry }}
+        </div>
+      </div>
+      
+      <div class="poll-actions">
+        <i class="bi bi-three-dots"></i>
+        <span class="status-tag" [ngClass]="poll.status === 'Active' ? 'active-tag' : 'closed-tag'">
+          {{ poll.status }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="archive-footer">
+    <div class="f-left">
+      <i class="bi bi-archive"></i>
+      <span>View Archived Polls</span>
+    </div>
+    <i class="bi bi-chevron-right"></i>
+  </div>
+
+</div>

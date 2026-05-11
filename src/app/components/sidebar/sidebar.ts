@@ -15,7 +15,7 @@ import { Router } from '@angular/router';
 export class SidebarComponent implements OnInit {
   users: any[] = [];
   groups: any[] = []; 
-  activeTab: 'chats' | 'groups' | 'profile' = 'chats';
+  activeTab: string = 'chats';
   loggedInUsername: string = '';
   activeUserId: any = null;
   currentUserId: number | null = null;
