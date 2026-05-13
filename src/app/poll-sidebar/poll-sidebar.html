@@ -8,22 +8,25 @@
     <i class="bi bi-three-dots-vertical menu-dot"></i>
   </div>
 
-  <div class="create-poll-card active">
+  <div class="create-poll-card" 
+     [class.active]="selectedPollId === null" 
+     (click)="openCreatePoll()" 
+     style="cursor: pointer;">
     <div class="icon-circle">
       <img src="assets/poll.png" alt="Poll" class="poll-icon">
     </div>
-    <span>Create Poll</span>
+      <span>Create Poll</span>
   </div>
 
   <div class="divider"></div>
 
-  <div class="section-link">
+  <div class="section-link" (click)="openMyCreatedPolls()" style="cursor: pointer;">
     <div class="sec-left">
       <span>YOUR CREATED POLLS</span>
-      <span class="badge">12</span>
+      <span class="badge">{{ myCreatedPollsCount }}</span>
     </div>
     <i class="bi bi-chevron-right"></i>
-  </div>
+ </div>
 
   <div class="divider"></div>
 
@@ -37,25 +40,52 @@
   </div>
 
   <div class="polls-list">
-    <div class="poll-card" *ngFor="let poll of filteredPolls">
-      <div class="poll-icon-box" [ngClass]="poll.bg">
-        <i class="bi" [ngClass]="poll.icon"></i>
-      </div>
+    <ng-container *ngIf="activeFilter === 'active' ? activePolls.length > 0 : allPolls.length > 0; else noPolls">
       
-      <div class="poll-details">
-        <div class="p-title">{{ poll.title }}</div>
-        <div class="p-expiry">
-          <i class="bi bi-clock"></i> {{ poll.expiry }}
+      <div class="poll-card" 
+           *ngFor="let poll of (activeFilter === 'active' ? activePolls : allPolls)"
+           [class.active-card]="selectedPollId === poll.id"
+           (click)="selectPoll(poll)">
+  
+        <div class="left-side-col">
+          <div class="poll-icon-box" [ngClass]="getIconData(poll.id).bg">
+            <i class="bi" [ngClass]="getIconData(poll.id).icon"></i>
+          </div>
+        </div>
+        
+        <div class="poll-details">
+          <div class="p-title ellipsis-text" [title]="poll.question">{{ poll.question }}</div>
+          
+          <div class="meta-stack">
+            <div class="creator-badge">
+              <i class="bi bi-person-circle"></i> {{ getCreatorName(poll) }}
+            </div>
+            
+            <div class="p-expiry" [class.expired]="getExpiryStatus(poll.expiryDate).includes('Expired')">
+              <i class="bi bi-clock-history"></i> {{ getExpiryStatus(poll.expiryDate) }}
+            </div>
+          </div>
+        </div>
+        
+        <div class="poll-actions">
+          <i class="bi bi-three-dots"></i>
+          
+          <span class="status-tag" [ngClass]="isPollActive(poll) ? 'active-tag' : 'closed-tag'">
+            {{ isPollActive(poll) ? 'Active' : 'Closed' }}
+          </span>
+
+          <span class="voted-label" *ngIf="poll.userVoted">voted</span>
         </div>
       </div>
       
-      <div class="poll-actions">
-        <i class="bi bi-three-dots"></i>
-        <span class="status-tag" [ngClass]="poll.status === 'Active' ? 'active-tag' : 'closed-tag'">
-          {{ poll.status }}
-        </span>
+    </ng-container>
+
+    <ng-template #noPolls>
+      <div class="empty-state">
+        <i class="bi bi-inbox-fill"></i>
+        <span>No polls available here.</span>
       </div>
-    </div>
+    </ng-template>
   </div>
 
   <div class="archive-footer">

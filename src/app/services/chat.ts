@@ -61,7 +61,9 @@ export class ChatService {
   notifyProfileUpdate(userData: any) {
     this.profileUpdateSource.next(userData);
   }
-  // ----------------------------------------
+  
+  private selectedPollSource = new BehaviorSubject<any>(null);
+  selectedPoll$ = this.selectedPollSource.asObservable();
 
   setActiveTab(tab: string) {
     this.activeTabSource.next(tab);
@@ -72,6 +74,13 @@ export class ChatService {
 
   selectUser(user: any) {
     this.selectedUserSource.next(user);
+  }
+
+  private showMyPollsSubject = new BehaviorSubject<boolean>(false);
+  showMyPolls$ = this.showMyPollsSubject.asObservable();
+
+  setShowMyPolls(show: boolean) {
+    this.showMyPollsSubject.next(show);
   }
 
   constructor(private http: HttpClient) { 
@@ -273,7 +282,19 @@ export class ChatService {
   const token = localStorage.getItem('token');
   const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
   return this.http.get<string[]>(`http://localhost:8080/api/users/departments`, { headers });
-}
+  }
+
+
+  // chat.ts mein add karein
+  getPollsForUser(userId: number): Observable<any[]> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    return this.http.get<any[]>(`http://localhost:8080/api/polls/user/${userId}`, { headers });
+  }
+
+ setSelectedPoll(poll: any) {
+    this.selectedPollSource.next(poll);
+  }
 
 
 }

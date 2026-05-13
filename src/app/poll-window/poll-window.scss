@@ -1,12 +1,12 @@
+// ==========================================
+// 🛑 COMMON FULL SCREEN CONTAINER
+// ==========================================
 .poll-window-container {
-  // 🛑 NAYA: Glassmorphism Effect for Transparent UI
-  // 🛑 Safedi kam ki (0.75 se 0.45) aur blur thoda hataya (20px se 8px)
   background: rgba(255, 255, 255, 0.25); 
   backdrop-filter: blur(0px);
   -webkit-backdrop-filter: blur(6px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 24px;
-  
   height: calc(100vh - 40px);
   margin: 20px;
   padding: 30px 40px;
@@ -19,6 +19,9 @@
   &::-webkit-scrollbar { width: 6px; }
   &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
+  // ==========================================
+  // 🛑 1. CREATE POLL MODE STYLES
+  // ==========================================
   .poll-header-area {
     display: flex; align-items: center; gap: 16px; margin-bottom: 30px;
     .h-icon {
@@ -47,14 +50,11 @@
       textarea { height: 120px; resize: none; }
       .char-count { text-align: right; font-size: 12px; color: #94a3b8; margin-top: 6px; }
 
-      // Options List Styles
-      // Options List Styles
       .option-row {
         display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
         .drag-handle { color: #cbd5e1; font-size: 18px; cursor: grab; }
         .delete-icon { color: #94a3b8; font-size: 18px; cursor: pointer; transition: 0.2s; &:hover { color: #ef4444; } }
 
-        // 🛑 NAYA: Option Input Wrapper & File Pill Styling
         .option-input-wrapper {
           flex: 1; display: flex; align-items: center; position: relative;
           background: rgba(255, 255, 255, 0.5); border: 1px solid #e2e8f0; border-radius: 12px;
@@ -79,13 +79,12 @@
             background: rgba(248, 250, 252, 0.8);
             
             i.bi { font-size: 24px; }
-            // Professional Colors for different files
-            .text-danger { color: #ef4444; } // PDF
-            .text-warning { color: #f59e0b; } // ZIP
-            .text-primary { color: #3b82f6; } // DOC
-            .text-success { color: #10b981; } // EXCEL
-            .text-info { color: #06b6d4; }    // IMAGES
-            .text-purple { color: #8b5cf6; }  // VIDEOS
+            .text-danger { color: #ef4444; } 
+            .text-warning { color: #f59e0b; } 
+            .text-primary { color: #3b82f6; } 
+            .text-success { color: #10b981; } 
+            .text-info { color: #06b6d4; }    
+            .text-purple { color: #8b5cf6; }  
             .text-secondary { color: #64748b; }
 
             .file-info {
@@ -110,7 +109,6 @@
 
       .helper-text { font-size: 12.5px; color: #64748b; margin-top: 12px; display: flex; gap: 6px; align-items: center; }
 
-      // Cards Styling (Right Panel)
       .selection-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
       .selection-list { display: flex; flex-direction: column; gap: 12px; }
 
@@ -123,7 +121,6 @@
           flex: 1;
           h4 { margin: 0 0 6px 0; font-size: 14px; color: #1e293b; font-weight: 700; display: flex; gap: 8px; align-items: center; i { color: #8b5cf6; font-size: 16px; } }
           p { margin: 0; font-size: 12px; color: #64748b; line-height: 1.4; }
-          .nested-select { width: 100%; margin-top: 12px; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; background: #f8fafc; outline: none; }
         }
 
         &:hover { border-color: #c7d2fe; }
@@ -142,32 +139,252 @@
     }
   }
 
+  // ==========================================
+  // 🛑 2. FULL SCREEN VOTING UI STYLES
+  // ==========================================
+  &.voting-mode {
+    padding: 0; 
+    
+    /* 🛑 NAYA FIX: Blur ko kam kiya (12px -> 6px) aur transparency ko (0.5 -> 0.25) kiya */
+    background: rgba(255, 255, 255, 0.25); 
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+
+    
+    .poll-view-header {
+      padding: 30px 40px; 
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      display: flex; justify-content: space-between; align-items: flex-start;
+      
+      .header-info {
+        .badge-type { 
+          font-size: 11px; font-weight: 800; color: #4f46e5; background: #eef2ff; 
+          padding: 6px 12px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; 
+          margin-bottom: 16px; letter-spacing: 0.5px; 
+        }
+        h1 { 
+          font-size: 26px; font-weight: 800; color: #0f172a; margin: 0 0 10px 0; letter-spacing: -0.5px; 
+          /* 🛑 NAYA: Voted Text Style */
+          .voted-text { font-size: 14px; font-weight: 500; color: #94a3b8; font-style: italic; margin-left: 10px; }
+        }
+        .description { font-size: 15px; color: #64748b; margin: 0; line-height: 1.5; }
+        .no-desc { color: #94a3b8; font-style: italic; }
+      }
+      
+      /* 🛑 NAYA: Header Actions (Badge + Close Button) */
+      .header-actions {
+        display: flex; align-items: flex-start; gap: 16px;
+        .status-badge {
+          padding: 6px 12px; border-radius: 8px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; 
+          display: flex; align-items: center; gap: 6px; letter-spacing: 0.5px; margin-top: 38px;
+          &.active { background: #dcfce7; color: #16a34a; i { font-size: 8px; } }
+          &.inactive { background: #fee2e2; color: #ef4444; i { font-size: 8px; } }
+        }
+        .btn-close { 
+          background: white; border: 1px solid #e2e8f0; width: 40px; height: 40px; 
+          border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+          cursor: pointer; color: #64748b; font-size: 16px; transition: 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.02); 
+          &:hover { background: #f8fafc; color: #ef4444; border-color: #ef4444; transform: rotate(90deg); } 
+        }
+      }
+    }
+
+    /* Body Grid */
+    .voting-grid {
+      display: grid; grid-template-columns: 1.2fr 1fr; gap: 60px;
+      padding: 40px; flex: 1; overflow-y: auto;
+
+      .section-label, .section-title label { 
+        font-size: 11px; font-weight: 800; color: #94a3b8; letter-spacing: 1px; display: block; text-transform: uppercase; 
+      }
+      .helper-text { font-size: 13.5px; color: #64748b; font-weight: 500; display: block; margin-top: 6px; margin-bottom: 24px; }
+
+    
+      .column-options {
+        display: flex;
+        flex-direction: column;
+        gap: 20px; /* 🛑 Title, Options aur Green Box ke beech ka perfect gap */
+
+        .options-container { 
+          display: flex; 
+          flex-direction: column; 
+          gap: 16px; 
+        }
+
+        .option-item {
+          background: white; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 18px 20px; 
+          cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: flex; gap: 16px; align-items: center; 
+          box-shadow: 0 2px 8px rgba(0,0,0,0.01);
+          position: relative; overflow: hidden;
+
+          &:hover { 
+            border-color: #cbd5e1; box-shadow: 0 4px 12px rgba(0,0,0,0.04); transform: translateY(-2px); 
+          }
+          
+          &.selected { 
+            border-color: #6366f1; box-shadow: 0 8px 24px rgba(99, 102, 241, 0.12); transform: translateY(-2px);
+            .check-circle { background: #6366f1; border-color: #6366f1; i { color: white; transform: scale(1); } }
+          }
+          
+          .check-circle { 
+            width: 24px; height: 24px; border: 2px solid #cbd5e1; border-radius: 50%; display: flex; align-items: center; 
+            justify-content: center; transition: 0.2s; flex-shrink: 0; 
+            i { font-size: 14px; color: transparent; transform: scale(0.5); transition: 0.2s; } 
+            &.multi-check { border-radius: 6px; } 
+          }
+          
+          .option-content {
+            flex: 1; display: flex; flex-direction: column; gap: 12px;
+            .opt-text { font-size: 15.5px; font-weight: 600; color: #1e293b; margin: 0; }
+            .media-preview { 
+              display: flex; flex-direction: column; gap: 10px; 
+              .file-card { 
+                display: flex; align-items: center; gap: 14px; background: #f8fafc; padding: 12px 16px; border-radius: 12px; border: 1px solid #e2e8f0; 
+                i { font-size: 26px; } 
+                .file-info { flex: 1; .file-name { font-size: 14px; font-weight: 700; color: #0f172a; display: block; margin-bottom: 2px; } .file-meta { font-size: 11.5px; color: #64748b; text-transform: uppercase; font-weight: 600; } } 
+                .btn-download { border: none; background: white; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #64748b; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; &:hover{ color: #6366f1; border-color: #6366f1; } } 
+              } 
+              .img-thumbnail { max-width: 100px; max-height: 100px; border-radius: 8px; object-fit: cover; border: 1px solid #e2e8f0; margin-top: 8px; } 
+            }
+          }
+
+          /* 🛑 CLEAN PILL BADGE */
+          .analytics-badge {
+            margin-left: auto; display: flex; align-items: center; gap: 8px; 
+            background: rgba(248, 250, 252, 0.8); padding: 6px 12px; 
+            border-radius: 10px; border: 1px solid #e2e8f0;
+            
+            .vote-count { font-size: 12.5px; font-weight: 600; color: #64748b; }
+            .dot-separator { width: 4px; height: 4px; background: #cbd5e1; border-radius: 50%; }
+            .percent-text { font-size: 15px; font-weight: 800; color: #4f46e5; }
+          }
+        }
+
+       
+        .vote-insight-box {
+          margin-top: 12px; /* Pehle 20px tha, ab kam kar diya */
+          background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+          width: fit-content;
+          border: 1px solid #bbf7d0;
+          border-radius: 10px; /* Thoda chota border-radius */
+          padding: 9px 12px; /* Padding kaafi kam kar di hai */
+          display: flex;
+          flex-direction: column;
+          margin-left: 90px;
+          gap: 8px; /* Items ke beech ka space kam kiya */
+          box-shadow: 0 2px 10px rgba(34, 197, 94, 0.08);
+          animation: slideUpInsight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+          .insight-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            .icon-bg {
+              /* Icon box ko kaafi chota kar diya (24px) */
+              width: 24px; height: 24px; border-radius: 6px;
+              background: #22c55e; color: white;
+              display: flex; align-items: center; justify-content: center;
+              font-size: 12px; flex-shrink: 0;
+              box-shadow: 0 2px 6px rgba(34, 197, 94, 0.2);
+            }
+
+            .insight-text {
+              /* Font size 14px se 12.5px kar diya */
+              font-size: 12.5px; color: #166534; line-height: 1.4; margin: 0;
+              
+              strong { font-weight: 800; color: #15803d; }
+              
+              .opt-highlight {
+                background: white; 
+                padding: 2px 6px; /* Highlight box ka size chota kiya */
+                border-radius: 6px;
+                border: 1px dashed #86efac; font-weight: 700; color: #166534;
+                display: inline-block; margin: 0 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+              }
+            }
+          }
+        }
+
+        @keyframes slideUpInsight {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      }
+
+      /* Right Meta Column */
+      .column-meta {
+        .info-card {
+          display: flex; gap: 18px; background: (255 , 255, 255 , 0.8); padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 16px; 
+          box-shadow: 0 2px 8px rgba(0,0,0,0.01); transition: 0.2s;
+          &:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.04); }
+          .i-box { 
+            width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; flex-shrink: 0; 
+            &.bg-blue { background: linear-gradient(135deg, #818cf8, #6366f1); } 
+            &.bg-purple { background: linear-gradient(135deg, #c084fc, #9333ea); } 
+            &.bg-orange { background: linear-gradient(135deg, #fb923c, #ea580c); } 
+          }
+          .card-text { 
+            display: flex; flex-direction: column; justify-content: center; 
+            strong { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 6px; display: block; } 
+            span { font-size: 13.5px; color: #64748b; line-height: 1.5; } 
+          }
+        }
+        
+        .divider-line { height: 1px; background: rgba(0,0,0,0.06); margin: 30px 0; }
+        
+        .comment-section {
+          .comment-input-wrapper { 
+            background: white; padding: 16px; border-radius: 16px; border: 1px solid #e2e8f0; display: flex; gap: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.01); transition: 0.2s; 
+            &:focus-within { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); } 
+            .avatar-placeholder { width: 40px; height: 40px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 18px; flex-shrink: 0; } 
+            textarea { flex: 1; border: none; outline: none; resize: none; font-family: 'Inter', sans-serif; font-size: 14.5px; height: 50px; padding-top: 10px; color: #1e293b; &::placeholder { color: #94a3b8; } } 
+            
+          }
+        }
+      }
+    }
+
+    /* Premium Footer */
+    /* Premium Footer */
+    .poll-footer {
+      padding: 24px 40px; border-top: 1px solid rgba(0,0,0,0.05); background: rgba(248, 250, 252, 0.5); 
+      /* 🛑 NAYA: Space-between lagaya taaki Creator Left me aur Button Right me rahe */
+      display: flex; justify-content: space-between; align-items: center; border-radius: 0 0 24px 24px;
+      
+      /* 🛑 NAYA: Creator Info Badge Style */
+      .creator-info {
+        font-size: 13px; font-weight: 800; color: #6366f1; background: #eef2ff;
+        padding: 8px 16px; border-radius: 10px; display: flex; align-items: center; gap: 8px; 
+        text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #e0e7ff;
+        i { font-size: 16px; }
+      }
+
+      .btn-submit-premium { 
+        background: linear-gradient(135deg, #818cf8, #4f46e5); color: white; border: none; padding: 14px 36px; border-radius: 12px; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3); 
+        span { display: flex; align-items: center; }
+        &:hover:not([disabled]) { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4); i { transform: translateX(4px); transition: 0.2s; } } 
+        &[disabled] { opacity: 0.6; cursor: not-allowed; background: #cbd5e1; box-shadow: none; } 
+      }
+    }
+  }
+
   @media (max-width: 1024px) {
     .poll-grid-2col { grid-template-columns: 1fr; gap: 30px; }
+    &.voting-mode .voting-grid { grid-template-columns: 1fr; gap: 40px; }
   }
 }
 
-
-// 🛑 NAYA: Premium Custom Dropdown & User Menu Styling
+// ==========================================
+// 🛑 3. GLOBAL UI COMPONENTS (Dropdowns, Calendar etc.)
+// ==========================================
 .custom-dropdown {
-  position: relative;
-  margin-top: 12px;
-  width: 100%;
+  position: relative; margin-top: 12px; width: 100%;
 
   .dropdown-trigger {
-    background: rgba(255, 255, 255, 0.6);
-    border: 1.5px solid #e2e8f0;
-    padding: 12px 16px;
-    border-radius: 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 14px;
-    color: #1e293b;
-    font-weight: 500;
-
+    background: rgba(255, 255, 255, 0.6); border: 1.5px solid #e2e8f0; padding: 12px 16px; border-radius: 12px;
+    display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s ease;
+    font-size: 14px; color: #1e293b; font-weight: 500;
     &:hover { border-color: #6366f1; background: white; }
     &.open { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
     i { font-size: 12px; color: #64748b; transition: 0.3s; }
@@ -175,68 +392,32 @@
   }
 
   .dropdown-menu-custom {
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 0;
-    width: 100%;
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    border-radius: 14px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    z-index: 100;
-    max-height: 200px;
-    overflow-y: auto;
-    padding: 6px;
-    animation: slideDown 0.2s ease-out;
+    position: absolute; top: calc(100% + 8px); left: 0; width: 100%;
+    background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 14px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); z-index: 100; max-height: 200px;
+    overflow-y: auto; padding: 6px; animation: slideDown 0.2s ease-out;
 
     &::-webkit-scrollbar { width: 4px; }
     &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-    .no-data {
-      padding: 20px;
-      text-align: center;
-      color: #94a3b8;
-      font-size: 13px;
-      i { display: block; font-size: 20px; margin-bottom: 6px; }
-    }
+    .no-data { padding: 20px; text-align: center; color: #94a3b8; font-size: 13px; i { display: block; font-size: 20px; margin-bottom: 6px; } }
 
-    // ==========================================
-    // NORMAL DROPDOWN ITEM (Department wale ke liye)
-    // ==========================================
     .dropdown-item {
-      padding: 10px 14px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 13.5px;
-      color: #475569;
-      cursor: pointer;
-      transition: 0.2s;
-
-      > i:first-child { color: #8b5cf6; font-size: 16px; } // Direct child icon ko purple karega
+      padding: 10px 14px; border-radius: 10px; display: flex; align-items: center; gap: 12px;
+      font-size: 13.5px; color: #475569; cursor: pointer; transition: 0.2s;
+      > i:first-child { color: #8b5cf6; font-size: 16px; } 
       .active-check { margin-left: auto; color: #6366f1; font-size: 16px; }
-
       &:hover { background: #f5f3ff; color: #4f46e5; }
       &.selected { background: #eef2ff; color: #4f46e5; font-weight: 600; }
 
-      // ==========================================
-      // SPECIFIC USER ITEM (Employees wale ke liye)
-      // ==========================================
       &.user-item {
         padding: 8px 12px;
-        > i:first-child { color: inherit; font-size: inherit; } // Avatar ke icon ko reset karega
-        
+        > i:first-child { color: inherit; font-size: inherit; } 
         .avatar-sm {
-          position: relative; width: 34px; height: 34px; border-radius: 50%;
-          display: flex; align-items: center; justify-content: center;
+          position: relative; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
           background: #e2e8f0; color: white; font-weight: 600; font-size: 13px;
           img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-          .status-dot {
-            position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px;
-            border-radius: 50%; border: 2px solid white;
-          }
+          .status-dot { position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; }
         }
         .user-info-col {
           flex: 1; display: flex; flex-direction: column; overflow: hidden;
@@ -248,34 +429,15 @@
       }
     }
 
-    // ==========================================
-    // USER MENU WRAPPER (Search Bar & Scroll)
-    // ==========================================
     &.user-menu {
-      padding: 0; // Header sticky rahe isliye padding zero
-      overflow: hidden; 
-      display: flex;
-      flex-direction: column;
-
+      padding: 0; overflow: hidden; display: flex; flex-direction: column;
       .search-sticky {
-        padding: 12px 14px;
-        border-bottom: 1px solid #e2e8f0;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        background: rgba(255, 255, 255, 0.95);
+        padding: 12px 14px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 10px; background: rgba(255, 255, 255, 0.95);
         i { color: #64748b; font-size: 15px; }
-        input {
-          flex: 1; border: none !important; box-shadow: none !important;
-          background: transparent !important; padding: 0 !important;
-          font-size: 13.5px; outline: none; margin: 0; color: #1e293b;
-        }
+        input { flex: 1; border: none !important; box-shadow: none !important; background: transparent !important; padding: 0 !important; font-size: 13.5px; outline: none; margin: 0; color: #1e293b; }
       }
-
       .options-list-scroll {
-        max-height: 220px;
-        overflow-y: auto;
-        padding: 6px;
+        max-height: 220px; overflow-y: auto; padding: 6px;
         &::-webkit-scrollbar { width: 4px; }
         &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
       }
@@ -283,100 +445,424 @@
   }
 }
 
-// 🛑 NAYA: Selected Pills (Chips) Styling
 .selected-pills-container {
   display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px;
   .pill-chip {
-    display: flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, 0.9);
-    border: 1px solid #e2e8f0; padding: 4px 8px 4px 4px; border-radius: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.03); transition: 0.2s;
+    display: flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, 0.9); border: 1px solid #e2e8f0; padding: 4px 8px 4px 4px; border-radius: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.03); transition: 0.2s;
     &:hover { border-color: #c7d2fe; box-shadow: 0 4px 8px rgba(99, 102, 241, 0.1); }
-    
-    .chip-avatar {
-      width: 24px; height: 24px; border-radius: 50%; background: #6366f1;
-      color: white; display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 600;
-      img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-      i { font-size: 12px; }
-    }
+    .chip-avatar { width: 24px; height: 24px; border-radius: 50%; background: #6366f1; color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; } i { font-size: 12px; } }
     .chip-name { font-size: 12.5px; font-weight: 600; color: #334155; }
     .chip-close { color: #94a3b8; font-size: 15px; cursor: pointer; transition: 0.2s; &:hover { color: #ef4444; } }
   }
 }
 
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-// 🛑 NAYA: Premium Custom Calendar Styling
 .premium-custom-calendar {
-  position: relative;
-  width: 100%;
-
+  position: relative; width: 100%;
   .cal-trigger {
-    display: flex; align-items: center; gap: 12px;
-    background: rgba(255, 255, 255, 0.6);
-    border: 1.5px solid #e2e8f0; padding: 12px 16px;
-    border-radius: 12px; cursor: pointer; transition: 0.2s;
-    font-size: 14.5px; font-weight: 500;
-    
+    display: flex; align-items: center; gap: 12px; background: rgba(255, 255, 255, 0.6); border: 1.5px solid #e2e8f0; padding: 12px 16px; border-radius: 12px; cursor: pointer; transition: 0.2s; font-size: 14.5px; font-weight: 500;
     &:hover { border-color: #6366f1; background: white; }
     &.open { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
-    
     i.bi-calendar-event { color: #6366f1; font-size: 18px; }
     span { flex: 1; user-select: none; }
     .down-icon { color: #64748b; font-size: 14px; transition: 0.3s; }
     &.open .down-icon { transform: rotate(180deg); }
   }
-
   .cal-popup {
-    position: absolute; 
-    /* 🛑 CHNAGE: bottom hata kar top lagaya taaki neeche khule */
-    top: calc(100% + 8px); 
-    left: 0; 
-    width: 300px;
-    background: rgba(255, 255, 255, 0.95); 
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.4); 
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); 
-    z-index: 100;
-    padding: 16px; 
-    /* 🛑 NAYA: Animation ka naam badla */
-    animation: slideDownCalendar 0.2s ease-out;
-
-    .cal-header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 12px;
-      i { cursor: pointer; font-size: 14px; padding: 6px; border-radius: 6px; transition: 0.2s;
-          &:hover { background: #f1f5f9; color: #6366f1; } }
-      span { font-weight: 700; color: #1e293b; font-size: 15px; }
-    }
-
+    position: absolute; top: calc(100% + 8px); left: 0; width: 300px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 16px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); z-index: 100; padding: 16px; animation: slideDownCalendar 0.2s ease-out;
+    .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; i { cursor: pointer; font-size: 14px; padding: 6px; border-radius: 6px; transition: 0.2s; &:hover { background: #f1f5f9; color: #6366f1; } } span { font-weight: 700; color: #1e293b; font-size: 15px; } }
     .cal-grid {
       display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center;
       .weekday { font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 8px; }
-      .day {
-        padding: 8px 0; font-size: 13.5px; font-weight: 500; color: #334155;
-        border-radius: 8px; cursor: pointer; transition: 0.2s;
-        
-        &:hover:not(.past) { background: #f5f3ff; color: #6366f1; }
-        &.other-month { color: #cbd5e1; }
-        
-        // Disable state style
-        &.past { color: #cbd5e1; cursor: not-allowed; text-decoration: line-through; opacity: 0.6; }
-        
-        // Active selection
-        &.selected { background: #6366f1; color: white; font-weight: 600; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3); }
-      }
+      .day { padding: 8px 0; font-size: 13.5px; font-weight: 500; color: #334155; border-radius: 8px; cursor: pointer; transition: 0.2s; &:hover:not(.past) { background: #f5f3ff; color: #6366f1; } &.other-month { color: #cbd5e1; } &.past { color: #cbd5e1; cursor: not-allowed; text-decoration: line-through; opacity: 0.6; } &.selected { background: #6366f1; color: white; font-weight: 600; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3); } }
     }
   }
 }
 
+@keyframes slideDownCalendar { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+// ==========================================
+// 🛑 PREMIUM FILE PREVIEW MODAL STYLES
+// ==========================================
+.file-preview-overlay {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  /* Premium Dark Blue Blur Background */
+  background: rgba(15, 23, 42, 0.75); 
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  z-index: 9999; display: flex; align-items: center; justify-content: center;
+  animation: fadeInPreview 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
+@keyframes fadeInPreview { from { opacity: 0; backdrop-filter: blur(0px); } to { opacity: 1; backdrop-filter: blur(10px); } }
 
-@keyframes slideDownCalendar { 
-  from { opacity: 0; transform: translateY(-10px); } 
-  to { opacity: 1; transform: translateY(0); } 
+.preview-modal-content {
+  width: 90%; max-width: 1000px; height: 88vh;
+  background: #f8fafc; border-radius: 20px; display: flex; flex-direction: column;
+  overflow: hidden; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+  transform: translateY(0); animation: slideUpPreview 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @keyframes slideUpPreview { from { opacity: 0; transform: translateY(30px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+  .preview-header {
+    padding: 16px 24px; background: #ffffff; border-bottom: 1px solid #e2e8f0;
+    display: flex; justify-content: space-between; align-items: center;
+    .preview-title { font-weight: 700; color: #0f172a; font-size: 16px; display: flex; align-items: center; gap: 10px; i { color: #6366f1; font-size: 20px; } }
+    .btn-close-preview { 
+      background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; 
+      display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; color: #64748b; font-size: 16px;
+      &:hover { background: #fee2e2; color: #ef4444; transform: rotate(90deg); }
+    }
+  }
+
+  .preview-body {
+    flex: 1; display: flex; align-items: center; justify-content: center; background: #e2e8f0; padding: 10px;
+    background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 20px 20px; /* Subtle dotted background */
+    
+    .preview-image { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    .preview-iframe { width: 100%; height: 100%; border: none; border-radius: 12px; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+  }
+}
+
+/* 🛑 NAYA: Preview Hint Style */
+.preview-hint {
+  font-size: 11px;
+  color: #6366f1;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+  display: block;
+}
+
+/* 🛑 NAYA: Unsupported Preview Box Style */
+.unsupported-preview-box {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  background: #ffffff; border-radius: 12px; text-align: center; padding: 40px;
+  
+  .msg-content {
+    max-width: 450px;
+    i { font-size: 64px; color: #6366f1; margin-bottom: 20px; display: block; opacity: 0.8; }
+    h3 { font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 12px; }
+    p { font-size: 15px; color: #64748b; line-height: 1.6; margin-bottom: 24px; }
+    
+    .download-notice {
+      background: #f1f5f9; padding: 16px; border-radius: 12px; border-left: 4px solid #6366f1;
+      font-size: 14px; color: #475569; text-align: left; line-height: 1.5;
+      strong { color: #0f172a; }
+    }
+  }
+}
+
+// ==========================================
+// 🛑 PREMIUM TOAST ALERT (Validation Error)
+// ==========================================
+.premium-toast {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px); /* Shuru me niche chhupa hoga */
+  background: #1e293b; /* Dark sleek background */
+  color: white;
+  padding: 14px 24px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14.5px;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 999999; /* Sabse upar rahega */
+
+  &.show {
+    transform: translateX(-50%) translateY(0); /* Upar slide hoga */
+    opacity: 1;
+    visibility: visible;
+  }
+
+  i { 
+    color: #facc15; /* Warning yellow icon */
+    font-size: 18px; 
+  }
+}
+
+.my-polls-view {
+  padding: 0 !important;
+  background: rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(0px) !important;
+
+  .grid-fixed-header {
+    padding: 24px 40px; border-bottom: 1px solid rgba(0,0,0,0.05);
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(255, 255, 255, 0.4); position: sticky; top: 0; z-index: 10;
+
+    .header-content {
+      display: flex; gap: 16px; align-items: center;
+      .h-icon-box { width: 45px; height: 45px; background: #6366f1; color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+      h2 { margin: 0; font-size: 22px; font-weight: 800; color: #0f172a; }
+      p { margin: 0; color: #64748b; font-size: 13px; }
+    }
+    .btn-close-grid { border: none; background: #f1f5f9; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; transition: 0.2s; &:hover { background: #fee2e2; color: #ef4444; } }
+  }
+
+  .grid-scroll-area { padding: 40px; flex: 1; overflow-y: auto; }
+
+  .poll-matrix {
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); // MAX 3 COLUMNS
+    gap: 20px; // 🛑 NAYA: Cards ke beech ka gap thoda kam kiya
+
+    @media (max-width: 1200px) { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 768px) { grid-template-columns: 1fr; }
+
+    .matrix-card {
+      background: rgb(255, 255, 255 , 0.7); border: 1px solid #e2e8f0; 
+      border-radius: 12px; // 🛑 NAYA: Radius aur compact kiya
+      padding: 12px 14px; // 🛑 NAYA: Padding aur ghata kar 12px kar di
+      position: relative; overflow: hidden; cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+      
+      display: flex;
+      flex-direction: column;
+
+      &:hover {
+        transform: translateY(-3px); border-color: #6366f1;
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.1);
+        .card-hover-overlay { opacity: 1; transform: translateY(0); }
+      }
+
+      .card-header {
+        display: flex; justify-content: space-between; align-items: flex-start; 
+        margin-bottom: 8px; // 🛑 NAYA: Margin 10px se 8px kiya
+        
+        .p-icon { 
+          width: 35px; height: 35px; // 🛑 NAYA: Icon ka size aur chota kiya (32px -> 28px)
+          border-radius: 8px; display: flex; align-items: center; justify-content: center; 
+          color: white; font-size: 13px; 
+
+          &.bg-purple { background: linear-gradient(135deg, #a78bfa, #8b5cf6); }
+          &.bg-green { background: linear-gradient(135deg, #34d399, #10b981); }
+          &.bg-orange { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+          &.bg-blue { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
+          &.bg-pink { background: linear-gradient(135deg, #f472b6, #ec4899); }
+        }
+        
+        .status-tag { 
+          font-size: 8.5px; font-weight: 800; padding: 3px 6px; border-radius: 20px; text-transform: uppercase; 
+          &.active { background: #dcfce7; color: #16a34a; } 
+          &.inactive { background: #fee2e2; color: #ef4444; } 
+        }
+      }
+
+      .poll-q { 
+        font-size: 13.5px; font-weight: 700; color: #1e293b; // 🛑 NAYA: Font size halka sa kam kiya
+        margin: 0 0 6px 0; // 🛑 NAYA: Margin 10px se 8px kiya
+        line-height: 1.3; height: 35px; // 🛑 NAYA: Height thodi aur fix ki
+        overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; 
+      }
+
+      .card-meta {
+        display: flex; gap: 8px; // 🛑 NAYA: Items ka gap kam kiya
+        margin-bottom: 10px; // 🛑 NAYA: Gap 14px se 10px kiya
+        .meta-item { font-size: 10.5px; color: #64748b; font-weight: 600; display: flex; align-items: center; gap: 4px; i { font-size: 11px; } }
+        .by-you { color: #6366f1; background: #f5f3ff; padding: 2px 6px; border-radius: 6px; }
+      }
+
+      .card-footer-row {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-top: auto; 
+        
+        .card-expiry { font-size: 10.5px; font-weight: 500; color: #94a3b8; display: flex; align-items: center; gap: 4px; &.expired { color: #ef4444; } }
+        
+        .vote-count-meta {
+          font-size: 10.5px; font-weight: 800; color: #4f46e5; // 🛑 NAYA: Text size chota kiya
+          display: flex; align-items: center; gap: 4px;
+          background: #eef2ff; padding: 3px 6px; border-radius: 6px; // 🛑 NAYA: Badge padding kam ki
+          border: 1px solid #e0e7ff;
+          i { font-size: 10px; color: #6366f1; }
+        }
+      }
+
+      .card-hover-overlay {
+        position: absolute; bottom: 0; left: 0; width: 100%; 
+        padding: 8px 6px; // 🛑 NAYA: Vertical padding thodi badhai taaki text clear dikhe
+        
+        // 🛑 NAYA FIX: Dark solid color hata kar Light Indigo Gradient lagaya
+        background: linear-gradient(to right, #f5f3ff, #eef2ff);
+        border-top: 1px solid #e0e7ff; // Ek patli line border define karne ke liye
+        
+        // 🛑 NAYA FIX: Text color white se dark indigo kiya taaki light bg par dikhe
+        color: #3c33e7; 
+        
+        text-align: center; font-size: 11.5px; font-weight: 700;
+        opacity: 0; transform: translateY(10px); transition: 0.3s;
+      }
+    }
+  }
+
+  .empty-grid { text-align: center; padding: 100px 0; i { font-size: 60px; color: #cbd5e1; } p { color: #64748b; font-weight: 600; margin-top: 16px; } }
+}
+
+// ==========================================
+// 🛑 PREMIUM ANALYTICS VIEW
+// ==========================================
+.analytics-view {
+  padding: 0 !important;
+  background: rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(1px) !important;
+
+  .analytics-fixed-header {
+    padding: 20px 40px; border-bottom: 1px solid rgba(0,0,0,0.05);
+    background: rgba(255, 255, 255, 0.6); position: sticky; top: 0; z-index: 10;
+    
+    /* 🛑 NAYA: Absolute positioning ke liye parent ko relative rakha */
+    position: relative; 
+    
+    .btn-back {
+      background: white; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 10px;
+      font-size: 13px; font-weight: 700; color: #475569; cursor: pointer; transition: 0.2s;
+      display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      &:hover { background: #f1f5f9; color: #0f172a; transform: translateX(-4px); }
+    }
+
+    /* 🛑 NAYA FIX: Badge ko top-right corner mein set kiya */
+    .status-badge.header-status {
+      position: absolute;
+      top: 20px;
+      right: 40px;
+      margin: 0;
+      width: fit-content;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+
+      &.active { background: #dcfce7; color: #16a34a; }
+      &.inactive { background: #fee2e2; color: #ef4444; }
+    }
+
+    .header-content {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      .h-title {
+        display: flex; flex-direction: column; 
+        /* Purana gap hata diya gaya hai kyunki ab sirf h2 bacha hai */
+        h2 { margin: 0; font-size: 26px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; }
+      }
+      .total-votes-badge { background: linear-gradient(135deg, #818cf8, #4f46e5); color: white; padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 14px; box-shadow: 0 6px 15px rgba(99, 102, 241, 0.3); display: flex; align-items: center; gap: 8px; i { font-size: 18px; } }
+    }
+  }
+
+  .analytics-scroll-area { padding: 40px; flex: 1; overflow-y: auto; }
+
+  .poll-question-banner {
+    background: transparent; 
+    border: none; 
+    padding: 0 10px; /* Padding kam karke text ko align kiya */
+    margin-bottom: 35px; 
+    box-shadow: none;
+
+    h3 { 
+      margin: 0 0 8px 0; 
+      font-size: 22px; /* Font thoda bada kiya taaki bina box ke bhi highlight ho */
+      font-weight: 800; 
+      color: #0f172a; 
+      line-height: 1.4; 
+    }
+    p { 
+      margin: 0; 
+      font-size: 15px; 
+      color: #475569; /* Color thoda dark kiya taaki light background par clear dikhe */
+      line-height: 1.6; 
+    }
+  }
+
+  .analytics-grid {
+    display: grid; grid-template-columns: 1.4fr 1fr; gap: 30px;
+
+    @media (max-width: 1024px) { grid-template-columns: 1fr; }
+
+    .consolidated-meta-box {
+        background: transparent; /* Background transparent kiya gaya hai */
+        border: 1px solid #cbd5e1; /* Ek subtle border taaki box dikhe */
+        border-radius: 16px;
+        padding: 20px 24px;
+        margin-bottom: 30px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* 2 columns mein neat placement */
+        gap: 16px 24px;
+        
+        .meta-item {
+          display: flex; align-items: center; gap: 10px;
+          i { font-size: 20px; color: #8b5cf6; } 
+          span { color: #64748b; font-size: 12.5px; font-weight: 500; } 
+          strong { color: #0f172a; font-size: 13.5px; font-weight: 700; }
+          &.text-danger { i, strong { color: #ef4444; } } /* Expired hone pe red color */
+        }
+      }
+
+    .chart-section {
+      background: transparent; border: 1px solid #e2e8f0; padding: 30px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+      h4 { margin: 0 0 30px 0; font-size: 16px; font-weight: 800; color: #0f172a; }
+      
+      .chart-flex {
+        display: flex; align-items: center; gap: 40px;
+
+        .pie-chart-wrapper {
+          position: relative; width: 180px; height: 180px; flex-shrink: 0;
+          .css-pie-chart { width: 100%; height: 100%; border-radius: 50%; box-shadow: inset 0 0 20px rgba(0,0,0,0.05); transition: background 0.5s ease; }
+          .pie-center-hole { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 110px; height: 110px; background: white; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); span { font-size: 24px; font-weight: 800; color: #0f172a; } small { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; } }
+        }
+
+        .chart-legend {
+          flex: 1; display: flex; flex-direction: column; gap: 14px;
+          .legend-item { display: flex; align-items: flex-start; gap: 12px; .leg-color { width: 14px; height: 14px; border-radius: 4px; margin-top: 2px; } .leg-text { display: flex; flex-direction: column; .opt-name { font-size: 14px; font-weight: 700; color: #1e293b; } .opt-count { font-size: 12px; color: #64748b; font-weight: 600; margin-top: 2px; } } }
+        }
+      }
+    }
+
+    .col-right { display: flex; flex-direction: column; gap: 24px; }
+
+    .panel-section {
+      background: transparent; /* 🛑 NAYA: Card ka background transparent kiya */
+      border: 1px solid #cbd5e1; /* Halka sa border rakha taaki shape dikhe */
+      padding: 24px; border-radius: 20px; 
+      box-shadow: none; /* 🛑 NAYA: Box shadow hata di */
+      display: flex; flex-direction: column; max-height: 400px;
+      
+      h4 { margin: 0 0 20px 0; font-size: 15px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; i { color: #6366f1; font-size: 18px; } }
+
+      &.anon-warning { background: rgba(254, 242, 242, 0.5); border-color: #fca5a5; text-align: center; justify-content: center; i { font-size: 40px; color: #ef4444; margin-bottom: 12px; display: block; } h4 { justify-content: center; color: #991b1b; } p { color: #b91c1c; font-size: 13.5px; margin: 0; line-height: 1.5; } }
+
+      .voters-list, .comments-list {
+        flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 8px;
+        &::-webkit-scrollbar { width: 4px; } &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+      }
+
+      .empty-msg { text-align: center; padding: 20px; font-size: 13px; color: #94a3b8; font-style: italic; }
+
+      /* 🛑 NAYA: Andar ke list items ko glass-morphism effect diya */
+      .voter-item { 
+        display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; 
+        background: rgba(255, 255, 255, 0.4); /* Semi-transparent white */
+        border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.6); 
+        .voter-info { display: flex; align-items: center; gap: 10px; .voter-avatar { width: 30px; height: 30px; background: rgba(226, 232, 240, 0.8); color: #64748b; border-radius: 50%; display: flex; align-items: center; justify-content: center; } span { font-size: 13.5px; font-weight: 700; color: #0f172a; } } .voted-for { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; .color-dot { width: 8px; height: 8px; border-radius: 50%; } } 
+      }
+
+      /* 🛑 NAYA: Comments ko bhi glass look diya */
+      .comment-bubble { 
+        background: rgba(255, 255, 255, 0.4); /* Semi-transparent white */
+        border: 1px solid rgba(255, 255, 255, 0.8); 
+        padding: 14px; border-radius: 16px 16px 16px 0; margin-bottom: 4px; 
+        strong { display: block; font-size: 13px; color: #4f46e5; margin-bottom: 4px; } 
+        p { margin: 0; font-size: 13.5px; color: #334155; line-height: 1.4; } 
+        .c-time { display: block; text-align: right; font-size: 10px; color: #12151a; margin-top: 6px; } 
+      }
+    }
+  }
 }
