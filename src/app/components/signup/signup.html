@@ -91,7 +91,11 @@
 
         <button type="submit" [disabled]="isLoading" class="primary-btn">
           <span *ngIf="!isLoading"><i class="bi bi-person-plus"></i> Create Account</span>
-          <div *ngIf="isLoading" class="loader"></div>
+          
+          <ng-container *ngIf="isLoading">
+            <div class="loader"></div>
+            <span>Creating account...</span>
+          </ng-container>
         </button>
       </form>
 

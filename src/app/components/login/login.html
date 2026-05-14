@@ -89,7 +89,11 @@
 
         <button type="submit" [disabled]="isLoading" class="primary-btn">
           <span *ngIf="!isLoading"><i class="bi bi-box-arrow-in-right"></i> Sign In</span>
-          <div *ngIf="isLoading" class="loader"></div>
+          
+          <ng-container *ngIf="isLoading">
+            <div class="loader"></div>
+            <span>Signing in...</span>
+          </ng-container>
         </button>
       </form>
 
