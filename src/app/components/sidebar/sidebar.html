@@ -15,7 +15,7 @@
              *ngIf="activeTab === 'groups'" 
              title="Create Group" 
              (click)="openCreateGroupModal()"></i>
-          <i class="bi bi-three-dots-vertical action-icon"></i>
+          
         </div>
       </div>
 
@@ -116,7 +116,7 @@
           <img src="assets/logo.png" alt="TeamLink Logo" class="app-logo">
           <h2>TeamLink</h2>
         </div>
-        <i class="bi bi-three-dots-vertical"></i>
+        
       </div>
       
       <div class="profile-content-minimal">
@@ -157,11 +157,11 @@
             <span class="label">About</span>
             <i class="bi bi-chevron-right arrow-icon"></i>
           </div>
-          <div class="menu-row" [class.active]="activeSetting === 'help'" (click)="selectSettingMenu('help')">
+          <!-- <div class="menu-row" [class.active]="activeSetting === 'help'" (click)="selectSettingMenu('help')">
             <div class="icon-box"><i class="bi bi-question-circle"></i></div>
             <span class="label">Help and support</span>
             <i class="bi bi-chevron-right arrow-icon"></i>
-          </div>
+          </div> -->
           <div class="menu-row" [class.active]="activeSetting === 'account'" (click)="selectSettingMenu('account')">
             <div class="icon-box"><i class="bi bi-shield-check"></i></div>
             <span class="label">Account settings</span>

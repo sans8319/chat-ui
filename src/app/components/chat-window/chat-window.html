@@ -225,7 +225,7 @@
               <p class="brand-subtitle">• Connecting teams efficiently.</p>
             </div>
 
-            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10;" *ngIf="currentTab === 'poll'">
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100;" *ngIf="currentTab === 'poll'">
               <app-poll-window></app-poll-window>
             </div>
           </div>
@@ -516,7 +516,7 @@
               <i class="bi bi-arrow-left back-icon" (click)="closeChangePassword()"></i> Change Password
             </ng-container>
             <ng-container *ngIf="!(activeSetting === 'account' && isChangingPassword)">
-              {{ activeSetting === 'account' ? 'Account settings' : (activeSetting === 'status' ? 'Status and availability' : 'Profile') }}
+              {{ activeSetting === 'account' ? 'Account settings' : (activeSetting === 'status' ? 'Status and availability' : (activeSetting === 'about' ? 'About TeamLink' : (activeSetting === 'notifications' ? 'Notification Settings' : 'Profile'))) }}
             </ng-container>
           </h2>
         </div>
@@ -872,10 +872,201 @@
               </button>
             </div>
 
+          </div> 
+          
+          <div class="about-section-wrapper" *ngIf="activeSetting === 'about'">
+            <div class="about-content-scroll" style="padding: 0 0 40px 0; overflow: visible;">
+              
+              <div class="about-hero-row">
+                <div class="hero-card premium-card">
+                  <div class="hero-content-split">
+                    <div class="hero-text-side">
+                      <div class="brand-header">
+                        <img src="assets/logo.png" alt="Logo" class="a-logo">
+                        <h3>TeamLink</h3>
+                        <span class="v-badge">v_1.0.0_00EBJBF</span>
+                      </div>
+                      <h4 class="gradient-tagline">Connecting teams. Empowering collaboration.</h4>
+                      <p class="hero-desc">TeamLink is a modern corporate communication platform designed to bring your workforce together. Build stronger teams with seamless interactions.</p>
+                      
+                      <div class="feature-rows">
+                        <div class="f-row">
+                          <div class="i-box bg-purple-light"><i class="bi bi-people-fill text-purple"></i></div>
+                          <div class="f-text">
+                            <strong>Built for Teams</strong>
+                            <span>Designed to enhance team productivity and alignment.</span>
+                          </div>
+                        </div>
+                        <div class="f-row">
+                          <div class="i-box bg-green-light"><i class="bi bi-shield-lock-fill text-green"></i></div>
+                          <div class="f-text">
+                            <strong>Secure & Reliable</strong>
+                            <span>Enterprise-grade security for your data and communications.</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="hero-img-side">
+                      <img src="../../assets/illustration.png" alt="Team Collaboration" class="hero-illustration">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="about-side-card premium-card">
+                  <div class="card-title-row">
+                    <i class="bi bi-info-circle-fill text-blue"></i>
+                    <h4>About Us</h4>
+                  </div>
+                  <p class="side-desc">We are dedicated to building the best communication tools for modern workplaces.
+                  TeamLink is proudly developed by <b>Conspicuous Solutions</b>, focused on creating secure, scalable, and modern collaboration platforms for organizations and teams.
+                  </p>
+                  <ul class="feature-bullets">
+                    <li><i class="bi bi-check2-circle"></i> Real-time messaging</li>
+                    <li><i class="bi bi-check2-circle"></i> Team collaboration</li>
+                    <li><i class="bi bi-check2-circle"></i> Smart notifications</li>
+                    <li><i class="bi bi-check2-circle"></i> File sharing</li>
+                    <li><i class="bi bi-check2-circle"></i> Polls & Announcements</li>
+                    <li><i class="bi bi-check2-circle"></i> Secure enterprise platform</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="about-grid-row">
+                <div class="grid-card premium-card">
+                  <div class="card-title-row">
+                    <div class="i-box bg-green-light"><i class="bi bi-bullseye text-green"></i></div>
+                    <h4>Our Mission</h4>
+                  </div>
+                  <p>To eliminate communication barriers and provide teams with a unified workspace that fosters creativity.</p>
+                  <div class="quote-box bg-green-ultralight text-green-dark">
+                    "Great communication builds great teams."
+                  </div>
+                </div>
+
+                <div class="grid-card premium-card">
+                  <div class="card-title-row">
+                    <div class="i-box bg-blue-light"><i class="bi bi-eye-fill text-blue"></i></div>
+                    <h4>Our Vision</h4>
+                  </div>
+                  <p>To become the global standard for workplace collaboration, connecting organizations effortlessly. We believe in building a future where every team, regardless of location, can work together seamlessly. By bridging the gap between distances, we ensure zero communication loss.</p>
+                  <div class="quote-box bg-blue-ultralight text-blue-dark">
+                    "A connected team is an empowered team."
+                  </div>
+                </div>
+
+                <div class="grid-card premium-card">
+                  <div class="card-title-row">
+                    <div class="i-box bg-purple-light"><i class="bi bi-box-seam-fill text-purple"></i></div>
+                    <h4>Product Info</h4>
+                  </div>
+                  <div class="info-table">
+                    <div class="info-row"><span>Product Name</span><strong>TeamLink</strong></div>
+                    <div class="info-row"><span>Version</span><strong>V_1.0.0_00EBJBF (Stable)</strong></div>
+                    <div class="info-row"><span>Build</span><strong>2026.05.14</strong></div>
+                    <div class="info-row"><span>Platform</span><strong> Desktop</strong></div>
+                    <div class="info-row"><span>License</span><strong>Enterprise</strong></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="security-banner premium-card">
+                <div class="sec-left">
+                  <div class="i-box bg-orange-light"><i class="bi bi-shield-check text-orange"></i></div>
+                  <div class="sec-text">
+                    <h4>Security & Privacy</h4>
+                    <p>Your data is protected . We never compromise on privacy.</p>
+                  </div>
+                </div>
+                <button class="btn-outline-premium">Privacy Policy</button>
+              </div>
+
+            </div>
           </div>
 
-        </div>
-      </div>
+          <div class="main-profile-card notifications-card-ui" *ngIf="activeSetting === 'notifications'">
+            
+            <div class="notif-header-info">
+              <h3>Manage your notifications</h3>
+              <p>Choose what you want to be notified about and how. Turning off main notifications will also disable their sounds.</p>
+            </div>
+
+            <div class="notif-cards-grid">
+              
+              <div class="n-card pastel-blue-bg" [class.disabled-state]="!notifSettings.chats.push">
+                <div class="n-card-main">
+                  <div class="n-icon-box text-blue"><i class="bi bi-chat-dots-fill"></i></div>
+                  <div class="n-text">
+                    <h4>Chat Messages</h4>
+                    <p>Direct messages, replies & group mentions</p>
+                  </div>
+                  <label class="premium-switch">
+                    <input type="checkbox" [(ngModel)]="notifSettings.chats.push">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="n-card-sub">
+                  <div class="sub-setting">
+                    <span><i class="bi bi-volume-up-fill"></i> Play Sound</span>
+                    <label class="premium-switch small-switch">
+                      <input type="checkbox" [(ngModel)]="notifSettings.chats.sound" [disabled]="!notifSettings.chats.push">
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="n-card pastel-purple-bg" [class.disabled-state]="!notifSettings.polls.push">
+                <div class="n-card-main">
+                  <div class="n-icon-box text-purple"><i class="bi bi-bar-chart-fill"></i></div>
+                  <div class="n-text">
+                    <h4>Polling Updates</h4>
+                    <p>New polls, expired polls & vote results</p>
+                  </div>
+                  <label class="premium-switch">
+                    <input type="checkbox" [(ngModel)]="notifSettings.polls.push">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="n-card-sub">
+                  <div class="sub-setting">
+                    <span><i class="bi bi-volume-up-fill"></i> Play Sound</span>
+                    <label class="premium-switch small-switch">
+                      <input type="checkbox" [(ngModel)]="notifSettings.polls.sound" [disabled]="!notifSettings.polls.push">
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="n-card pastel-orange-bg" [class.disabled-state]="!notifSettings.announcements.push">
+                <div class="n-card-main">
+                  <div class="n-icon-box text-orange"><i class="bi bi-megaphone-fill"></i></div>
+                  <div class="n-text">
+                    <h4>Announcements</h4>
+                    <p>Company-wide updates & important alerts</p>
+                  </div>
+                  <label class="premium-switch">
+                    <input type="checkbox" [(ngModel)]="notifSettings.announcements.push">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="n-card-sub">
+                  <div class="sub-setting">
+                    <span><i class="bi bi-volume-up-fill"></i> Play Sound</span>
+                    <label class="premium-switch small-switch">
+                      <input type="checkbox" [(ngModel)]="notifSettings.announcements.sound" [disabled]="!notifSettings.announcements.push">
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div> 
+        
+      </div> 
     </ng-container>
 
   </div>

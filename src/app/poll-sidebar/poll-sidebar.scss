@@ -196,16 +196,19 @@
 
       .poll-actions {
         display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
-        i { color: #94a3b8; font-size: 18px; transition: 0.2s; &:hover { color: #0f172a; } }
-        .status-tag { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; }
+        
+        .status-tag { 
+          margin-top: 22px; /* 🛑 NAYA FIX: Delete kiye gaye icon (18px) aur gap (8px) ki exact jagah cover karega */
+          padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; 
+        }
         .active-tag { background: #dcfce7; color: #16a34a; }
         .closed-tag { background: #fee2e2; color: #ef4444; }
 
         .voted-label {
           font-size: 11px;
-          color: #94a3b8; // Light Grey
+          color: #94a3b8; 
           font-style: italic;
-          margin-top: 5px; // Isse ye automatically sabse niche chala jayega
+          margin-top: 13px; 
           font-weight: 500;
         }
       }

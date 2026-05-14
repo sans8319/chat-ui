@@ -94,6 +94,12 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   showDeleteGroupModal: boolean = false;
   isDeletingGroup: boolean = false;
 
+  notifSettings = {
+    chats: { push: true, sound: true },
+    polls: { push: true, sound: false },
+    announcements: { push: true, sound: true }
+  };
+
   toggleProfilePanel() {
     this.showProfilePanel = !this.showProfilePanel;
     if (!this.showProfilePanel) {
