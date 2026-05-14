@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { ChatService } from '../services/chat';
 
 @Component({
@@ -16,6 +16,8 @@ export class PollSidebarComponent implements OnInit {
   
   allPolls: any[] = [];
   activePolls: any[] = [];
+
+  allFetchedPolls: any[] = [];
   
 
   constructor(
@@ -37,14 +39,34 @@ export class PollSidebarComponent implements OnInit {
   });
   }
 
+  applyFilters() {
+    // Pehle sirf wo polls lo jo is user ke liye targeted hain
+    let basePolls = this.allFetchedPolls.filter(p => p.targetedForUser);
+
+    // Agar date select ki gayi hai, toh date ke hisaab se list choti (filter) karo
+    if (this.selectedFilterDate) {
+      basePolls = basePolls.filter(p => {
+        if (!p.createdAt) return false;
+        const d = new Date(p.createdAt);
+        // Date ko YYYY-MM-DD format mein convert karke match karo
+        const pollDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        return pollDateStr === this.selectedFilterDate;
+      });
+    }
+
+    // Filtered data ko main arrays me daal do (HTML apne aap update ho jayega)
+    this.allPolls = basePolls;
+    this.activePolls = this.allPolls.filter(p => p.active && new Date(p.expiryDate).getTime() > new Date().getTime());
+    
+    this.cdr.detectChanges();
+  }
+
   loadPolls() {
     if (!this.currentUserId) return;
     this.chatService.getPollsForUser(this.currentUserId).subscribe({
       next: (polls) => {
-        this.allPolls = polls;
-        // Active tab ke liye filter: Poll active ho aur abhi expire na hua ho
-        this.activePolls = polls.filter(p => p.active && new Date(p.expiryDate).getTime() > new Date().getTime());
-        this.cdr.detectChanges();
+        this.allFetchedPolls = polls; 
+        this.applyFilters(); // 🛑 NAYA: Direct filter function call karega
       },
       error: (err) => console.error("Error fetching polls", err)
     });
@@ -129,9 +151,104 @@ export class PollSidebarComponent implements OnInit {
   
   // poll-sidebar.ts mein loadPolls ke neeche ya kahin bhi add karein
   get myCreatedPollsCount(): number {
-    return this.allPolls.filter(poll => poll.createdBy === this.currentUserId).length;
+    // 🛑 Ab count saare fetched polls mein se nikalo, naa ki sirf targeted ones mein se
+    return this.allFetchedPolls.filter(poll => poll.createdBy === this.currentUserId).length;
   }
   
+  // 🛑 NAYA: Filter & Custom Calendar Variables
+  showFilterMenu: boolean = false;
+  showCalendar: boolean = false;
+  selectedFilterDate: string | null = null;
+  
+  currentDate = new Date();
+  currentMonth = this.currentDate.getMonth();
+  currentYear = this.currentDate.getFullYear();
+  calendarDays: any[] = [];
+  weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  // Screen par kahin click ho to menu band ho jaye
+  @HostListener('document:click')
+  closePopups() {
+    this.showFilterMenu = false;
+    this.showCalendar = false;
+  }
+
+  toggleFilter(event: Event) {
+    event.stopPropagation();
+    
+    // 🛑 FIX: Agar filter pehle se laga hai, toh icon click karne par reset ho jayega!
+    if (this.selectedFilterDate) {
+      this.selectedFilterDate = null;
+      this.showFilterMenu = false;
+      this.showCalendar = false;
+      this.applyFilters(); // Wapas saare polls dikhayega
+    } else {
+      // Agar filter nahi laga hai, toh menu open/close hoga
+      this.showFilterMenu = !this.showFilterMenu;
+      this.showCalendar = false;
+    }
+  }
+
+  toggleCalendar(event: Event) {
+    event.stopPropagation();
+    this.showCalendar = !this.showCalendar;
+    if(this.showCalendar && this.calendarDays.length === 0) {
+        this.generateCalendar();
+    }
+  }
+
+  generateCalendar() {
+    this.calendarDays = [];
+    const firstDay = new Date(this.currentYear, this.currentMonth, 1).getDay();
+    const daysInMonth = new Date(this.currentYear, this.currentMonth + 1, 0).getDate();
+    const daysInPrevMonth = new Date(this.currentYear, this.currentMonth, 0).getDate();
+
+    for (let i = firstDay - 1; i >= 0; i--) {
+      const d = new Date(this.currentYear, this.currentMonth - 1, daysInPrevMonth - i);
+      this.calendarDays.push({ date: d.getDate(), isCurrentMonth: false, fullDate: this.formatDate(d) });
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+      const d = new Date(this.currentYear, this.currentMonth, i);
+      this.calendarDays.push({ date: i, isCurrentMonth: true, fullDate: this.formatDate(d) });
+    }
+    const remaining = 42 - this.calendarDays.length;
+    for (let i = 1; i <= remaining; i++) {
+      const d = new Date(this.currentYear, this.currentMonth + 1, i);
+      this.calendarDays.push({ date: i, isCurrentMonth: false, fullDate: this.formatDate(d) });
+    }
+  }
+
+  formatDate(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  prevMonth(event: Event) {
+    event.stopPropagation();
+    if (this.currentMonth === 0) { this.currentMonth = 11; this.currentYear--; } 
+    else { this.currentMonth--; }
+    this.generateCalendar();
+  }
+
+  nextMonth(event: Event) {
+    event.stopPropagation();
+    if (this.currentMonth === 11) { this.currentMonth = 0; this.currentYear++; } 
+    else { this.currentMonth++; }
+    this.generateCalendar();
+  }
+
+  selectDate(fullDate: string, event: Event) {
+    event.stopPropagation();
+    this.selectedFilterDate = fullDate;
+    this.showCalendar = false;
+    this.showFilterMenu = false;
+    
+    // 🛑 FIX: Date select hote hi polls filter ho jayenge
+    this.applyFilters(); 
+  }
+  getMonthName(): string {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    return months[this.currentMonth];
+  }
   
 
 }

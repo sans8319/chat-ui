@@ -32,7 +32,44 @@
 
   <div class="section-heading">
     <span>POLLS FOR YOU</span>
+    
+    <div class="filter-container">
+      <div class="filter-icon-btn" title="Filter Polls" 
+           (click)="toggleFilter($event)" 
+           [class.active-filter]="selectedFilterDate">
+        <i class="bi" [ngClass]="selectedFilterDate ? 'bi-funnel-fill' : 'bi-funnel'"></i>
+      </div>
+      
+      <div class="filter-menu" *ngIf="showFilterMenu" (click)="$event.stopPropagation()">
+        
+        <div class="f-item">
+          <span class="f-text">By Date</span>
+          <div class="cal-icon-wrapper" (click)="toggleCalendar($event)" [class.active-cal]="showCalendar">
+            <i class="bi bi-calendar-event"></i>
+          </div>
+        </div>
+        
+        <div class="sidebar-calendar" *ngIf="showCalendar" (click)="$event.stopPropagation()">
+          <div class="cal-header">
+            <i class="bi bi-chevron-left" (click)="prevMonth($event)"></i>
+            <span>{{ getMonthName() }} {{ currentYear }}</span>
+            <i class="bi bi-chevron-right" (click)="nextMonth($event)"></i>
+          </div>
+          <div class="cal-grid">
+            <div class="weekday" *ngFor="let w of weekDays">{{ w }}</div>
+            <div class="day" *ngFor="let day of calendarDays" 
+                 [class.other-month]="!day.isCurrentMonth" 
+                 [class.selected]="day.fullDate === selectedFilterDate" 
+                 (click)="selectDate(day.fullDate, $event)">
+              {{ day.date }}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
+
 
   <div class="filter-tabs-wrapper">
     <div class="tab" [class.active]="activeFilter === 'all'" (click)="activeFilter = 'all'">All Polls</div>
@@ -88,12 +125,6 @@
     </ng-template>
   </div>
 
-  <div class="archive-footer">
-    <div class="f-left">
-      <i class="bi bi-archive"></i>
-      <span>View Archived Polls</span>
-    </div>
-    <i class="bi bi-chevron-right"></i>
-  </div>
+  
 
 </div>

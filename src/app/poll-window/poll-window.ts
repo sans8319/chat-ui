@@ -13,15 +13,11 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'; // �
   styleUrl: './poll-window.scss'
 })
 export class PollWindowComponent implements OnInit {
-  // ==========================================
-  // 🛑 VOTING UI VARIABLES (NAYA)
-  // ==========================================
+  
   selectedPoll: any = null;
   selectedOptions: number[] = [];
 
-  // ==========================================
-  // CREATE POLL VARIABLES (PURANA)
-  // ==========================================
+
   pollQuestion: string = '';
   pollDescription: string = '';
   isCreating: boolean = false;
@@ -67,22 +63,29 @@ export class PollWindowComponent implements OnInit {
   showMyCreatedPolls: boolean = false;
   myCreatedPolls: any[] = [];
 
-  // 🛑 NAYA: Analytics View Variables
+
   showPollAnalytics: boolean = false;
   analyticsPoll: any = null;
   
   // Premium Colors for Pie Chart & Legend
   pollColors: string[] = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#0ea5e9', '#f43f5e'];
 
+  currentUserId: number | null = null;
+
+  allMyCreatedPolls: any[] = [];
+  showMatrixFilterMenu: boolean = false;
+  activeMatrixFilter: 'all' | 'active' | 'closed' = 'all';
+
 
   constructor(
-    public chatService: ChatService, // Public kiya taaki HTML me call ho sake
+    public chatService: ChatService, 
     private http: HttpClient, 
     @Inject(PLATFORM_ID) private platformId: Object,
     private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit() {
+    this.currentUserId = Number(localStorage.getItem('userId'));
     this.fetchDepartments();
     this.fetchAllUsers();
     this.minDateObj.setHours(0,0,0,0); 
@@ -91,10 +94,10 @@ export class PollWindowComponent implements OnInit {
     
     this.chatService.selectedPoll$.subscribe(poll => {
       this.selectedPoll = poll;
-      this.selectedOptions = []; // Naya poll open hote hi selection reset
+      this.selectedOptions = []; 
 
       if (poll) {
-        // Agar voting ke liye poll khula hai, toh Matrix aur Analytics ko band karo
+        
         this.showPollAnalytics = false; 
         this.showMyCreatedPolls = false;
         
@@ -102,16 +105,16 @@ export class PollWindowComponent implements OnInit {
           this.pollCommentsMap[poll.id] = '';
         }
       } else {
-        // Agar "Create Poll" button dabaya hai, toh Analytics band karo
+       
         this.showPollAnalytics = false;
       }
     });
 
-    // 🛑 NAYA FIX 2: Jab Matrix View (Your Created Polls) kholna हो
+
     this.chatService.showMyPolls$.subscribe(show => {
       this.showMyCreatedPolls = show;
       if (show) {
-        // Matrix open karte hi Analytics aur Voting band karo
+  
         this.showPollAnalytics = false; 
         this.selectedPoll = null; 
         
@@ -138,14 +141,11 @@ export class PollWindowComponent implements OnInit {
     });
   }
 
-  // ==========================================
-  // 🛑 VOTING UI LOGIC (NAYA)
-  // ==========================================
+
   closeVoting() {
     this.chatService.setSelectedPoll(null);
   }
 
-  // 🛑 NAYE FUNCTIONS (Voting UI ke liye)
   getCreatorName(poll: any): string {
     if (!poll) return '';
     const currentUserId = Number(localStorage.getItem('userId'));
@@ -157,7 +157,7 @@ export class PollWindowComponent implements OnInit {
     if (!poll) return false;
     if (!poll.active) return false;
     const expiry = new Date(poll.expiryDate).getTime();
-    return expiry > new Date().getTime(); // Aaj ke time se compare karega
+    return expiry > new Date().getTime(); 
   }
 
   toggleOption(optionId: number) {
@@ -169,14 +169,14 @@ export class PollWindowComponent implements OnInit {
     }
     
     if (this.selectedPoll.pollType === 'single') {
-      // 🛑 NAYA FIX: Agar single choice me same option dobara click hua, to deselect kar do
+      
       if (this.selectedOptions.includes(optionId)) {
         this.selectedOptions = []; // Unselect
       } else {
         this.selectedOptions = [optionId]; // Select new
       }
     } else {
-      // Multiple choice ka purana logic jo theek chal raha tha
+      
       const index = this.selectedOptions.indexOf(optionId);
       index > -1 ? this.selectedOptions.splice(index, 1) : this.selectedOptions.push(optionId);
     }
@@ -197,9 +197,7 @@ export class PollWindowComponent implements OnInit {
     return 'bi-file-earmark-text-fill text-secondary';
   }
 
-  // ==========================================
-  // CREATE POLL LOGIC (PURANA)
-  // ==========================================
+
   fetchDepartments() {
     this.isLoadingDepartments = true;
     this.chatService.getDepartments().subscribe({
@@ -288,15 +286,16 @@ export class PollWindowComponent implements OnInit {
     this.isDeptDropdownOpen = false;
     this.isUserDropdownOpen = false;
     this.showCalendar = false; 
+    this.showMatrixFilterMenu = false;
   }
 
   createPoll() {
-    // 🛑 1. STRICT VALIDATIONS
+
     if (!this.pollQuestion || !this.pollQuestion.trim()) {
       return this.showCustomAlert('Please enter a poll question.');
     }
 
-    // Check karein ki kam se kam 2 options bhare hue hain ya file attached hai
+
     const validOptions = this.pollOptions.filter(opt => opt.text.trim() || opt.file);
     if (validOptions.length < 2) {
       return this.showCustomAlert('Please provide at least 2 valid options.');
@@ -314,7 +313,7 @@ export class PollWindowComponent implements OnInit {
       return this.showCustomAlert('Please select at least one specific employee.');
     }
 
-    // 🛑 2. AGAR SAB SAHI HAI, TOH API CALL KAREIN
+
     this.isCreating = true; 
 
     const formData = new FormData();
@@ -349,7 +348,7 @@ export class PollWindowComponent implements OnInit {
       next: (res) => {
         this.showCustomAlert("Poll Created Successfully! 🚀"); // Professional alert
         
-        // 🛑 NAYA FIX: Sidebar ko signal bhejo ki naya poll aa gaya hai
+    
         this.chatService.triggerNotification({ type: 'NEW_POLL' }); 
 
         this.isCreating = false; 
@@ -588,7 +587,9 @@ export class PollWindowComponent implements OnInit {
 
   loadMyPolls(userId: number) {
     this.chatService.getPollsForUser(userId).subscribe(polls => {
-      this.myCreatedPolls = polls.filter(p => Number(p.createdBy) === userId);
+      let created = polls.filter(p => Number(p.createdBy) === userId);
+      this.allMyCreatedPolls = created;
+      this.applyMatrixFilter(); 
     });
   }
 
@@ -727,6 +728,84 @@ export class PollWindowComponent implements OnInit {
     
     // Agar mil gaya toh uska exact color return karo
     return index !== -1 ? this.getOptionColor(index) : '#cbd5e1';
+  }
+
+  sortPinnedPolls(polls: any[]) {
+    const currentUserId = localStorage.getItem('userId');
+    const pinned = JSON.parse(localStorage.getItem(`pinnedPolls_${currentUserId}`) || '[]');
+
+    return polls.sort((a, b) => {
+      const aPinned = pinned.includes(a.id);
+      const bPinned = pinned.includes(b.id);
+
+      if (aPinned && !bPinned) return -1; // Pinned poll hamesha upar
+      if (!aPinned && bPinned) return 1;  // Unpinned neeche
+
+      // Agar dono pinned hain ya dono unpinned hain, toh naya poll upar aayega
+      return b.id - a.id; 
+    });
+  }
+
+  // 🛑 NAYA FUNCTION: Check karne ke liye ki poll pinned hai ya nahi
+  isPollPinned(pollId: number): boolean {
+    const currentUserId = localStorage.getItem('userId');
+    const pinned = JSON.parse(localStorage.getItem(`pinnedPolls_${currentUserId}`) || '[]');
+    return pinned.includes(pollId);
+  }
+
+
+  togglePinPoll(poll: any, event: Event) {
+    event.stopPropagation(); // Card open hone se rokne ke liye
+    
+    const currentUserId = localStorage.getItem('userId');
+    const storageKey = `pinnedPolls_${currentUserId}`;
+    let pinned = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+    if (pinned.includes(poll.id)) {
+      pinned = pinned.filter((id: number) => id !== poll.id); // Unpin
+    } else {
+      pinned.push(poll.id); // Pin
+    }
+
+    localStorage.setItem(storageKey, JSON.stringify(pinned));
+    
+    
+    this.myCreatedPolls = this.sortPinnedPolls([...this.myCreatedPolls]); 
+  }
+
+  applyMatrixFilter() {
+    let filtered = [...this.allMyCreatedPolls];
+    
+    if (this.activeMatrixFilter === 'active') {
+      filtered = filtered.filter(p => this.isPollActive(p));
+    } else if (this.activeMatrixFilter === 'closed') {
+      filtered = filtered.filter(p => !this.isPollActive(p));
+    }
+    
+    this.myCreatedPolls = this.sortPinnedPolls(filtered); 
+  }
+
+
+  toggleMatrixFilter(event: Event) {
+    event.stopPropagation();
+    
+    if (this.activeMatrixFilter !== 'all') {
+
+      this.activeMatrixFilter = 'all';
+      this.showMatrixFilterMenu = false;
+      this.applyMatrixFilter();
+    } else {
+
+      this.showMatrixFilterMenu = !this.showMatrixFilterMenu;
+    }
+  }
+
+
+  setMatrixFilter(filterType: 'active' | 'closed', event: Event) {
+    event.stopPropagation();
+    this.activeMatrixFilter = filterType;
+    this.showMatrixFilterMenu = false;
+    this.applyMatrixFilter();
   }
 
 }

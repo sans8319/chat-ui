@@ -189,6 +189,28 @@
   </div>
 
   <div class="grid-scroll-area">
+    <div class="matrix-filter-bar" *ngIf="allMyCreatedPolls.length > 0">
+      <div class="filter-container">
+        
+        <div class="filter-icon-btn" 
+             [class.active-filter]="activeMatrixFilter !== 'all'"
+             (click)="toggleMatrixFilter($event)" 
+             [title]="activeMatrixFilter !== 'all' ? 'Clear Filter' : 'Filter Polls'">
+          <i class="bi" [ngClass]="activeMatrixFilter !== 'all' ? 'bi-funnel-fill' : 'bi-funnel'"></i>
+          <span class="f-lbl" *ngIf="activeMatrixFilter !== 'all'">{{ activeMatrixFilter | titlecase }}</span>
+        </div>
+        
+        <div class="filter-menu matrix-dropdown" *ngIf="showMatrixFilterMenu" (click)="$event.stopPropagation()">
+          <div class="f-item" (click)="setMatrixFilter('active', $event)">
+            <span class="f-text"><i class="bi bi-circle-fill text-green"></i> Active Polls</span>
+          </div>
+          <div class="f-item" (click)="setMatrixFilter('closed', $event)">
+            <span class="f-text"><i class="bi bi-circle-fill text-red"></i> Closed Polls</span>
+          </div>
+        </div>
+        
+      </div>
+    </div>
     <div class="poll-matrix">
       <div class="matrix-card" *ngFor="let poll of myCreatedPolls" (click)="openAnalytics(poll)">
         
@@ -196,9 +218,18 @@
           <div class="p-icon" [ngClass]="getIconData(poll.id).bg">
             <i class="bi" [ngClass]="getIconData(poll.id).icon"></i>
           </div>
-          <span class="status-tag" [ngClass]="isPollActive(poll) ? 'active' : 'inactive'">
-            {{ isPollActive(poll) ? 'Active' : 'Closed' }}
-          </span>
+          
+          <div class="header-right-actions">
+            <i class="bi pin-icon" 
+               [ngClass]="isPollPinned(poll.id) ? 'bi-pin-angle-fill active-pin' : 'bi-pin-angle'"
+               (click)="togglePinPoll(poll, $event)"
+               [title]="isPollPinned(poll.id) ? 'Unpin Poll' : 'Pin to Top'">
+            </i>
+            
+            <span class="status-tag" [ngClass]="isPollActive(poll) ? 'active' : 'inactive'">
+              {{ isPollActive(poll) ? 'Active' : 'Closed' }}
+            </span>
+          </div>
         </div>
 
         <h3 class="poll-q">{{ poll.question }}</h3>
@@ -272,7 +303,9 @@
           <h4><i class="bi bi-chat-left-text-fill"></i> Voter Feedback</h4>
           <div class="comments-list">
             <div class="comment-bubble" *ngFor="let vote of getPollComments(analyticsPoll)">
-              <strong>{{ analyticsPoll.visibility === 'anonymous' ? 'Anonymous' : (vote.user?.username || 'User') }}</strong>
+              <strong>
+                {{ analyticsPoll.visibility === 'anonymous' ? 'Anonymous' : (vote.userId == currentUserId ? 'You' : (vote.user?.username || 'User')) }}
+              </strong>
               <p>{{ vote.comment }}</p>
               <span class="c-time">{{ vote.submittedAt | date:'shortTime' }}</span>
             </div>
@@ -311,15 +344,15 @@
           <h4><i class="bi bi-person-lines-fill"></i> Live Responses</h4>
           <div class="voters-list">
             <div class="voter-item" *ngFor="let vote of analyticsPoll.votes">
-              <div class="voter-info">
-                <div class="voter-avatar"><i class="bi bi-person-fill"></i></div>
-                <span>{{ vote.user?.username || 'User' }}</span>
+                <div class="voter-info">
+                  <div class="voter-avatar"><i class="bi bi-person-fill"></i></div>
+                  <span>{{ vote.userId == currentUserId ? 'You' : (vote.user?.username || 'User') }}</span>
+                </div>
+                <div class="voted-for">
+                  <span class="color-dot" *ngFor="let optId of vote.selectedOptionIds" [style.background]="getVoteColor(optId)"></span>
+                  Voted
+                </div>
               </div>
-              <div class="voted-for">
-                <span class="color-dot" *ngFor="let optId of vote.selectedOptionIds" [style.background]="getVoteColor(optId)"></span>
-                Voted
-              </div>
-            </div>
             <div class="empty-msg" *ngIf="!analyticsPoll.votes || analyticsPoll.votes.length === 0">No public votes recorded yet.</div>
           </div>
         </div>
