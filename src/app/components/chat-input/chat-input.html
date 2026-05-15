@@ -47,7 +47,7 @@
         </div>
       </div>
       <div class="reply-image-preview" *ngIf="replyToMessage.fileUrl && replyToMessage.fileType?.startsWith('image/')">
-        <img [src]="'http://localhost:8080' + replyToMessage.fileUrl" alt="preview">
+        <img [src]="baseUrl + replyToMessage.fileUrl" alt="preview">
       </div>
     </div>
 

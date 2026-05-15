@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ChatService } from '../services/chat';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'; // 🛑 YAHAN ADD KIYA
+import { API_CONFIG } from '../config/api-config'; // 🛑 YAHAN ADD KIYA
 
 @Component({
   selector: 'app-poll-window',
@@ -211,7 +212,7 @@ export class PollWindowComponent implements OnInit {
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
     const currentUserId = isPlatformBrowser(this.platformId) ? localStorage.getItem('userId') : '';
 
-    this.http.get<any[]>('http://localhost:8080/api/users', { headers }).subscribe(users => {
+    this.http.get<any[]>(`${API_CONFIG.BASE_URL}/api/users`, { headers }).subscribe(users => {
        this.allUsers = users.filter(u => !u.username.includes('_DELETED_') && String(u.id) !== currentUserId);
     });
   }
@@ -233,7 +234,7 @@ export class PollWindowComponent implements OnInit {
 
   parseProfilePicture(path: string) {
     if (!path) return { isImage: false, isAvatar: false };
-    if (path.startsWith('/uploads/')) return { isImage: true, url: `http://localhost:8080${path}` };
+    if (path.startsWith('/uploads/')) return { isImage: true, url: `${API_CONFIG.BASE_URL}${path}` };
     if (path.includes('|')) {
       const parts = path.split('|');
       return { isImage: false, isAvatar: true, bg: parts[0], icon: parts[1] };
@@ -344,7 +345,7 @@ export class PollWindowComponent implements OnInit {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.post('http://localhost:8080/api/polls/create', formData, { headers }).subscribe({
+    this.http.post(`${API_CONFIG.BASE_URL}/api/polls/create`, formData, { headers }).subscribe({
       next: (res) => {
         this.showCustomAlert("Poll Created Successfully! 🚀"); // Professional alert
         
@@ -419,7 +420,7 @@ export class PollWindowComponent implements OnInit {
   getFullImageUrl(url: string): string {
     if (!url) return '';
     if (url.startsWith('http')) return url; 
-    return `http://localhost:8080${url}`;   
+    return `${API_CONFIG.BASE_URL}${url}`;   
   }
 
   // 🛑 NAYE FUNCTIONS (Ugly MIME type hatane aur Preview open karne ke liye)
@@ -506,7 +507,7 @@ export class PollWindowComponent implements OnInit {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.post('http://localhost:8080/api/polls/vote', votePayload, { headers }).subscribe({
+    this.http.post(`${API_CONFIG.BASE_URL}/api/polls/vote`, votePayload, { headers }).subscribe({
       next: (res) => {
         // 🛑 FIX: Premium Alert lagaya
         this.showCustomAlert("Vote submitted successfully! ✅");

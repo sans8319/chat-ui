@@ -165,11 +165,11 @@
                     <div class="sender-name" *ngIf="selectedUser.isGroup && msg.senderId !== currentUserId">{{ msg.senderName || 'Member' }}</div>
                     <div class="media-attachment" *ngIf="msg.fileUrl && !msg.isDeleted">
                       <div class="image-wrapper" *ngIf="isImage(msg.fileType)">
-                        <img [src]="'http://localhost:8080' + msg.fileUrl" 
+                        <img [src]="baseUrl + msg.fileUrl" 
                             (click)="openMediaPreview(msg.fileUrl, msg.fileType, msg.fileName)"
                             alt="Shared Image" class="chat-image" style="cursor: pointer;">
                       </div>
-                      <a *ngIf="!isImage(msg.fileType)" [href]="'http://localhost:8080' + msg.fileUrl" target="_blank" class="file-card" download>
+                      <a *ngIf="!isImage(msg.fileType)" [href]="baseUrl + msg.fileUrl" target="_blank" class="file-card" download>
                         <div class="file-icon-box"><i class="bi" [ngClass]="getFileIcon(msg.fileName, msg.fileType)"></i></div>
                         <div class="file-info">
                           <span class="f-name">{{ msg.fileName }}</span>

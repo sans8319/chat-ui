@@ -4,6 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ChatService } from '../../services/chat';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { API_CONFIG } from '../../config/api-config';
 
 @Component({
   selector: 'app-sidebar',
@@ -183,7 +184,7 @@ export class SidebarComponent implements OnInit {
     if (this.currentUserId) {
       const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : '';
       const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-      this.http.get<any>(`http://localhost:8080/api/users/${this.currentUserId}`, { headers })
+      this.http.get<any>(`${API_CONFIG.BASE_URL}/api/users/${this.currentUserId}`, { headers })
         .subscribe(user => {
           if (user) {
             if (isPlatformBrowser(this.platformId)) {
@@ -207,7 +208,7 @@ export class SidebarComponent implements OnInit {
     const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : '';
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.get<any[]>(`http://localhost:8080/api/groups/user/${this.currentUserId}`, { headers })
+    this.http.get<any[]>(`${API_CONFIG.BASE_URL}/api/groups/user/${this.currentUserId}`, { headers })
       .subscribe({
         next: (data) => {
           this.groups = data.map(g => ({
@@ -447,7 +448,7 @@ export class SidebarComponent implements OnInit {
       const formData = new FormData();
       formData.append('file', this.selectedFile);
       try {
-        const uploadRes: any = await this.http.post('http://localhost:8080/api/files/upload', formData, { headers }).toPromise();
+        const uploadRes: any = await this.http.post(`${API_CONFIG.BASE_URL}/api/files/upload`, formData, { headers }).toPromise();
         finalImageUrl = uploadRes.url; 
       } catch (err) {
         console.error("Upload error:", err);
@@ -466,7 +467,7 @@ export class SidebarComponent implements OnInit {
       profilePicture: finalImageUrl 
     };
 
-    this.http.post<any>(`http://localhost:8080/api/groups/create?creatorId=${this.currentUserId}`, payload, { headers })
+    this.http.post<any>(`${API_CONFIG.BASE_URL}/api/groups/create?creatorId=${this.currentUserId}`, payload, { headers })
       .subscribe({
         next: () => {
           this.closeCreateGroupModal();
@@ -487,7 +488,7 @@ export class SidebarComponent implements OnInit {
       token = localStorage.getItem('token') || '';
     }
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    this.http.get<any[]>('http://localhost:8080/api/users', { headers }).subscribe({
+    this.http.get<any[]>(`${API_CONFIG.BASE_URL}/api/users`, { headers }).subscribe({
       next: (data) => {
         this.users = data.filter(user => !user.username.startsWith(loggedInUser)).map(user => {
           if (user.username && user.username.includes('_DELETED_')) {
@@ -586,7 +587,7 @@ export class SidebarComponent implements OnInit {
     if (path.startsWith('/uploads/')) {
       return { 
         isImage: true, 
-        url: `http://localhost:8080${path}` 
+        url: `${API_CONFIG.BASE_URL}${path}` 
       };
     }
 

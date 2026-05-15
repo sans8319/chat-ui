@@ -2,6 +2,7 @@ import { Component, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angu
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ChatService } from '../../services/chat';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { API_CONFIG } from '../../config/api-config';
 
 @Component({
   selector: 'app-nav-rail',
@@ -69,7 +70,7 @@ export class NavRailComponent implements OnInit {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.get<any>(`http://localhost:8080/api/users/${this.currentUserId}`, { headers })
+    this.http.get<any>(`${API_CONFIG.BASE_URL}/api/users/${this.currentUserId}`, { headers })
       .subscribe({
         next: (user) => {
           if (user) {
@@ -88,7 +89,7 @@ export class NavRailComponent implements OnInit {
 
   parseProfilePicture(path: string) {
     if (!path) return { isImage: false, isAvatar: false };
-    if (path.startsWith('/uploads/')) return { isImage: true, url: `http://localhost:8080${path}` };
+    if (path.startsWith('/uploads/')) return { isImage: true, url: `${API_CONFIG.BASE_URL}${path}` };
     if (path.includes('|')) {
       const parts = path.split('|');
       return { isImage: false, isAvatar: true, bg: parts[0], icon: parts[1] };

@@ -3,6 +3,8 @@ import { Client, Message } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { isPlatformBrowser } from '@angular/common';
+import { API_CONFIG } from '../config/api-config';  
 
 
 @Injectable({
@@ -88,7 +90,7 @@ export class ChatService {
   }
 
   private initConnection() {
-    const socket = new SockJS('http://localhost:8080/ws-chat');
+    const socket = new SockJS(`${API_CONFIG.BASE_URL}/ws-chat`);
     this.stompClient = new Client({
       webSocketFactory: () => socket,
       debug: (str) => console.log(str),
@@ -191,7 +193,7 @@ export class ChatService {
   getOrCreateRoom(user1Id: number, user2Id: number): Observable<any> {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    return this.http.get(`http://localhost:8080/api/rooms/dm?user1=${user1Id}&user2=${user2Id}`, { headers });
+    return this.http.get(`${API_CONFIG.BASE_URL}/api/rooms/dm?user1=${user1Id}&user2=${user2Id}`, { headers });
   }
 
   getChatHistory(roomId: string): Observable<any[]> {
@@ -200,7 +202,7 @@ export class ChatService {
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
     
     // NAYA: URL mein ?userId= add kiya
-    return this.http.get<any[]>(`http://localhost:8080/api/messages/${roomId}?userId=${userId}`, { headers });
+    return this.http.get<any[]>(`${API_CONFIG.BASE_URL}/api/messages/${roomId}?userId=${userId}`, { headers });
   }
 
   // =====================================
@@ -212,7 +214,7 @@ export class ChatService {
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
     
     // NAYA: URL mein ?userId= add kiya taaki backend filter kar sake
-    return this.http.get<any[]>(`http://localhost:8080/api/messages/${roomId}/media?userId=${userId}`, { headers });
+    return this.http.get<any[]>(`${API_CONFIG.BASE_URL}/api/messages/${roomId}/media?userId=${userId}`, { headers });
   }
 
   // =====================================
@@ -224,7 +226,7 @@ export class ChatService {
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
     
     // NAYA: URL mein ?userId= add kiya
-    return this.http.delete(`http://localhost:8080/api/messages/${roomId}/clear?userId=${userId}`, { headers, responseType: 'text' });
+    return this.http.delete(`${API_CONFIG.BASE_URL}/api/messages/${roomId}/clear?userId=${userId}`, { headers, responseType: 'text' });
   }
 
   disconnect() {
@@ -239,13 +241,13 @@ export class ChatService {
   getGroupMembers(groupId: number): Observable<any[]> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
   const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-  return this.http.get<any[]>(`http://localhost:8080/api/groups/${groupId}/members`, { headers });
+  return this.http.get<any[]>(`${API_CONFIG.BASE_URL}/api/groups/${groupId}/members`, { headers });
   }
   // --- ADD THIS AT THE END OF chat.service.ts ---
   togglePin(userId: number, roomId: string): Observable<any> {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    return this.http.post(`http://localhost:8080/api/users/${userId}/toggle-pin/${roomId}`, {}, { headers });
+    return this.http.post(`${API_CONFIG.BASE_URL}/api/users/${userId}/toggle-pin/${roomId}`, {}, { headers });
   }
 
   // 🛑 NAYA: Delete message API call
@@ -253,7 +255,7 @@ export class ChatService {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
     
-    return this.http.put(`http://localhost:8080/api/messages/${messageId}/soft-delete?roomId=${roomId}`, {}, { headers });
+    return this.http.put(`${API_CONFIG.BASE_URL}/api/messages/${messageId}/soft-delete?roomId=${roomId}`, {}, { headers });
   }
 
   setReplyMessage(msg: any) {
@@ -269,19 +271,19 @@ export class ChatService {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
     
-    return this.http.put(`http://localhost:8080/api/messages/${messageId}/pin?roomId=${roomId}`, {}, { headers });
+    return this.http.put(`${API_CONFIG.BASE_URL}/api/messages/${messageId}/pin?roomId=${roomId}`, {}, { headers });
   }
    
   deleteGroup(groupId: number) {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    return this.http.delete(`http://localhost:8080/api/groups/${groupId}`, { headers });
+    return this.http.delete(`${API_CONFIG.BASE_URL}/api/groups/${groupId}`, { headers });
   }
 
   getDepartments(): Observable<string[]> {
   const token = localStorage.getItem('token');
   const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-  return this.http.get<string[]>(`http://localhost:8080/api/users/departments`, { headers });
+  return this.http.get<string[]>(`${API_CONFIG.BASE_URL}/api/users/departments`, { headers });
   }
 
 
@@ -289,7 +291,7 @@ export class ChatService {
   getPollsForUser(userId: number): Observable<any[]> {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    return this.http.get<any[]>(`http://localhost:8080/api/polls/user/${userId}`, { headers });
+    return this.http.get<any[]>(`${API_CONFIG.BASE_URL}/api/polls/user/${userId}`, { headers });
   }
 
  setSelectedPoll(poll: any) {

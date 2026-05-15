@@ -11,6 +11,7 @@ import { COUNTRY_CODES } from '../../utils/countries';
 import { LinkifyPipe } from '../../pipes/linkify-pipe';
 import { PollSidebarComponent } from '../../poll-sidebar/poll-sidebar';
 import { PollWindowComponent } from '../../poll-window/poll-window';
+import { API_CONFIG } from '../../config/api-config';
 
 @Component({
   selector: 'app-chat-window',
@@ -20,6 +21,7 @@ import { PollWindowComponent } from '../../poll-window/poll-window';
   styleUrl: './chat-window.scss'
 })
 export class ChatWindowComponent implements OnInit, OnDestroy {
+  baseUrl = API_CONFIG.BASE_URL;
   readonly String = String;
   messages: any[] = [];
   currentUserId: number | null = null;
@@ -345,7 +347,7 @@ async saveStatus() {
       let finalImageUrl = (this.profileData as any).profilePicture || '';
       const payload = { ...this.profileData, profilePicture: finalImageUrl };
 
-      this.http.put(`http://localhost:8080/api/users/${this.currentUserId}/profile`, payload, { headers })
+      this.http.put(`${API_CONFIG.BASE_URL}/api/users/${this.currentUserId}/profile`, payload, { headers })
         .subscribe({
           next: (response: any) => {
             alert("Status updated successfully! ✅");
@@ -510,7 +512,7 @@ async saveStatus() {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.get<any>(`http://localhost:8080/api/users/${this.currentUserId}`, { headers })
+    this.http.get<any>(`${API_CONFIG.BASE_URL}/api/users/${this.currentUserId}`, { headers })
       .subscribe(user => {
         if (user) {
           this.profileData = {
@@ -552,7 +554,7 @@ async saveStatus() {
     const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : '';
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.get<any>(`http://localhost:8080/api/users/${this.selectedUser.id}`, { headers })
+    this.http.get<any>(`${API_CONFIG.BASE_URL}/api/users/${this.selectedUser.id}`, { headers })
       .subscribe(updatedUser => {
         if (updatedUser) {
           // Sirf status aur identity fields update karenge taaki chat break na ho
@@ -641,7 +643,7 @@ async saveStatus() {
     // NAYA: String ki jagah JSON Object bhej rahe hain
     const payload = { password: this.passwordData.current };
 
-    this.http.post<boolean>(`http://localhost:8080/api/users/${this.currentUserId}/verify-password`, payload, { headers })
+    this.http.post<boolean>(`${API_CONFIG.BASE_URL}/api/users/${this.currentUserId}/verify-password`, payload, { headers })
       .subscribe({
         next: (isValid) => {
           this.isCurrentPwdInvalid = !isValid; 
@@ -667,7 +669,7 @@ async saveStatus() {
     const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : '';
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.put(`http://localhost:8080/api/users/${this.currentUserId}/change-password`, payload, { 
+    this.http.put(`${API_CONFIG.BASE_URL}/api/users/${this.currentUserId}/change-password`, payload, { 
       headers: headers, 
       responseType: 'text' as 'json' 
     })
@@ -697,7 +699,7 @@ async saveStatus() {
     const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : '';
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.delete(`http://localhost:8080/api/users/${this.currentUserId}`, { 
+    this.http.delete(`${API_CONFIG.BASE_URL}/api/users/${this.currentUserId}`, { 
       headers: headers, responseType: 'text' as 'json' 
     }).subscribe({
       next: () => {
@@ -727,7 +729,7 @@ async saveStatus() {
       const formData = new FormData();
       formData.append('file', this.selectedFile);
       try {
-        const uploadRes: any = await this.http.post('http://localhost:8080/api/files/upload', formData, { headers }).toPromise();
+        const uploadRes: any = await this.http.post(`${API_CONFIG.BASE_URL}/api/files/upload`, formData, { headers }).toPromise();
         finalImageUrl = uploadRes.url; 
       } catch (err) {
         alert("Failed to upload image.");
@@ -743,7 +745,7 @@ async saveStatus() {
       profilePicture: finalImageUrl 
     };
 
-    this.http.put(`http://localhost:8080/api/users/${this.currentUserId}/profile`, payload, { headers })
+    this.http.put(`${API_CONFIG.BASE_URL}/api/users/${this.currentUserId}/profile`, payload, { headers })
       .subscribe({
         next: (response: any) => {
           alert("Profile updated successfully! ✅");
@@ -988,7 +990,7 @@ async saveStatus() {
 
   parseProfilePicture(path: string) {
     if (!path) return { isImage: false, isAvatar: false };
-    if (path.startsWith('/uploads/')) return { isImage: true, url: `http://localhost:8080${path}` };
+    if (path.startsWith('/uploads/')) return { isImage: true, url: `${API_CONFIG.BASE_URL}${path}` };
     if (path.includes('|')) {
       const parts = path.split('|');
       return { isImage: false, isAvatar: true, bg: parts[0], icon: parts[1] };
@@ -1084,7 +1086,7 @@ async saveStatus() {
     // Database se saare users fetch karo
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    this.http.get<any[]>('http://localhost:8080/api/users', { headers }).subscribe(users => {
+    this.http.get<any[]>(`${API_CONFIG.BASE_URL}/api/users`, { headers }).subscribe(users => {
        this.allAppUsers = users.filter(u => !u.username.includes('_DELETED_'));
        this.cdr.detectChanges();
     });
@@ -1121,7 +1123,7 @@ async saveStatus() {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.post(`http://localhost:8080/api/groups/${groupId}/members/add?addedById=${this.currentUserId}`, userIds, { headers })
+    this.http.post(`${API_CONFIG.BASE_URL}/api/groups/${groupId}/members/add?addedById=${this.currentUserId}`, userIds, { headers })
       .subscribe({
          next: () => {
            this.isAddingMembers = false;
@@ -1175,7 +1177,7 @@ async saveStatus() {
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
     // Backend ko signal bhejo admin banane ke liye
-    this.http.post(`http://localhost:8080/api/groups/${groupId}/make-admin/${memberId}`, {}, { headers })
+    this.http.post(`${API_CONFIG.BASE_URL}/api/groups/${groupId}/make-admin/${memberId}`, {}, { headers })
       .subscribe({
          next: () => { console.log('Admin request sent'); },
          error: () => { alert('Failed to make admin'); }
@@ -1191,7 +1193,7 @@ async saveStatus() {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.post(`http://localhost:8080/api/groups/${groupId}/dismiss-admin/${memberId}`, {}, { headers })
+    this.http.post(`${API_CONFIG.BASE_URL}/api/groups/${groupId}/dismiss-admin/${memberId}`, {}, { headers })
       .subscribe({
          error: () => { alert('Failed to dismiss admin'); }
       });
@@ -1263,7 +1265,7 @@ async saveStatus() {
     const headers = { 'Authorization': `Bearer ${token}` };
 
     // 1. Users fetch karo
-    fetch('http://localhost:8080/api/users', { headers })
+    fetch(`${API_CONFIG.BASE_URL}/api/users`, { headers })
       .then(res => res.json())
       .then((users: any[]) => {
         const activeUsers = users.filter(u => 
@@ -1277,7 +1279,7 @@ async saveStatus() {
       });
 
     // 2. Groups fetch karo 
-    fetch(`http://localhost:8080/api/groups/user/${this.currentUserId}`, { headers })
+    fetch(`${API_CONFIG.BASE_URL}/api/groups/user/${this.currentUserId}`, { headers })
       .then(res => res.json())
       .then((groups: any[]) => {
         const activeGroups = groups.filter(g => 
@@ -1372,7 +1374,7 @@ async saveStatus() {
   downloadFile(fileUrl: string, fileName: string) {
     if (!fileUrl) return;
 
-    const fullUrl = `http://localhost:8080${fileUrl}`;
+    const fullUrl = `${API_CONFIG.BASE_URL}${fileUrl}`;
 
     // 🛑 NAYA: Browser ko bypass karke file fetch karna
     fetch(fullUrl)
@@ -1541,7 +1543,7 @@ async saveStatus() {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.put(`http://localhost:8080/api/groups/${groupId}/permissions`, { permissions: this.selectedGroupPermission }, { headers })
+    this.http.put(`${API_CONFIG.BASE_URL}/api/groups/${groupId}/permissions`, { permissions: this.selectedGroupPermission }, { headers })
       .subscribe({
         next: () => {
           this.isApplyingSettings = false;

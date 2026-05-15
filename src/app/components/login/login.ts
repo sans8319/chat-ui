@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { API_CONFIG } from '../../config/api-config';
 
 @Component({
   selector: 'app-login',
@@ -24,7 +25,7 @@ export class LoginComponent {
 
   onLogin() {
     this.isLoading = true;
-    this.http.post('http://localhost:8080/auth/login', this.loginData).subscribe({
+    this.http.post(`${API_CONFIG.BASE_URL}/auth/login`, this.loginData).subscribe({
       next: (res: any) => {
         // Token aur User info save karna
         localStorage.setItem('token', res.token);

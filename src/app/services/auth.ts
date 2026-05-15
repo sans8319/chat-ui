@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable, tap } from 'rxjs';
+import { API_CONFIG } from '../config/api-config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = environment.apiUrl;
+  private apiUrl = API_CONFIG.BASE_URL;
 
   constructor(private http: HttpClient) {}
 
@@ -20,6 +21,6 @@ export class AuthService {
   }
 
   getToken() {
-    return localStorage.getItem('token');
+    return typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   }
 }

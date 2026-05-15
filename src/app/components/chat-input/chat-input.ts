@@ -3,6 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ChatService } from '../../services/chat';
+import { API_CONFIG } from '../../config/api-config';
 
 @Component({
   selector: 'app-chat-input',
@@ -15,6 +16,8 @@ export class ChatInputComponent {
   readonly String = String;
   @Input() roomId: string | null = null; 
   messageText: string = '';
+
+  baseUrl = API_CONFIG.BASE_URL;
 
   // NAYA: Multi-File Media States
   isDragging = false;
@@ -198,7 +201,7 @@ export class ChatInputComponent {
         const uploadPromises = this.selectedFiles.map(async (fileObj) => {
           const formData = new FormData();
           formData.append('file', fileObj.file);
-          return this.http.post('http://localhost:8080/api/files/upload', formData, { headers }).toPromise();
+          return this.http.post(`${API_CONFIG.BASE_URL}/api/files/upload`, formData, { headers }).toPromise();
         });
 
         uploadedFilesMetadata = await Promise.all(uploadPromises);

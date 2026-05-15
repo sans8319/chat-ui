@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { API_CONFIG } from '../../config/api-config';
 
 @Component({
   selector: 'app-signup',
@@ -56,7 +57,7 @@ export class SignupComponent {
     }
 
     this.isLoading = true;
-    this.http.post('http://localhost:8080/auth/signup', this.signupData).subscribe({
+    this.http.post(`${API_CONFIG.BASE_URL}/auth/signup`, this.signupData).subscribe({
       next: (res: any) => {
         this.successMessage = 'Account created! Redirecting to login...';
         setTimeout(() => this.router.navigate(['/']), 2000);
